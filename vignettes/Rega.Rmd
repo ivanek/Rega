@@ -1,0 +1,75 @@
+---
+title: "The Rega User Guide"
+bibliography: Rega-refs.bib
+author: 
+  - name: "Robert Ivánek"
+    affiliation: 
+    - Department of Biomedicine, University of Basel, Basel, Switzerland
+    - Swiss Institute of Bioinformatics, Basel, Switzerland
+    email: robert.ivanek@unibas.ch
+package: "`r BiocStyle::pkg_ver('Rega')`"
+output:
+  BiocStyle::html_document:
+    toc_float: true
+  BiocStyle::pdf_document: 
+    default
+abstract: |
+  Rega provides interface to European Genome-Phenome Archive (EGA).
+vignette: |
+    %\VignetteIndexEntry{The Rega User Guide}
+    %\VignetteKeywords{API}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+editor_options:
+  chunk_output_type: 
+    console
+---
+
+__Last edited:__ 21 April 2023
+
+```{r init, echo=FALSE, results='hide'}
+library(knitr)
+
+## 1. issue with too large vignette, maybe optimizing png?
+## unfortunately it requires additional system libs -> not feasible
+##           `pngquant=""`, `optipng = "-o7"` both in `opts_chunk`
+## SOLUTION: might be to use `fig.retina = 1` and only set it to 2 (default)
+##           for figures which requires higher resolution
+##           or even decrease res `dpi = 72`, also both in `opts_chunk`
+## 
+## knit_hooks$set(optipng = hook_optipng,
+##                pngquant = hook_pngquant)
+##
+## 2. crop=NULL or FALSE =>  fix vignette rendering based on yihui/knitr#1796
+## added also error=FALSE to include_graphics
+
+opts_chunk$set(
+  collapse = TRUE,
+  tidy = FALSE,
+  fig.retina = 1,
+  comment = "#>",
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  crop = NULL                           
+)
+
+## check the output type
+out_type <- opts_knit$get("rmarkdown.pandoc.to")
+if (is.null(out_type))
+    out_type <- "html"
+
+## add styling
+if (out_type == "html") {
+    BiocStyle::markdown()
+} else if (out_type == "latex") {
+    BiocStyle::latex()
+}
+```
+
+# Introduction
+
+```{r setup}
+library(Rega)
+```
+

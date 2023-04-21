@@ -1,0 +1,25 @@
+Package: Rega
+Title: R Interface to European Genome-Phenome Archive 
+Version: 0.0.0.9000
+Authors@R: 
+    person("Robert", "Ivanek", role=c("aut", "cre"), 
+	        email="robert.ivanek@unibas.ch", 
+	        comment=c(ORCID="0000-0002-8403-056X"))
+Description: Rega provides interface to European Genome-Phenome Archive (EGA). 
+License: Artistic-2.0
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3.9001
+Depends:
+    R (>= 4.3),
+    httr2,
+    jsonlite
+Suggests:
+    knitr,
+    rmarkdown,
+    BiocStyle,
+    testthat (>= 3.0.0)
+URL: https://github.com/ivanek/Rega
+BugReports: https://github.com/ivanek/Rega/issues
+VignetteBuilder: knitr
+Config/testthat/edition: 3
