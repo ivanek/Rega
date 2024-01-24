@@ -2233,8 +2233,31 @@ new_dataset</code></pre>
 # ega_finalise_submission(submission = new_submission$provisional_id,
 #                         expected_release_date=&quot;2026-01-01&quot;)</code></pre>
 </div>
-<div id="notes-below" class="section level1" number="5">
-<h1><span class="header-section-number">5</span> Notes Below</h1>
+<div id="submission-in-one-go" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Submission In One Go</h1>
+<pre class="r"><code>  # check the required columns
+  required_cols &lt;- c(&quot;alias&quot;, &quot;subject_id&quot;, &quot;biological_sex&quot;, &quot;phenotype&quot;)
+  if (sum(required_cols %in% colnames(smpl_table)) &lt; 4) {
+    stop(paste0(&quot;`smpl_table` must contain columns: &quot;, paste(required_cols, collapse=&quot;, &quot;), &quot;!&quot;))
+  }
+  # check that the aliases are unique
+  if (nrow(smpl_table) &gt; n_distinct(smpl_table$alias)) {
+    stop(&quot;`alias` column cannot contain duplicated values!&quot;)
+  }
+
+
+# send samples to EGA
+smpl_table &lt;- smpl_table |&gt;
+  rowwise() |&gt;
+  mutate(submission_id = submission_id) |&gt;
+  mutate(out = pick(everything())) |&gt;
+  mutate(out = list(as.list(out))) |&gt;
+  mutate(out = do.call(ega_create_sample, out))
+
+smpl_table$out</code></pre>
+</div>
+<div id="notes-below" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Notes Below</h1>
 </div>
 
 

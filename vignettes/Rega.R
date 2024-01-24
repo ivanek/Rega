@@ -296,6 +296,28 @@ ega_enums("genomes")
 #  #                         expected_release_date="2026-01-01")
 
 ## -----------------------------------------------------------------------------
+#    # check the required columns
+#    required_cols <- c("alias", "subject_id", "biological_sex", "phenotype")
+#    if (sum(required_cols %in% colnames(smpl_table)) < 4) {
+#      stop(paste0("`smpl_table` must contain columns: ", paste(required_cols, collapse=", "), "!"))
+#    }
+#    # check that the aliases are unique
+#    if (nrow(smpl_table) > n_distinct(smpl_table$alias)) {
+#      stop("`alias` column cannot contain duplicated values!")
+#    }
+#  
+#  
+#  # send samples to EGA
+#  smpl_table <- smpl_table |>
+#    rowwise() |>
+#    mutate(submission_id = submission_id) |>
+#    mutate(out = pick(everything())) |>
+#    mutate(out = list(as.list(out))) |>
+#    mutate(out = do.call(ega_create_sample, out))
+#  
+#  smpl_table$out
+
+## -----------------------------------------------------------------------------
 #  # check the authentication flow
 #  
 #  # # token
