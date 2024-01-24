@@ -13,19 +13,18 @@ output:
     toc_float: true
   BiocStyle::pdf_document: 
     default
-abstract: |
-  Rega provides interface to European Genome-Phenome Archive (EGA).
-vignette: |
-    %\VignetteIndexEntry{The Rega User Guide}
-    %\VignetteKeywords{API}
-    %\VignetteEngine{knitr::rmarkdown}
-    %\VignetteEncoding{UTF-8}
+abstract: "Rega provides interface to European Genome-Phenome Archive (EGA)."
+vignette: >
+  %\VignetteIndexEntry{The Rega User Guide}
+  %\VignetteKeywords{API}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 editor_options:
   chunk_output_type: 
     console
 ---
 
-__Last edited:__ 21 April 2023
+__Last edited:__ 19 January 2024
 
 ```{r init, echo=FALSE, results='hide'}
 library(knitr)
@@ -57,19 +56,567 @@ opts_chunk$set(
 ## check the output type
 out_type <- opts_knit$get("rmarkdown.pandoc.to")
 if (is.null(out_type))
-    out_type <- "html"
+  out_type <- "html"
 
 ## add styling
 if (out_type == "html") {
-    BiocStyle::markdown()
+  BiocStyle::markdown()
 } else if (out_type == "latex") {
-    BiocStyle::latex()
+  BiocStyle::latex()
 }
 ```
 
 # Introduction
 
-```{r setup}
+```{r}
+#| label: setup
+library(tidyverse)
 library(Rega)
+
+# set permanent KEY ? 
+# 
+# `httr2` is built around the notion that the key should live in an environment variable. 
+# So the first step is to make your package key available on your local development 
+# machine by adding a line to your your user-level `.Renviron` 
+# (which you can easily open with `usethis::edit_r_environ())`:
+
+Sys.setenv("REGA_EGA_USERNAME" = "ega-box-2269")
+Sys.setenv("REGA_EGA_PASSWORD" = "4f8T_aX-aLP-5obJWEEIShckVjjovgm3")
+```
+
+
+# Get Available Information From EGA
+
+## User
+
+```{r}
+#| label: simple_query_user
+
+ega_users()
+```
+
+## Enums
+
+To know which values are accepted for the types i.e `status_types`,`study_types`, `biological_sex`..., you can check all available specification listed in the `enums` that are available by using the following command:
+
+```{r}
+#| label: simple_query_enum
+
+ega_enums()
+```
+
+### Study types
+
+To check for a specific `enum`, for example `study_types`, you can access just access it to see it's possible values:
+
+```{r}
+#| label: simple_query_enum_study_types
+ega_enums("study_types")
+```
+
+### Run File Types
+
+```{r}
+ega_enums("run_file_types") 
+```
+
+### Accepted Genomes
+
+
+```{r}
+ega_enums("genomes") 
+```
+
+
+## List Submission
+
+```{r}
+#| eval: false
+
+ega_submissions()
+ega_submissions(submission = "EGA00002556014")
+ega_submissions(submission = "1629667")
+```
+
+## List Studies
+
+```{r}
+#| eval: false
+ega_studies()
+ega_studies(study="6743")
+ega_studies(study="EGAS00001006794")
+ega_studies(submission="1299997")
+ega_studies(submission="EGA00002309665")
+```
+
+## List Samples
+
+```{r}
+#| eval: false
+
+ega_samples()
+ega_samples(sample="38812")
+ega_samples(submission="7290")
+ega_samples(submission="EGA00002556509")
+```
+
+## List Experiments
+
+```{r}
+#| eval: false
+
+ega_experiments()
+ega_experiments(experiment="6971")
+ega_experiments(submission="7290")
+ega_experiments(submission="EGA00002556509")
+```
+
+
+## List Runs
+
+```{r}
+#| eval: false
+
+ega_runs()
+ega_runs(run="42191")
+ega_runs(submission="7290")
+ega_runs(submission="EGA00002556509")
+```
+
+
+## List Analyses
+
+```{r}
+#| eval: false
+
+ega_analyses()
+ega_analyses(submission="7290")
+ega_analyses(submission="EGA00002556509")
+```
+
+
+## List Datasets
+
+```{r}
+#| eval: false
+
+ega_datasets()
+ega_datasets(submission="1300293")
+ega_datasets(submission="EGA00002309961")
+```
+
+
+# Create A Complete New Submission
+
+- submission
+- study
+- samples
+- experiments
+- runs
+- analyses
+- datasets
+
+## Create Submission
+
+```{r}
+#| eval: false
+
+new_submission <- ega_create_submission(title="Test Submission API", 
+                                        description="Testing API from R")
+new_submission
+```
+
+### Update Submission
+
+```{r}
+#| eval: false
+
+new_submission <- ega_update_submission(submission=new_submission$provisional_id,
+                                        title="Test Submission API (update)", 
+                                        description="Testing API from R (update)")
+new_submission
+```
+
+### Rollback Submission
+
+```{r}
+#| eval: false
+
+new_submission <- ega_rollback_submission(submission=new_submission$provisional_id)
+new_submission
+```
+
+### Delete Submission
+
+```{r}
+#| eval: false
+
+new_submission <- ega_delete_submission(submission=new_submission$provisional_id)
+new_submission
+```
+
+
+## Create Study
+
+```{r}
+#| eval: false
+
+new_study <- ega_create_study(submission=new_submission$provisional_id,
+                              title="Test Study", 
+                              description="New Study, Testing API from R",
+                              study_type="RNASeq")
+new_study
+```
+
+
+### Update Study
+
+```{r}
+#| eval: false
+
+new_study <- ega_update_study(study=new_study$provisional_id,
+                                   title="Test Study (updated)", 
+                                   description="New Study, Testing API from R (updated)",
+                                   study_type="RNASeq")
+new_study
+```
+
+
+### Rollback Study
+
+```{r}
+#| eval:  false
+
+new_study <- ega_rollback_study(study=new_study$provisional_id)
+new_study
+```
+
+
+### Delete Study
+
+```{r}
+#| eval:  false
+
+new_study <- ega_delete_study(study=new_study$provisional_id)
+new_study
+```
+
+
+
+## Create Sample
+
+```{r}
+#| eval: false
+new_sample <- ega_create_sample(submission=new_submission$provisional_id,
+                                alias="My unique sample alias 1",
+                                biological_sex="male",
+                                phenotype="nose",
+                                subject_id="192873366738836788")
+
+new_sample
+```
+
+### Update Sample
+
+```{r}
+#| eval: false
+
+new_sample <- ega_update_sample(sample=new_sample$provisional_id,
+                                alias="My unique sample alias 1 (upd)",
+                                biological_sex="male",
+                                phenotype="nose",
+                                subject_id="192873366738836788")
+new_sample
+```
+
+
+### Rollback sample
+
+```{r}
+#| eval:  false
+
+new_sample <- ega_rollback_sample(sample=new_sample$provisional_id)
+new_sample
+```
+
+
+### Delete sample
+
+```{r}
+#| eval:  false
+
+new_sample <- ega_delete_sample(sample=sample$provisional_id)
+new_sample
+```
+
+
+## Create Experiment
+
+```{r}
+#| eval: false
+new_experiment <-  ega_create_experiment(submission=new_submission$provisional_id,
+                                         design_description = "My experiment design",
+                                         study_provisional_id = new_study$provisional_id,
+                                         instrument_model_id = 1,
+                                         library_layout ="SINGLE",
+                                         library_strategy = "WGS",
+                                         library_source = "GENOMIC",
+                                         library_selection ="RANDOM")
+
+new_experiment
+```
+
+### Update experiment
+
+```{r}
+#| eval: false
+
+new_experiment <- ega_update_experiment(experiment=new_experiment$provisional_id,
+                                        design_description = "My experiment design (updated)",
+                                        study_provisional_id = new_study$provisional_id,
+                                        instrument_model_id = 1,
+                                        library_layout ="SINGLE",
+                                        library_strategy = "WGS",
+                                        library_source = "GENOMIC",
+                                        library_selection ="RANDOM")
+new_experiment
+```
+
+
+### Rollback experiment
+
+```{r}
+#| eval:  false
+
+new_experiment <- ega_rollback_experiment(experiment=new_experiment$provisional_id)
+new_experiment
+```
+
+
+### Delete experiment
+
+```{r}
+#| eval:  false
+
+new_experiment <- ega_delete_experiment(experiment=new_experiment$provisional_id)
+new_experiment
+```
+
+## Create Run
+
+```{r}
+#| eval: false
+
+new_run <- ega_create_run(submission=new_submission$provisional_id, 
+                          run_file_type="fastq", 
+                          files=list("75243", "75406"), 
+                          experiment_provisional_id=new_experiment$provisional_id, 
+                          sample_provisional_id=new_sample$provisional_id)
+new_run
+```
+
+
+
+```{r}
+#| eval: false
+
+new_run <- ega_update_run(run=new_run$provisional_id, 
+                          run_file_type="fastq", 
+                          files=list("75243", "75406"), 
+                          experiment_provisional_id=new_experiment$provisional_id, 
+                          sample_provisional_id=new_sample$provisional_id)
+new_run
+```
+
+
+### Rollback run
+
+```{r}
+#| eval:  false
+
+new_run <- ega_rollback_run(run=new_run$provisional_id)
+new_run
+```
+
+
+### Delete run
+
+```{r}
+#| eval:  false
+
+new_run <- ega_delete_run(run=new_run$provisional_id)
+new_run
+```
+
+## Create Analysis
+
+
+```{r}
+#| eval: false
+
+new_analysis <- ega_create_analysis(submission=new_submission$provisional_id, 
+                                    title="My first analysis",
+                                    description = "Description of my first analysis",
+                                    analysis_type="REFERENCE ALIGNMENT", 
+                                    files=list("188544"),
+                                    study_provisional_id = new_study$provisional_id,
+                                    experiment_provisional_ids = list(new_experiment$provisional_id),
+                                    sample_provisional_ids = list(new_sample$provisional_id),
+                                    experiment_types = list("Whole genome sequencing"),
+                                    genome_id = 27)
+new_analysis
+```
+
+### Update Analysis
+
+```{r}
+#| eval: false
+
+new_analysis <- ega_update_analysis(analysis=new_analysis$provisional_id, 
+                          title="My first analysis (update)",
+                                    description = "Description of my first analysis",
+                                    analysis_type="REFERENCE ALIGNMENT", 
+                                    files=list("188544"),
+                                    study_provisional_id = new_study$provisional_id,
+                                    experiment_provisional_ids = list(new_experiment$provisional_id),
+                                    sample_provisional_ids = list(new_sample$provisional_id),
+                                    experiment_types = list("Whole genome sequencing"),
+                                    genome_id = 27)
+new_analysis
+```
+
+
+### Rollback analysis
+
+```{r}
+#| eval:  false
+
+new_analysis <- ega_rollback_analysis(analysis=new_analysis$provisional_id)
+new_analysis
+```
+
+
+### Delete analysis
+
+```{r}
+#| eval:  false
+
+new_analysis <- ega_delete_analysis(analysis=new_analysis$provisional_id)
+new_analysis
+```
+
+
+## Create dataset
+
+In this case we link with the policy with accession `EGAP00001003010`.
+
+```{r}
+#| eval: false
+
+new_dataset <- ega_create_dataset(submission = new_submission$provisional_id,
+                                  title = "My dataset title",
+                                  description = "My dataset description",
+                                  dataset_types = list("Transcriptome profiling by high-throughput sequencing"),
+                                  policy_accession_id="EGAP00001003010",
+                                  run_provisional_ids=list(new_run$provisional_id),
+                                  analysis_provisional_ids = list(new_analysis$provisional_id))
+
+new_dataset
+```
+
+
+### Update Dataset
+
+```{r}
+#| eval: false
+
+new_dataset <- ega_update_dataset(dataset = new_dataset$provisional_id,
+                                  title = "My dataset title (update)",
+                                  description = "My dataset description",
+                                  dataset_types = list("Transcriptome profiling by high-throughput sequencing"),
+                                  policy_accession_id="EGAP00001003010",
+                                  run_provisional_ids=list(new_run$provisional_id),
+                                  analysis_provisional_ids = list(new_analysis$provisional_id))
+new_dataset
+```
+
+
+### Rollback Dataset
+
+```{r}
+#| eval:  false
+
+new_dataset <- ega_rollback_dataset(dataset=new_dataset$provisional_id)
+new_dataset
+```
+
+
+### Delete dataset
+
+```{r}
+#| eval:  false
+
+new_dataset <- ega_delete_dataset(dataset=new_dataset$provisional_id)
+new_dataset
+```
+
+
+
+# Finalise submission
+
+You can only finalize a submission when the files are in place and all the objects must be used.
+
+```{r}
+#| eval: false
+
+
+# ega_finalise_submission(submission = new_submission$provisional_id,
+#                         expected_release_date="2026-01-01")
+```
+
+# Submission In One Go
+
+```{r}
+#| eval: false
+
+# send samples to EGA
+smpl_table <- smpl_table |>
+  rowwise() |>
+  mutate(submission_id = submission_id) |>
+  mutate(out = pick(everything())) |>
+  mutate(out = list(as.list(out))) |>
+  mutate(out = do.call(ega_create_sample, out))
+
+smpl_table$out
+```
+
+
+# Notes Below
+
+```{r}
+#| eval: false
+#| echo: false
+
+# check the authentication flow
+
+# # token
+# token <- oauth_flow_password(
+#   client = ega_client,
+#   username = ega_username,
+#   password = ega_password
+# )
+# token$access_token
+
+# # cached token
+# token <- oauth_token_cached(
+#   client = ega_client,
+#   flow = oauth_flow_password,
+#   flow_params = list(
+#     username = ega_username,
+#     password = ega_password
+#   ),
+#   cache_disk = TRUE
+# )
+# token$access_token
 ```
 
