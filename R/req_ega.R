@@ -87,7 +87,7 @@ ega_get_password <- function() {
 #' @return returns a modified HTTP request that will use OAuth;
 #'
 #' @keywords internal
-#' @describeIn req_ega_auth Set OAUTH for EGA API.
+#' @noRd
 #'
 #' @importFrom httr2 oauth_client
 #' @importFrom httr2 req_oauth_password
@@ -119,6 +119,7 @@ req_ega_auth <- function(req, ega_username=ega_get_username(),
 #'
 #' @return Character Scalar. EGA API Error Message.
 #' @keywords internal
+#' @noRd
 #'
 #' @importFrom httr2 resp_body_string
 #' @importFrom stringr str_replace
@@ -153,6 +154,7 @@ ega_error_body <- function(resp) {
 #' @importFrom httr2 req_perform
 #'
 #' @keywords internal
+#' @noRd
 #'
 #' @examples \dontrun{
 #' Rega:::req_ega("enums")
@@ -189,12 +191,16 @@ req_ega <- function(resource, ..., method="GET") {
 #'
 #' @return List. Checked list with reordered elements according to the  names in `nms`.
 #' @keywords internal
+#' @noRd
+#'
+#' @importFrom rlang as_label
+#' @importFrom rlang enquo
 #'
 #' @examples
 #' extra <- list(a=1, b=2)
-#' Rega:::check_list(ll=extra, nms=c("a","b"))
+#' Rega:::check_list_str(ll=extra, nms=c("a","b"))
 #'
-check_list <- function(ll, nms) {
+check_list_str <- function(ll, nms) {
   if (!is.null(ll)) {
     nm <- rlang::as_label(rlang::enquo(ll))
 
@@ -218,3 +224,53 @@ check_list <- function(ll, nms) {
   }
   return(ll)
 }
+
+#' Check if Variable Is List
+#'
+#' @param x List.
+#'
+#' @return List.
+#' @keywords internal
+#' @noRd
+#'
+#' @importFrom rlang as_label
+#' @importFrom rlang enquo
+#' @importFrom rlang is_list
+#'
+#' @examples
+#' v <- list("a")
+#' check_list(v)
+check_list <- function(x) {
+  nm <- rlang::as_label(rlang::enquo(x))
+  if (!is_list(x)) {
+    stop(paste0("`",nm," has to be a list!"))
+  }
+  return(x)
+}
+
+
+
+#' Check if Variable Is Character Scalar
+#'
+#' @param x Character scalar.
+#'
+#' @return Character scalar.
+#' @keywords internal
+#' @noRd
+#'
+#' @importFrom rlang as_label
+#' @importFrom rlang enquo
+#' @importFrom rlang is_scalar_character
+#'
+#' @examples
+#' v <- "a"
+#' check_character_scalar(v)
+check_character_scalar <- function(x) {
+  nm <- rlang::as_label(rlang::enquo(x))
+  if (!rlang::is_scalar_character(x)) {
+    stop(paste0("`",nm," has to be a character scalar!"))
+  }
+  return(x)
+}
+
+

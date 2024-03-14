@@ -76,9 +76,9 @@ ega_create_analysis <- function(submission,
                                 sample_accession_ids=NULL,
                                 extra_attributes=NULL) {
 
-  chromosomes <- check_list(chromosomes,
+  chromosomes <- check_list_str(chromosomes,
                             nms=c("id", "label"))
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/analyses"),
                   method="POST",
@@ -149,10 +149,10 @@ ega_update_analysis <- function(analysis,
                                 sample_accession_ids=NULL,
                                 extra_attributes=NULL) {
 
-  chromosomes <- check_list(chromosomes,
+  chromosomes <- check_list_str(chromosomes,
                             nms=c("id", "label"))
 
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("analyses/", analysis),
                   method="PUT",

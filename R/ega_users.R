@@ -12,6 +12,7 @@
 #' }
 #'
 ega_users <- function(username=ega_get_username()) {
+  username <- check_character_scalar(username)
   ret <- ega_get(resource_prefix=paste0("users/", username))
   return(ret)
 }

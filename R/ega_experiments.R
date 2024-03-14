@@ -74,7 +74,7 @@ ega_create_experiment <- function(submission,
                                   library_selection,
                                   extra_attributes=NULL) {
 
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/experiments"),
                   method="POST",
@@ -139,7 +139,7 @@ ega_update_experiment <- function(experiment,
                                   library_selection,
                                   extra_attributes=NULL) {
 
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("experiments/", experiment),
                   method="PUT",

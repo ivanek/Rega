@@ -52,11 +52,11 @@ ega_create_study <- function(submission, title, description, study_type,
                              pubmed_ids=NULL, custom_tags=NULL,
                              extra_attributes=NULL,
                              repositories=NULL) {
-  pubmed_ids <- check_list(pubmed_ids, nms="")
-  custom_tags <- check_list(custom_tags, nms="")
-  extra_attributes <- check_list(extra_attributes,
+  pubmed_ids <- check_list_str(pubmed_ids, nms="")
+  custom_tags <- check_list_str(custom_tags, nms="")
+  extra_attributes <- check_list_str(extra_attributes,
                               nms=c("tag", "value", "unit"))
-  repositories <- check_list(repositories,
+  repositories <- check_list_str(repositories,
                                  nms=c("repository_id", "url", "label"))
   resp <- req_ega(paste0("submissions/", submission, "/studies"),
                   method="POST",
@@ -96,11 +96,11 @@ ega_update_study <- function(study, title, description, study_type,
                              pubmed_ids=NULL, custom_tags=NULL,
                              extra_attributes=NULL,
                              repositories=NULL) {
-  pubmed_ids <- check_list(pubmed_ids, nms="")
-  custom_tags <- check_list(custom_tags, nms="")
-  extra_attributes <- check_list(extra_attributes,
+  pubmed_ids <- check_list_str(pubmed_ids, nms="")
+  custom_tags <- check_list_str(custom_tags, nms="")
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
-  repositories <- check_list(repositories,
+  repositories <- check_list_str(repositories,
                              nms=c("repository_id", "url", "label"))
   resp <- req_ega(paste0("studies/", study),
                   method="PUT",

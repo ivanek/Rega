@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-01-24" />
+<meta name="date" content="2024-02-02" />
 
 <title>The Rega User Guide</title>
 
@@ -1839,7 +1839,7 @@ function toggle_visibility(id1) {
 <p class="author-name">Robert Ivánek<span class="affil-mark">1,2*</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Department of Biomedicine, University of Basel, Basel, Switzerland<br><span class="affil-mark">2</span>Swiss Institute of Bioinformatics, Basel, Switzerland</p>
 <p class="author-email"><span class="affil-mark">*</span><a href="mailto:robert.ivanek@unibas.ch">robert.ivanek@unibas.ch</a></p>
-<h4 class="date">24 January 2024</h4>
+<h4 class="date">2 February 2024</h4>
 <h4 class="abstract">Abstract</h4>
 Rega provides interface to European Genome-Phenome Archive (EGA).
 <h4 class="package">Package</h4>
@@ -2136,19 +2136,22 @@ new_experiment</code></pre>
                           experiment_provisional_id=new_experiment$provisional_id, 
                           sample_provisional_id=new_sample$provisional_id)
 new_run</code></pre>
+<div id="update-run" class="section level3" number="3.5.1">
+<h3><span class="header-section-number">3.5.1</span> Update run</h3>
 <pre class="r"><code>new_run &lt;- ega_update_run(run=new_run$provisional_id, 
                           run_file_type=&quot;fastq&quot;, 
                           files=list(&quot;75243&quot;, &quot;75406&quot;), 
                           experiment_provisional_id=new_experiment$provisional_id, 
                           sample_provisional_id=new_sample$provisional_id)
 new_run</code></pre>
-<div id="rollback-run" class="section level3" number="3.5.1">
-<h3><span class="header-section-number">3.5.1</span> Rollback run</h3>
+</div>
+<div id="rollback-run" class="section level3" number="3.5.2">
+<h3><span class="header-section-number">3.5.2</span> Rollback run</h3>
 <pre class="r"><code>new_run &lt;- ega_rollback_run(run=new_run$provisional_id)
 new_run</code></pre>
 </div>
-<div id="delete-run" class="section level3" number="3.5.2">
-<h3><span class="header-section-number">3.5.2</span> Delete run</h3>
+<div id="delete-run" class="section level3" number="3.5.3">
+<h3><span class="header-section-number">3.5.3</span> Delete run</h3>
 <pre class="r"><code>new_run &lt;- ega_delete_run(run=new_run$provisional_id)
 new_run</code></pre>
 </div>

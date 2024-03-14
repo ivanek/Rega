@@ -60,7 +60,7 @@ ega_create_run <- function(submission,
                            sample_accession_id=NULL,
                            extra_attributes=NULL) {
 
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/runs"),
                   method="POST",
@@ -106,7 +106,7 @@ ega_update_run <- function(run,
                            sample_accession_id=NULL,
                            extra_attributes=NULL) {
 
-  extra_attributes <- check_list(extra_attributes,
+  extra_attributes <- check_list_str(extra_attributes,
                                  nms=c("tag", "value", "unit"))
   resp <- req_ega(paste0("runs/", run),
                   method="PUT",

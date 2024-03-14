@@ -37,7 +37,7 @@ ega_submissions <- function(submission=NULL) {
 #' description="Submission description")
 #' }
 ega_create_submission <- function(title, description, collaborators=NULL) {
-  collaborators <- check_list(collaborators,
+  collaborators <- check_list_str(collaborators,
                               nms=c("id", "access_type", "comment"))
   resp <- req_ega("submissions",
                   method="POST",
@@ -130,7 +130,7 @@ ega_rollback_submission <- function(submission) {
 ega_finalise_submission <- function(submission,
                                     expected_release_date = Sys.Date() + 365,
                                     dataset_changelogs=NULL) {
-  dataset_changelogs <- check_list(dataset_changelogs,
+  dataset_changelogs <- check_list_str(dataset_changelogs,
                               nms=c("dataset", "message"))
   resp <- req_ega(paste0("submissions/", submission, "/finalise"),
                   expected_release_date = expected_release_date,
