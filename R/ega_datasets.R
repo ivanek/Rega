@@ -63,8 +63,8 @@ ega_create_dataset <- function(submission,
                            analysis_accession_ids=NULL,
                            extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/datasets"),
                   method="POST",
                   title=title, description=description,
@@ -114,8 +114,8 @@ ega_update_dataset <- function(dataset,
                                analysis_accession_ids=NULL,
                                extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("datasets/", dataset),
                   method="PUT",
                   title=title, description=description,

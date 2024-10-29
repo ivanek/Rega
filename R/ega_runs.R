@@ -60,8 +60,8 @@ ega_create_run <- function(submission,
                            sample_accession_id=NULL,
                            extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/runs"),
                   method="POST",
                   run_file_type=run_file_type,
@@ -106,8 +106,8 @@ ega_update_run <- function(run,
                            sample_accession_id=NULL,
                            extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("runs/", run),
                   method="PUT",
                   run_file_type=run_file_type, files=files,

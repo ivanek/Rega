@@ -222,7 +222,8 @@ ega_datasets(submission="EGA00002309961")
 #| eval: false
 
 new_submission <- ega_create_submission(title="Test Submission API", 
-                                        description="Testing API from R")
+                                        description="Testing API from R",
+                                        collaborators=list())
 new_submission
 ```
 

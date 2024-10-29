@@ -16,10 +16,12 @@ ega_studies <- function(submission=NULL, study=NULL) {
   # information about single study
   # study has preference over submission
   if (!is.null(study)) {
+    study <- assert_ega_id(study)
     ret <- ega_get(resource_prefix="studies",
                    resource_id = study)
   } else if (!is.null(submission)) {
     # information about all studies in submission
+    submission <- assert_ega_id(submission)
     ret <- ega_get(resource_prefix="submissions",
                    resource_id = submission,
                    resource_suffix = "studies")
@@ -41,6 +43,8 @@ ega_studies <- function(submission=NULL, study=NULL) {
 #' @param extra_attributes list. The extra attributes, list with element names: `tag`, `value` and `unit.`
 #' @param repositories list. The external references to other repositories, list with element names: `repository_id`, `url` and `label`.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return tibble. Information about newly created study.
 #' @export
 #'
@@ -52,12 +56,20 @@ ega_create_study <- function(submission, title, description, study_type,
                              pubmed_ids=NULL, custom_tags=NULL,
                              extra_attributes=NULL,
                              repositories=NULL) {
-  pubmed_ids <- check_list_str(pubmed_ids, nms="")
-  custom_tags <- check_list_str(custom_tags, nms="")
-  extra_attributes <- check_list_str(extra_attributes,
-                              nms=c("tag", "value", "unit"))
-  repositories <- check_list_str(repositories,
-                                 nms=c("repository_id", "url", "label"))
+
+  submission <- assert_ega_id(submission)
+  title <- checkmate::assert_string(title)
+  description <- checkmate::assert_string(description)
+  study_type <- checkmate::assert_string(study_type)
+
+  # pubmed_ids <- checkmate::assert_list()
+
+  pubmed_ids <- assert_ega_list(pubmed_ids)
+  custom_tags <- assert_ega_list(custom_tags, types="character")
+  extra_attributes <- assert_ega_list(extra_attributes,
+                              names=c("tag", "value", "unit"))
+  repositories <- assert_ega_list(repositories,
+                                 names=c("repository_id", "url", "label"))
   resp <- req_ega(paste0("submissions/", submission, "/studies"),
                   method="POST",
                   title=title,
@@ -96,12 +108,12 @@ ega_update_study <- function(study, title, description, study_type,
                              pubmed_ids=NULL, custom_tags=NULL,
                              extra_attributes=NULL,
                              repositories=NULL) {
-  pubmed_ids <- check_list_str(pubmed_ids, nms="")
-  custom_tags <- check_list_str(custom_tags, nms="")
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
-  repositories <- check_list_str(repositories,
-                             nms=c("repository_id", "url", "label"))
+  pubmed_ids <- assert_ega_list(pubmed_ids, names="")
+  custom_tags <- assert_ega_list(custom_tags, names="")
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
+  repositories <- assert_ega_list(repositories,
+                             names=c("repository_id", "url", "label"))
   resp <- req_ega(paste0("studies/", study),
                   method="PUT",
                   title=title,

@@ -4,6 +4,8 @@
 #'
 #' @param submission Get information only for this submission.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return tibble with information about submission(s).
 #' @export
 #'
@@ -12,12 +14,9 @@
 #' }
 #'
 ega_submissions <- function(submission=NULL) {
-  if (!is.null(submission)) {
+    submission <- assert_ega_id(submission)
     ret <- ega_get(resource_prefix="submissions",
                    resource_id = submission)
-  } else {
-    ret <- ega_get(resource_prefix="submissions")
-  }
   return(ret)
 }
 
@@ -27,7 +26,11 @@ ega_submissions <- function(submission=NULL) {
 #'
 #' @param title character scalar. Submission title.
 #' @param description  character scalar. Submission description.
-#' @param collaborators list. Default `NULL` otherwise `list` with three elements: `id` containing user id; `access_type` granted either "read" or "write"; `comment` to collaborator.
+#' @param collaborators list. Default `NULL` otherwise `list` with three
+#' elements: `id` containing user id; `access_type` granted either "read"
+#' or "write"; `comment` to collaborator.
+#'
+#' @importFrom checkmate assert_string
 #'
 #' @return tibble. Information about newly created submission.
 #' @export
@@ -37,8 +40,13 @@ ega_submissions <- function(submission=NULL) {
 #' description="Submission description")
 #' }
 ega_create_submission <- function(title, description, collaborators=NULL) {
-  collaborators <- check_list_str(collaborators,
-                              nms=c("id", "access_type", "comment"))
+
+  title <- checkmate::assert_string(title)
+  description <- checkmate::assert_string(description)
+  collaborators <- assert_ega_list(collaborators,
+                              names=c("id", "access_type", "comment"),
+                              types=c("integer", "character", "character"))
+
   resp <- req_ega("submissions",
                   method="POST",
                   title=title,
@@ -57,6 +65,8 @@ ega_create_submission <- function(title, description, collaborators=NULL) {
 #' @param title character scalar. Submission title.
 #' @param description  character scalar. Submission description.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return tibble. Information about updated submission.
 #' @export
 #'
@@ -65,6 +75,11 @@ ega_create_submission <- function(title, description, collaborators=NULL) {
 #' description="Submission description (update)")
 #' }
 ega_update_submission <- function(submission, title, description) {
+
+  submission <- assert_ega_id(submission)
+  title <- checkmate::assert_string(title)
+  description <- checkmate::assert_string(description)
+
   resp <- req_ega(paste0("submissions/", submission),
                   method="PUT",
                   title=title,
@@ -86,6 +101,9 @@ ega_update_submission <- function(submission, title, description) {
 #' ega_delete_submission(submission=1)
 #' }
 ega_delete_submission <- function(submission) {
+
+  submission <- assert_ega_id(submission)
+
   resp <- req_ega(paste0("submissions/", submission),
                   method="DELETE")
   resp <- ega_parse_body(resp)
@@ -106,6 +124,9 @@ ega_delete_submission <- function(submission) {
 #' ega_rollback_submission(submission=1)
 #' }
 ega_rollback_submission <- function(submission) {
+
+  submission <- assert_ega_id(submission)
+
   resp <- req_ega(paste0("submissions/", submission, "/rollback"),
                   method="PUT")
   resp <- ega_parse_body(resp)
@@ -130,8 +151,13 @@ ega_rollback_submission <- function(submission) {
 ega_finalise_submission <- function(submission,
                                     expected_release_date = Sys.Date() + 365,
                                     dataset_changelogs=NULL) {
-  dataset_changelogs <- check_list_str(dataset_changelogs,
-                              nms=c("dataset", "message"))
+
+  submission <- assert_ega_id(submission)
+  expected_release_date <- checkmate::check_date(expected_release_date, len=1)
+  dataset_changelogs <- assert_ega_list(dataset_changelogs,
+                              names=c("dataset", "message"),
+                              types=c("character", "character"))
+
   resp <- req_ega(paste0("submissions/", submission, "/finalise"),
                   expected_release_date = expected_release_date,
                   dataset_changelogs = dataset_changelogs,

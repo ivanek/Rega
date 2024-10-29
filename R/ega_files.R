@@ -7,6 +7,8 @@
 #' @param prefix Character scalar. Show files matching this prefix.
 #' @param status Character scalar. Show files matching this status.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return Tibble. Table with information about the files.
 #' @export
 #'
@@ -16,8 +18,10 @@
 ega_files <- function(submission=NULL, prefix=NULL, status=NULL) {
   query <- ""
   if (!is.null(prefix))
+    query <- checkmate::assert_string(prefix)
     query <- paste0(query, "?prefix=", prefix)
   if (!is.null(status))
+    status <- checkmate::assert_string(status)
     if (query == "") {
       query <- paste0(query, "?status=", status)
     } else {
@@ -25,6 +29,7 @@ ega_files <- function(submission=NULL, prefix=NULL, status=NULL) {
     }
 
   if (!is.null(submission)) {
+    submission <- checkmate::assert_string(submission)
     ret <- ega_get(resource_prefix="submissions",
                    resource_id = submission,
                    resource_suffix = paste0("files", query))

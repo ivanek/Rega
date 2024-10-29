@@ -58,7 +58,7 @@ ega_parse_body <- function(resp) {
     tibble::tibble() |>
     dplyr::rename("{resource_name}" := 1) |>
     tidyr::unnest_wider({resource_name}, names_sep = "/",
-                        names_repair="unique") # in the datasets, there are 2 columns with status, why?
+                        names_repair="unique") # in the datasets response, there are 2 columns with status, why?
   if(ncol(resp) == 1) {
     resp <- resp |>
       dplyr::rename("{resource_name}" := 1)
@@ -75,6 +75,8 @@ ega_parse_body <- function(resp) {
 #' @param resource_id character scalar. EGA object ID
 #' @param resource_suffix character scalar.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return tibble with obtained information.
 #' @keywords internal
 #'
@@ -84,12 +86,14 @@ ega_parse_body <- function(resp) {
 #' }
 #'
 ega_get <- function(resource_prefix, resource_id=NULL, resource_suffix=NULL) {
-  resource <- resource_prefix
+  resource <- assert_string(resource_prefix)
   if (!is.null(resource_id)) {
+    resource_id <- assert_string(resource_id)
     resource <- paste0(resource, "/", resource_id)
   }
 
   if (!is.null(resource_suffix) && !is.null(resource_id)) {
+    resource_suffix <- assert_string(resource_suffix)
     resource <- paste0(resource, "/", resource_suffix)
   }
 

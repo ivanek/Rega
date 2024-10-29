@@ -3,6 +3,7 @@
 #' Show current user ID for the specified username.
 #'
 #' @param username Character scalar. EGA username.
+#' @importFrom checkmate assert_string
 #'
 #' @return Tibble. Table with username and user ID.
 #' @export
@@ -12,7 +13,9 @@
 #' }
 #'
 ega_users <- function(username=ega_get_username()) {
-  username <- check_character_scalar(username)
+
+  username <- checkmate::assert_string(username)
+
   ret <- ega_get(resource_prefix=paste0("users/", username))
   return(ret)
 }

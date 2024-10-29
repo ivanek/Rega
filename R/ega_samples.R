@@ -66,8 +66,8 @@ ega_create_sample <- function(submission, alias, biological_sex,
                               organism_part=NULL, cell_line=NULL,
                               extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("submissions/",submission,"/samples"),
           method="POST",
           alias=alias, biological_sex=biological_sex,
@@ -114,8 +114,8 @@ ega_update_sample <- function(sample, alias, biological_sex,
                              organism_part=NULL, cell_line=NULL,
                              extra_attributes=NULL) {
 
-  extra_attributes <- check_list_str(extra_attributes,
-                                 nms=c("tag", "value", "unit"))
+  extra_attributes <- assert_ega_list(extra_attributes,
+                                 names=c("tag", "value", "unit"))
   resp <- req_ega(paste0("samples/", sample),
                   method="PUT",
                   alias=alias, biological_sex=biological_sex,

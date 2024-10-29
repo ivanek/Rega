@@ -13,6 +13,7 @@ Depends:
     R (>= 4.4)
 Imports:
     askpass,
+    checkmate,
     dplyr,
     httr2,
     jsonlite,
@@ -31,4 +32,4 @@ VignetteBuilder:
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2

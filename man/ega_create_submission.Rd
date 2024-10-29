@@ -11,7 +11,9 @@ ega_create_submission(title, description, collaborators = NULL)
 
 \item{description}{character scalar. Submission description.}
 
-\item{collaborators}{list. Default \code{NULL} otherwise \code{list} with three elements: \code{id} containing user id; \code{access_type} granted either "read" or "write"; \code{comment} to collaborator.}
+\item{collaborators}{list. Default \code{NULL} otherwise \code{list} with three
+elements: \code{id} containing user id; \code{access_type} granted either "read"
+or "write"; \code{comment} to collaborator.}
 }
 \value{
 tibble. Information about newly created submission.

@@ -5,6 +5,8 @@
 #'
 #' @param dac Character scalar. Show existing polices only for this DAC.
 #'
+#' @importFrom checkmate assert_string
+#'
 #' @return Tibble. Table with showing existing polices.
 #' @export
 #'
@@ -13,6 +15,7 @@
 #' }
 ega_polices <- function(dac=NULL) {
   if (!is.null(dac)) {
+    dac <- checkmate::assert_string(dac)
     ret <- ega_get(resource_prefix="dacs",
                    resource_id = dac,
                    resource_suffix = "policies")
