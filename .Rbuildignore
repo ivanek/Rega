@@ -1,4 +1,3 @@
-^.*\.Rproj$
-^\.Rproj\.user$
 ^Rega\.Rproj$
-^LICENSE$
+^\.Rproj\.user$
+^LICENSE\.md$

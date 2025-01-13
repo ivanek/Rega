@@ -1,0 +1,91 @@
+submission_sheets:
+ - "Aliases"
+ - "Files"
+ - "Analysis Files"
+ - "Submission"
+ - "Studies"
+ - "Samples"
+ - "Experiments"
+ - "Runs"
+ - "Analyses"
+ - "Datasets"
+linked_sheets:
+ - "Collaborators"
+ - "Repositories"
+ - "Extra Attributes"
+delimited_columns:
+ names:
+   - "pubmed_ids"
+   - "custom_tags"
+ separator: ";"
+formatter:
+  aliases:
+    type: aliases_formatter
+    params:
+      na_omit: True
+  files:
+    type: file_formatter
+    params:
+      prefix: ""
+      crypt_ext: "c4gh"
+      prepend_slash: False
+  analysis_files:
+    type: file_formatter
+    params:
+      prefix: ""
+      crypt_ext: "c4gh"
+      prepend_slash: False
+  submission:
+    type: row_table_formatter
+    params:
+      fold:
+        - collaborators
+  studies:
+    type: row_table_formatter
+    params:
+      fold:
+        - extra_attributes
+        - repositories
+  experiments:
+    type: row_table_formatter
+    params:
+      fold:
+        - extra_attributes
+  samples:
+    type: column_table_formatter
+    params: False
+  runs:
+    type: column_table_formatter
+    params:
+      fold:
+       - files
+       - extra_attributes
+  analyses:
+    type: row_table_formatter
+    params:
+      fold:
+        - extra_attributes
+        - chromosomes
+        - experiments
+        - samples
+        - files
+        - experiment_types
+  datasets:
+    type: row_table_formatter
+    params:
+      fold:
+        - dataset_types
+        - extra_attributes
+        - runs
+        - analyses
+  collaborators:
+    type: column_table_formatter
+    params: False
+  repositories:
+    type: column_table_formatter
+    params: False
+  extra_attributes:
+    type: column_table_formatter
+    params: False
+
+

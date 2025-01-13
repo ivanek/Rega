@@ -1,12 +1,18 @@
 ---
 title: "The Rega User Guide"
 bibliography: Rega-refs.bib
+date: "Last edited: `r format(Sys.time(), '%d %B, %Y')`"
 author: 
   - name: "Robert Ivánek"
     affiliation: 
     - Department of Biomedicine, University of Basel, Basel, Switzerland
     - Swiss Institute of Bioinformatics, Basel, Switzerland
     email: robert.ivanek@unibas.ch
+  - name: "Igor Cervenka"
+    affiliation: 
+    - Department of Biomedicine, University of Basel, Basel, Switzerland
+    - Swiss Institute of Bioinformatics, Basel, Switzerland
+    email: igor.cervenka@unibas.ch
 package: "`r BiocStyle::pkg_ver('Rega')`"
 output:
   BiocStyle::html_document:
@@ -24,39 +30,26 @@ editor_options:
     console
 ---
 
-__Last edited:__ 19 January 2024
-
-```{r init, echo=FALSE, results='hide'}
+```{r options, include=FALSE}
 library(knitr)
-
-## 1. issue with too large vignette, maybe optimizing png?
-## unfortunately it requires additional system libs -> not feasible
-##           `pngquant=""`, `optipng = "-o7"` both in `opts_chunk`
-## SOLUTION: might be to use `fig.retina = 1` and only set it to 2 (default)
-##           for figures which requires higher resolution
-##           or even decrease res `dpi = 72`, also both in `opts_chunk`
-## 
-## knit_hooks$set(optipng = hook_optipng,
-##                pngquant = hook_pngquant)
-##
-## 2. crop=NULL or FALSE =>  fix vignette rendering based on yihui/knitr#1796
-## added also error=FALSE to include_graphics
-
 opts_chunk$set(
-  collapse = TRUE,
-  tidy = FALSE,
-  fig.retina = 1,
-  comment = "#>",
-  error = FALSE,
-  warning = FALSE,
+  echo = TRUE,
+  eval = FALSE,
   message = FALSE,
-  crop = NULL                           
+  warning = FALSE,
+  collapse = FALSE,
+  comment = NA,
+  prompt = FALSE,
+  tidy = FALSE,
+  dev = "png",
+  out.width = "100%"
 )
 
 ## check the output type
 out_type <- opts_knit$get("rmarkdown.pandoc.to")
-if (is.null(out_type))
+if (is.null(out_type)) {
   out_type <- "html"
+}
 
 ## add styling
 if (out_type == "html") {
@@ -66,569 +59,161 @@ if (out_type == "html") {
 }
 ```
 
-# Introduction
+# Setup credentials
 
-```{r}
-#| label: setup
-library(tidyverse)
-library(Rega)
+`httr2` is built around the notion that the key should live in an environment variable. So the first step is to make your package key available on your local development machine by adding a line to your your user-level `.Renviron` (which you can easily open with `usethis::edit_r_environ()`)
 
-# set permanent KEY ? 
-# 
-# `httr2` is built around the notion that the key should live in an environment variable. 
-# So the first step is to make your package key available on your local development 
-# machine by adding a line to your your user-level `.Renviron` 
-# (which you can easily open with `usethis::edit_r_environ())`:
+The `REGA_EGA_PASSWORD` environmental variable isn't supposed to store the password in the plain text, instead:
 
-Sys.setenv("REGA_EGA_USERNAME" = "ega-box-2269")
-Sys.setenv("REGA_EGA_PASSWORD" = "4f8T_aX-aLP-5obJWEEIShckVjjovgm3")
+ - generate a secret key using `httr2::secret_make_key()` and store it as the "REGA_KEY" environmental variable (e.g. using `export` command in bash or in `.Renviron` file)
+ - generate an encrypted password using your secret key via `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
+ - use the resulting value as "REGA_EGA_PASSWORD"
+
+```{r env-credentials, eval=FALSE}
+Sys.setenv("REGA_EGA_USERNAME" = "<your-ega-username>")
+Sys.setenv("REGA_EGA_PASSWORD" = "<your-ega-password>")
 ```
 
+# Authentication
 
-# Get Available Information From EGA
+`Rega` package supports authentication through OAuth or Bearer token via functions `ega_oauth` (default) and `ega_token` respectively.
 
-## User
+# Data submission
 
-```{r}
-#| label: simple_query_user
+## Submission metadata parsing
 
-ega_users()
+The default parser parses the bundled `xlsx` template. Changing the parser behavior, such as whether to append `c4gh` extension to files or which sheets to parse from the metadata files is controlled by YAML config file `inst/extdata/default_parser_params.yaml`. To modify the parameters, create a local copy of the file and pass it as `param_file` argument to `default_parser` function.
+
+```{r parse-metadata}
+metadata_file <- "<path-to-metadata-file>"
+
+parsed_metadata <- default_parser(metadata_file)
+parsed_metadata
 ```
 
-## Enums
+## Submission metadata validation
 
-To know which values are accepted for the types i.e `status_types`,`study_types`, `biological_sex`..., you can check all available specification listed in the `enums` that are available by using the following command:
+The internal validation is a bit stricter in enforcing uniqueness of titles and descriptions for individual tables (the API itself doesn't have this requirement). If the validation only fails in this particular case, you can still continue with creating the submission. However, there have been instances of failed reviews due to non-unique titles and descriptions before.
 
-```{r}
-#| label: simple_query_enum
-
-ega_enums()
+```{r validate-metadata}
+validation_summary <- default_validator(parsed_metadata)
+validation_summary
 ```
 
-### Study types
+## Create API client
 
-To check for a specific `enum`, for example `study_types`, you can access just access it to see it's possible values:
+Extract EGA API using the bundled YAML specification
 
-```{r}
-#| label: simple_query_enum_study_types
-ega_enums("study_types")
+```{r extract-api}
+api <- extract_api()
 ```
 
-### Run File Types
+Create a client using the embedded `httr2` OAuth authentication (default).
 
-```{r}
-ega_enums("run_file_types") 
+```{r client-with-oauth}
+ega <- create_client(api, verbosity = 0)
 ```
 
-### Accepted Genomes
+## Run new submission workflow
 
+Specify one of the available workflow function with your parsed metadata and a client as parameters.
 
-```{r}
-ega_enums("genomes") 
+```{r run-workflow}
+responses <- new_submission(parsed_metadata, ega, "log.yaml")
 ```
 
+## Other workflows
 
-## List Submission
+You can get the entire contents of current submission metadata via `get_submission` workflow.
 
-```{r}
-#| eval: false
-
-ega_submissions()
-ega_submissions(submission = "EGA00002556014")
-ega_submissions(submission = "1629667")
+```{r get-submission-contents}
+resp <- get_submission(00001, ega, logfile = "log.yaml")
+resp <- get_submission(00001, ega)
 ```
 
-## List Studies
+Or delete the entire contents of current submission metadata via `delete_submission_contents` workflow.
 
-```{r}
-#| eval: false
-ega_studies()
-ega_studies(study="6743")
-ega_studies(study="EGAS00001006794")
-ega_studies(submission="1299997")
-ega_studies(submission="EGA00002309665")
+```{r delete-submission-contents}
+resp <- delete_submission_contents(00001, ega)
 ```
 
-## List Samples
+Or delete the entire submission by using the `delete_submission` workflow.
 
-```{r}
-#| eval: false
-
-ega_samples()
-ega_samples(sample="38812")
-ega_samples(submission="7290")
-ega_samples(submission="EGA00002556509")
+```{r delete-submission}
+resp <- delete_submission(00001, ega)
 ```
 
-## List Experiments
+If you submission has an accession ID and you wish to roll back changes you made
+to since last time, you can use `rollback_submission` workflow. Apart from `accession_id` and API client, you need to specify which tables/endpoints you want to roll back.
 
-```{r}
-#| eval: false
-
-ega_experiments()
-ega_experiments(experiment="6971")
-ega_experiments(submission="7290")
-ega_experiments(submission="EGA00002556509")
+```{r rollback-submission}
+resp <- rollback_submission("EGA00000000001", ega, c("datasets", "runs"))
 ```
 
+**Workflow for updating the submission metadata by `PUT` method is under development.**
 
-## List Runs
+# Utilities
 
-```{r}
-#| eval: false
+If you wish to create your own templates for EGA submissions, we provide a few functions to retrieve properties and enums through API and save them in text files. We will use the API and the client created above.
 
-ega_runs()
-ega_runs(run="42191")
-ega_runs(submission="7290")
-ega_runs(submission="EGA00002556509")
+Relevant functions include:
+
+-   `get_schemas`
+-   `get_properties`
+-   `get_enum`
+-   `parse_enum`
+
+## Retrieve properties
+
+```{r retrieve-properties}
+properties_out <- "properties.txt"
+
+schemas <- get_schemas(api)
+
+for (x in names(schemas)) {
+  p <- get_properties(schemas[[x]], filter_ids = FALSE)
+  cat(
+    paste0("[", x, "]"), p, "",
+    file = properties_out, sep = "\n", append = TRUE
+  )
+}
 ```
 
+## Retrieve enums
 
-## List Analyses
+```{r retrieve-enums}
+enums_out <- "enums.txt"
 
-```{r}
-#| eval: false
-
-ega_analyses()
-ega_analyses(submission="7290")
-ega_analyses(submission="EGA00002556509")
+for (x in ega$get__enums()$enums) {
+  e <- parse_enum(get_enum(ega, x))
+  cat(
+    paste0("[", x, "]"), e, "",
+    file = enums_out, sep = "\n", append = TRUE
+  )
+}
 ```
 
+# Notes
 
-## List Datasets
+## Bearer token authentication
 
-```{r}
-#| eval: false
+For testing, debugging and prototyping purposes, it is possible to directly use generated bearer token with API when creating the client. It is then your responsibility of the user to track the validity and refresh the token as necessary.
 
-ega_datasets()
-ega_datasets(submission="1300293")
-ega_datasets(submission="EGA00002309961")
+```{r client-with-token, eval=FALSE}
+bt <- ega_token()
+ega <- create_client(api, bt$access_token)
+
+ega$get__enums()
 ```
 
+## Creating the YAML specification for API client generation
 
-# Create A Complete New Submission
+The [EGA API yaml](https://submission.ega-archive.org/api/spec/#/) was download from EGA Submitter API website and references were resolved using [Swagger Editor](https://editor.swagger.io/). The resolved API YAML specification is bundled with the package.
 
-- submission
-- study
-- samples
-- experiments
-- runs
-- analyses
-- datasets
+Following changes were made in the YAML specification for the package to work correctly.
 
-## Create Submission
+- `servers/url` needs to be changed to: `https://submission.ega-archive.org/api>`
+- The schemas for Datasets are not completely correct. There is a possibility to submit a dataset without Runs and Analyses, but this is not reflected in the API. The requirement for `run_provisional_ids` and `analysis_provisional_ids` was commented out in the resolved YAML file to allow for this case. It was added to the unresolved YAML (corresponds to lines `13322` and `13323`). 
 
-```{r}
-#| eval: false
 
-new_submission <- ega_create_submission(title="Test Submission API", 
-                                        description="Testing API from R",
-                                        collaborators=list())
-new_submission
-```
-
-### Update Submission
-
-```{r}
-#| eval: false
-
-new_submission <- ega_update_submission(submission=new_submission$provisional_id,
-                                        title="Test Submission API (update)", 
-                                        description="Testing API from R (update)")
-new_submission
-```
-
-### Rollback Submission
-
-```{r}
-#| eval: false
-
-new_submission <- ega_rollback_submission(submission=new_submission$provisional_id)
-new_submission
-```
-
-### Delete Submission
-
-```{r}
-#| eval: false
-
-new_submission <- ega_delete_submission(submission=new_submission$provisional_id)
-new_submission
-```
-
-
-## Create Study
-
-```{r}
-#| eval: false
-
-new_study <- ega_create_study(submission=new_submission$provisional_id,
-                              title="Test Study", 
-                              description="New Study, Testing API from R",
-                              study_type="RNASeq")
-new_study
-```
-
-
-### Update Study
-
-```{r}
-#| eval: false
-
-new_study <- ega_update_study(study=new_study$provisional_id,
-                                   title="Test Study (updated)", 
-                                   description="New Study, Testing API from R (updated)",
-                                   study_type="RNASeq")
-new_study
-```
-
-
-### Rollback Study
-
-```{r}
-#| eval:  false
-
-new_study <- ega_rollback_study(study=new_study$provisional_id)
-new_study
-```
-
-
-### Delete Study
-
-```{r}
-#| eval:  false
-
-new_study <- ega_delete_study(study=new_study$provisional_id)
-new_study
-```
-
-
-
-## Create Sample
-
-```{r}
-#| eval: false
-new_sample <- ega_create_sample(submission=new_submission$provisional_id,
-                                alias="My unique sample alias 1",
-                                biological_sex="male",
-                                phenotype="nose",
-                                subject_id="192873366738836788")
-
-new_sample
-```
-
-### Update Sample
-
-```{r}
-#| eval: false
-
-new_sample <- ega_update_sample(sample=new_sample$provisional_id,
-                                alias="My unique sample alias 1 (upd)",
-                                biological_sex="male",
-                                phenotype="nose",
-                                subject_id="192873366738836788")
-new_sample
-```
-
-
-### Rollback sample
-
-```{r}
-#| eval:  false
-
-new_sample <- ega_rollback_sample(sample=new_sample$provisional_id)
-new_sample
-```
-
-
-### Delete sample
-
-```{r}
-#| eval:  false
-
-new_sample <- ega_delete_sample(sample=sample$provisional_id)
-new_sample
-```
-
-
-## Create Experiment
-
-```{r}
-#| eval: false
-new_experiment <-  ega_create_experiment(submission=new_submission$provisional_id,
-                                         design_description = "My experiment design",
-                                         study_provisional_id = new_study$provisional_id,
-                                         instrument_model_id = 1,
-                                         library_layout ="SINGLE",
-                                         library_strategy = "WGS",
-                                         library_source = "GENOMIC",
-                                         library_selection ="RANDOM")
-
-new_experiment
-```
-
-### Update experiment
-
-```{r}
-#| eval: false
-
-new_experiment <- ega_update_experiment(experiment=new_experiment$provisional_id,
-                                        design_description = "My experiment design (updated)",
-                                        study_provisional_id = new_study$provisional_id,
-                                        instrument_model_id = 1,
-                                        library_layout ="SINGLE",
-                                        library_strategy = "WGS",
-                                        library_source = "GENOMIC",
-                                        library_selection ="RANDOM")
-new_experiment
-```
-
-
-### Rollback experiment
-
-```{r}
-#| eval:  false
-
-new_experiment <- ega_rollback_experiment(experiment=new_experiment$provisional_id)
-new_experiment
-```
-
-
-### Delete experiment
-
-```{r}
-#| eval:  false
-
-new_experiment <- ega_delete_experiment(experiment=new_experiment$provisional_id)
-new_experiment
-```
-
-## Create Run
-
-```{r}
-#| eval: false
-
-new_run <- ega_create_run(submission=new_submission$provisional_id, 
-                          run_file_type="fastq", 
-                          files=list("75243", "75406"), 
-                          experiment_provisional_id=new_experiment$provisional_id, 
-                          sample_provisional_id=new_sample$provisional_id)
-new_run
-```
-
-### Update run
-
-```{r}
-#| eval: false
-
-new_run <- ega_update_run(run=new_run$provisional_id, 
-                          run_file_type="fastq", 
-                          files=list("75243", "75406"), 
-                          experiment_provisional_id=new_experiment$provisional_id, 
-                          sample_provisional_id=new_sample$provisional_id)
-new_run
-```
-
-
-### Rollback run
-
-```{r}
-#| eval:  false
-
-new_run <- ega_rollback_run(run=new_run$provisional_id)
-new_run
-```
-
-
-### Delete run
-
-```{r}
-#| eval:  false
-
-new_run <- ega_delete_run(run=new_run$provisional_id)
-new_run
-```
-
-## Create Analysis
-
-
-```{r}
-#| eval: false
-
-new_analysis <- ega_create_analysis(submission=new_submission$provisional_id, 
-                                    title="My first analysis",
-                                    description = "Description of my first analysis",
-                                    analysis_type="REFERENCE ALIGNMENT", 
-                                    files=list("188544"),
-                                    study_provisional_id = new_study$provisional_id,
-                                    experiment_provisional_ids = list(new_experiment$provisional_id),
-                                    sample_provisional_ids = list(new_sample$provisional_id),
-                                    experiment_types = list("Whole genome sequencing"),
-                                    genome_id = 27)
-new_analysis
-```
-
-### Update Analysis
-
-```{r}
-#| eval: false
-
-new_analysis <- ega_update_analysis(analysis=new_analysis$provisional_id, 
-                          title="My first analysis (update)",
-                                    description = "Description of my first analysis",
-                                    analysis_type="REFERENCE ALIGNMENT", 
-                                    files=list("188544"),
-                                    study_provisional_id = new_study$provisional_id,
-                                    experiment_provisional_ids = list(new_experiment$provisional_id),
-                                    sample_provisional_ids = list(new_sample$provisional_id),
-                                    experiment_types = list("Whole genome sequencing"),
-                                    genome_id = 27)
-new_analysis
-```
-
-
-### Rollback analysis
-
-```{r}
-#| eval:  false
-
-new_analysis <- ega_rollback_analysis(analysis=new_analysis$provisional_id)
-new_analysis
-```
-
-
-### Delete analysis
-
-```{r}
-#| eval:  false
-
-new_analysis <- ega_delete_analysis(analysis=new_analysis$provisional_id)
-new_analysis
-```
-
-
-## Create dataset
-
-In this case we link with the policy with accession `EGAP00001003010`.
-
-```{r}
-#| eval: false
-
-new_dataset <- ega_create_dataset(submission = new_submission$provisional_id,
-                                  title = "My dataset title",
-                                  description = "My dataset description",
-                                  dataset_types = list("Transcriptome profiling by high-throughput sequencing"),
-                                  policy_accession_id="EGAP00001003010",
-                                  run_provisional_ids=list(new_run$provisional_id),
-                                  analysis_provisional_ids = list(new_analysis$provisional_id))
-
-new_dataset
-```
-
-
-### Update Dataset
-
-```{r}
-#| eval: false
-
-new_dataset <- ega_update_dataset(dataset = new_dataset$provisional_id,
-                                  title = "My dataset title (update)",
-                                  description = "My dataset description",
-                                  dataset_types = list("Transcriptome profiling by high-throughput sequencing"),
-                                  policy_accession_id="EGAP00001003010",
-                                  run_provisional_ids=list(new_run$provisional_id),
-                                  analysis_provisional_ids = list(new_analysis$provisional_id))
-new_dataset
-```
-
-
-### Rollback Dataset
-
-```{r}
-#| eval:  false
-
-new_dataset <- ega_rollback_dataset(dataset=new_dataset$provisional_id)
-new_dataset
-```
-
-
-### Delete dataset
-
-```{r}
-#| eval:  false
-
-new_dataset <- ega_delete_dataset(dataset=new_dataset$provisional_id)
-new_dataset
-```
-
-
-
-# Finalise submission
-
-You can only finalize a submission when the files are in place and all the objects must be used.
-
-```{r}
-#| eval: false
-
-
-# ega_finalise_submission(submission = new_submission$provisional_id,
-#                         expected_release_date="2026-01-01")
-```
-
-# Submission In One Go
-
-```{r}
-#| eval: false
-
-  # check the required columns
-  required_cols <- c("alias", "subject_id", "biological_sex", "phenotype")
-  if (sum(required_cols %in% colnames(smpl_table)) < 4) {
-    stop(paste0("`smpl_table` must contain columns: ", paste(required_cols, collapse=", "), "!"))
-  }
-  # check that the aliases are unique
-  if (nrow(smpl_table) > n_distinct(smpl_table$alias)) {
-    stop("`alias` column cannot contain duplicated values!")
-  }
-
-
-# send samples to EGA
-smpl_table <- smpl_table |>
-  rowwise() |>
-  mutate(submission_id = submission_id) |>
-  mutate(out = pick(everything())) |>
-  mutate(out = list(as.list(out))) |>
-  mutate(out = do.call(ega_create_sample, out))
-
-smpl_table$out
-```
-
-
-# Notes Below
-
-```{r}
-#| eval: false
-#| echo: false
-
-# check the authentication flow
-
-# # token
-# token <- oauth_flow_password(
-#   client = ega_client,
-#   username = ega_username,
-#   password = ega_password
-# )
-# token$access_token
-
-# # cached token
-# token <- oauth_token_cached(
-#   client = ega_client,
-#   flow = oauth_flow_password,
-#   flow_params = list(
-#     username = ega_username,
-#     password = ega_password
-#   ),
-#   cache_disk = TRUE
-# )
-# token$access_token
-```
-
+# Issues
