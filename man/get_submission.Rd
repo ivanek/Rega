@@ -28,7 +28,8 @@ responses if a logfile is specified.
 \examples{
 mock_client <- list(
   "get__submissions__accession_id" = function(id) list(data = id),
-  "get__submissions__accession_id__datasets" = function(id) list(datasets = id)
+  "get__submissions__accession_id__datasets" =
+    function(id) list(datasets = id)
 )
 get_submission("EGAB12345678901", mock_client)
 

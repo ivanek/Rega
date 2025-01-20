@@ -9,9 +9,9 @@ default_validator(meta, aliases = NULL)
 \arguments{
 \item{meta}{List of data frames. Correspond to tables of EGA submission.}
 
-\item{aliases}{List of lists. Aliases that should present in the EGA tables.
-If \code{NULL}, the function will attempt to locate it in the \code{meta} parameter.
-Defaults to \code{NULL}}
+\item{aliases}{List of lists. Aliases that should present in the
+EGA tables.  If \code{NULL}, the function will attempt to locate it in the
+\code{meta} parameter. Defaults to \code{NULL}}
 }
 \value{
 Data frame. Validator object that includes all performed validations

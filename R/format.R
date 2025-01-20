@@ -126,7 +126,6 @@ lut_add <- function(df, to, from, lut) {
 #' @export
 multi_lut_add <- function(df, ...) {
   args <- enquos(...)
-  # dots <- list(lapply(args, eval_tidy))
   dots <- lapply(args, eval_tidy)
 
   stop_msg <- ("Objects need to be list of length 3, containing
@@ -222,11 +221,10 @@ column_table_formatter <- function(tab, params) {
 #'
 #' @param tab Data frame. The input table from a sumbission metadata file
 #' @param params List. Additional parameters for formatting. Takes a formatter
-#' params value from parser parameter yaml file.
+#'   params value from parser parameter yaml file.
 #'
 #' @return A cleaned and formatted tibble with correctly organized rows and
-#' columns, whitespace trimmed, and folding applied to specified
-#' columns.
+#'   columns, whitespace trimmed, and folding applied to specified columns.
 #'
 #' @importFrom stringr str_trim
 #' @importFrom utils head
@@ -235,7 +233,9 @@ column_table_formatter <- function(tab, params) {
 #' @examples
 #' \dontrun{
 #' # Format a row table
-#' tab <- data.frame(A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4))
+#' tab <- data.frame(
+#'   A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4)
+#' )
 #' params <- list(fold = c("A"))
 #' formatted_tab <- row_table_formatter(tab, params)
 #' }
@@ -244,7 +244,6 @@ column_table_formatter <- function(tab, params) {
 row_table_formatter <- function(tab, params) {
   tab <- tab[, colSums(!is.na(tab)) > 0]
   if (!(ncol(tab) %% 2 == 0)) {
-    print(head(tab))
     stop("Incorrect column organization of the table columns.")
   }
   split_tab <- lapply(seq(1, ncol(tab), by = 2), function(i) {
@@ -285,7 +284,7 @@ multi_table_formatter <- function(tab, params) {
   # Remove empty rows
   tab <- tab[rowSums(is.na(tab)) != ncol(tab), ]
 
-  anchor_names <- tab[1:anchor_number, 1][[1]]
+  anchor_names <- tab[seq_len(anchor_number), 1][[1]]
   tab_starts <- which(tab[[1]] == anchor_names[1])
   if (length(tab_starts) > 1) {
     tab_ends <- c(tab_starts[2:length(tab_starts)] - 1, nrow(tab))
@@ -415,9 +414,9 @@ get_formatter_params <- function(x, params) {
 
 #' Fold Columns with a Common Prefix into a Single Column Nested as List
 #'
-#' If `NA` values are present in any of the columns to be nested, they will be
-#' removed. If the column is not present it will be added with `NA` as a single
-#' value.
+#' If `NA` values are present in any of the columns to be nested, they
+#' will be removed. If the column is not present it will be added with
+#' `NA` as a single value.
 #'
 #' @param tab Data frame. The input table with columns to fold.
 #' @param column_prefix Character. The prefix of columns to nest into a single
@@ -437,16 +436,8 @@ get_formatter_params <- function(x, params) {
 #'
 #' @export
 fold_column <- function(tab, column_prefix, new_name) {
-  tmp_fold_name <- NULL # for linting
+  tmp_fold_name <- NULL # nolint
   # TODO fix examples
-  # tab <- tab |>
-  #   rowwise() |>
-  #   # Remove NAs that are created by template structure
-  #   mutate(tmp_fold_name = list(
-  #     as.character(na.omit(c_across(starts_with(column_prefix))))
-  #   )) |>
-  #   select(-starts_with(column_prefix)) |>
-  #   rename("{new_name}" := tmp_fold_name)
 
   selected_columns <- tab[grepl(paste0("^", column_prefix), names(tab))]
   iter_columns <- unname(as.list(as.data.frame(t(selected_columns))))
@@ -478,13 +469,14 @@ fold_column <- function(tab, column_prefix, new_name) {
 #'
 #' Data frames representing metadata sheets that contain column names
 #' corresponding to `sheet_name` containing an ID reference (to a first column
-#' in `sheet_name`) will be replaced with the rest of the values nested as a list.
+#' in `sheet_name`) will be replaced with the rest of the values nested as a
+#' list.
 #'
 #' @param metadata List. A list of data frames representing metadata sheets.
 #' @param sheet_name Character. The name of the sheet to link with other sheets.
 #'
-#' @return A list of updated metadata with the specified values replaced based on
-#' referenced values present in `sheet_name`.
+#' @return A list of updated metadata with the specified values replaced based
+#'   on referenced values present in `sheet_name`.
 #'
 #' @importFrom stats setNames
 #'
@@ -501,7 +493,6 @@ fold_column <- function(tab, column_prefix, new_name) {
 #' @export
 link_sheet <- function(metadata, sheet_name) {
   # TODO check examples
-
   has_linked_sheets <- vapply(metadata, function(x) {
     # check if the sheet to be linked is present and if there is at least
     # one non-NA value
@@ -510,10 +501,11 @@ link_sheet <- function(metadata, sheet_name) {
 
   if (nrow(metadata[[sheet_name]]) == 0) {
     if (any(has_linked_sheets)) {
-      stop(sprintf(
-        "You specified a linked data %s in sheets %s, but no entries could be found.",
+      err_msg <- sprintf(
+        "Linked data %s in sheets %s was specified, but no entries were found.",
         sheet_name, paste0(names(metadata)[has_linked_sheets], collapse = ",")
-      ))
+      )
+      stop(err_msg)
     }
   }
 
@@ -521,29 +513,26 @@ link_sheet <- function(metadata, sheet_name) {
   for (x in names(metadata)[has_linked_sheets]) {
     # Data in the template are matched based on the value of the first column
     merge_y <- names(metadata[[sheet_name]])[1]
+    metadata[[x]][[sheet_name]] <- lapply(
+      metadata[[x]][[sheet_name]], function(y) {
+        if (all(is.na(y))) {
+          list()
+        } else {
+          # Merge with the linked sheet, keep as a data frame for proper JSON
+          # parsing into list of 'dictionaries'.
+          mdf <- merge(
+            setNames(data.frame(y), merge_y),
+            metadata[[sheet_name]],
+            by = merge_y
+          )
 
-    metadata[[x]][[sheet_name]] <- lapply(metadata[[x]][[sheet_name]], function(y) {
-      if (all(is.na(y))) {
-        list()
-      } else {
-        # Merge with the linked sheet, keep as a data frame for proper JSON
-        # parsing into list of 'dictionaries'.
-        mdf = merge(
-          setNames(data.frame(y), merge_y),
-          metadata[[sheet_name]],
-          by = merge_y
-        )
-
-        # API specific processing
-        if(sheet_name == "collaborators") {
-          mdf$id = as.integer(mdf$id)
+          # API specific processing
+          if (sheet_name == "collaborators") mdf$id <- as.integer(mdf$id)
+          mdf
         }
-
-        mdf
       }
-    })
+    )
   }
-
   return(metadata)
 }
 
@@ -610,7 +599,9 @@ process_delimited_column <- function(metadata, column_name, separator) {
 #' @examples
 #' \dontrun{
 #' # Get IDs for a specific chromosome group
-#' ids <- get_chr_group("group1", c("group1--1--chr1--name1", "group2--2--chr2--name2"))
+#' ids <- get_chr_group(
+#'   "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
+#' )
 #' }
 #'
 #' @export

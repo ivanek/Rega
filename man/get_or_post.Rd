@@ -26,7 +26,8 @@ A data frame containing the response from the API.
 This function retrieves existing data from an API or submits new data if it
 does not exist, with optional error handling and retrieval options.
 \itemize{
-\item If no data is present in the database, it will supplied data will be inserted.
+\item If no data is present in the database, it will supplied data will be
+inserted.
 \item If there is data already present in the database and the number of records
 don't match, error will raised.
 \item If the number of records match and \code{retrieve_if_exists} is set to TRUE

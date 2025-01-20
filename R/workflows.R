@@ -6,19 +6,18 @@
 #' with the submission must be present in the EGA Inbox and they are fetched and
 #' matched according to Inbox path. In case the submission is interrupted or
 #' fails, all the information entered into EGA database is rolled back apart
-#' from the submission itself. If the workflow successfully creates a submission,
-#' but fails in the following steps, the returned submission ID can be used as
-#' a parameter to the workflow to continue entering data into existing
-#' submission.
-#' If logfile is specified, the responses from successfully executed steps
-#' (even if the error occurs), will be saved.
+#' from the submission itself. If the workflow successfully creates a
+#' submission, but fails in the following steps, the returned submission ID can
+#' be used as a parameter to the workflow to continue entering data into
+#' existing submission. If logfile is specified, the responses from successfully
+#' executed steps (even if the error occurs), will be saved.
 #'
-#' @param request_data List of data frames. Parsed submission metadata containing
-#' correctly formatted and linked information for submission
+#' @param request_data List of data frames. Parsed submission metadata
+#'   containing correctly formatted and linked information for submission
 #' @param client List of functions. EGA API client created by `create_client`
-#' function from EGA API schema.
+#'   function from EGA API schema.
 #' @param logfile Character. Path of log file to log the `httr2` responses from
-#' individual operations or `NULL`. Defaults to `NULL`.
+#'   individual operations or `NULL`. Defaults to `NULL`.
 #' @param id Integer.
 #' @param retrieve_if_exists Logical.
 #' @param ... List. Additional arguments to the function.
@@ -79,7 +78,8 @@ new_submission <- function(request_data, client, logfile = NULL, id = NULL,
         # based on the request data
         if (!is.null(id)) {
           submission_id <- id
-          responses$submission <- client$get__submissions__provisional_id(submission_id)
+          responses$submission <-
+            client$get__submissions__provisional_id(submission_id)
         } else {
           responses$submission <- client$post__submissions(
             body = unbox_row(request_data$submission[1, ])
@@ -257,7 +257,8 @@ new_submission <- function(request_data, client, logfile = NULL, id = NULL,
 
           # Stop if some files are not present in EGA Inbox
           stopifnot(
-            nrow(responses$analysis_files) == length(unlist(request_data$analyses$files))
+            nrow(responses$analysis_files) ==
+              length(unlist(request_data$analyses$files))
           )
 
           # Create LUT
@@ -369,7 +370,8 @@ new_submission <- function(request_data, client, logfile = NULL, id = NULL,
 #' @examples
 #' mock_client <- list(
 #'   "get__submissions__accession_id__datasets" = function(id) list(data = id),
-#'   "delete__submissions__provisional_id__datasets" = function(id) list(status = "deleted")
+#'   "delete__submissions__provisional_id__datasets" =
+#'     function(id) list(status = "deleted")
 #' )
 #' use_submission("EGAB12345678901", mock_client, "get")
 #'
@@ -422,7 +424,8 @@ use_submission <- function(id, client, method) {
 #' @examples
 #' mock_client <- list(
 #'   "get__submissions__accession_id" = function(id) list(data = id),
-#'   "get__submissions__accession_id__datasets" = function(id) list(datasets = id)
+#'   "get__submissions__accession_id__datasets" =
+#'     function(id) list(datasets = id)
 #' )
 #' get_submission("EGAB12345678901", mock_client)
 #'
@@ -462,7 +465,8 @@ get_submission <- function(id, client, logfile = NULL, ...) {
 #'
 #' @examples
 #' mock_client <- list(
-#'   "delete__submissions__provisional_id__datasets" = function(id) list(status = "deleted")
+#'   "delete__submissions__provisional_id__datasets" =
+#'     function(id) list(status = "deleted")
 #' )
 #' delete_submission_contents(5678901, mock_client)
 #'
@@ -489,7 +493,8 @@ delete_submission_contents <- function(id, client, logfile = NULL, ...) {
 #'
 #' @examples
 #' mock_client <- list(
-#'   delete__submissions__provisional_id = function(id) list(status = "deleted")
+#'   delete__submissions__provisional_id =
+#'     function(id) list(status = "deleted")
 #' )
 #' delete_submission("5678901", mock_client)
 #'
@@ -508,19 +513,20 @@ delete_submission <- function(id, client, logfile = NULL, ...) {
 #' the client and logs the responses if a logfile is specified.
 #'
 #' @param id A string representing the submission identifier. Must be an
-#' accession ID.
+#'   accession ID.
 #' @param client An API client object with \code{put} methods and rollback
-#' operations.
+#'   operations.
 #' @param endpoints A character vector of endpoint names to rollback.
-#' @param logfile A string specifying the path to a log file. If \code{NULL},
-#' no log is written.
+#' @param logfile A string specifying the path to a log file. If \code{NULL}, no
+#'   log is written.
 #' @param ... Additional arguments for future extensions (currently unused).
 #'
 #' @return A list of responses from the rollback operations for each endpoint.
 #'
 #' @examples
 #' mock_client <- list(
-#'   "put__submissions__accession_id__datasets_rollback" = function(id) list(status = "rolled back")
+#'   "put__submissions__accession_id__datasets_rollback" =
+#'     function(id) list(status = "rolled back")
 #' )
 #' rollback_submission("provisional123", mock_client, c("datasets"))
 #'
@@ -541,27 +547,3 @@ rollback_submission <- function(id, client, endpoints, logfile = NULL, ...) {
   save_log(responses, logfile)
   return(responses)
 }
-
-
-# put_submission <- function(request_data, client, logfile = NULL, ...) {
-#   responses <- list()
-#   # base_url = "put__"
-#   all_endpoints <- c(
-#     "submission", "studies", "experiments", "samples", "runs", "analyses", "datasets"
-#   )
-#
-#   resp = lapply(all_endpoints, function(x) {
-#     if(x %in% names(request_data)) {
-#       if(lengt())
-#       resp = client[[paste0("put__", x)]](body = toJSON(request_data))
-#     }
-#   })
-#
-#
-#
-#   # TODO fill in
-#
-#   save_log(responses, logfile)
-#
-#   return(responses)
-# }

@@ -2,7 +2,8 @@
 #'
 #' @param p Character vector. All fields to be processed.
 #' @param r Character vector. Fields that are required.
-#' @param req_str Character. Prefix to mark required fields. Defaults to `"* "`.
+#' @param req_str Character. Prefix to mark required fields.
+#' Defaults to `"* "`.
 #'
 #' @return A character vector with required fields prefixed and ordered to
 #' appear before non-required fields.
@@ -55,17 +56,17 @@ get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
 
 #' Parse Enum into a Formatted String
 #'
-#' This function parses an enum, represented as a data frame or character vector,
-#' into a formatted string for display or further use.
+#' This function parses an enum, represented as a data frame or character
+#' vector, into a formatted string for display or further use.
 #'
-#' @param enum Data frame or character vector. The enum to parse. If a data frame,
-#' its rows are concatenated into strings. If a character vector, its elements
-#' are joined with newlines.
-#' @param sep Character. If enum has multiple fields, they will be pasted into
-#' a single string using this separator. Defaults to `--`
+#' @param enum Data frame or character vector. The enum to parse. If a data
+#'   frame, its rows are concatenated into strings. If a character vector, its
+#'   elements are joined with newlines.
+#' @param sep Character. If enum has multiple fields, they will be pasted into a
+#'   single string using this separator. Defaults to `--`
 #'
 #' @return A single string representing the parsed enum. Rows are joined by
-#' newlines and multiple enum fields are joined by `sep`.
+#'   newlines and multiple enum fields are joined by `sep`.
 #'
 #' @examples
 #' \dontrun{
@@ -101,8 +102,9 @@ parse_enum <- function(enum, sep = "--") {
 #'
 #' @param x Character vector. The input vector to filter.
 #' @param pattern Character. Optional. A regular expression pattern for matching
-#' ID fields to exclude. Defaults to `"(?<!policy_)accession_id|provisional_id"`
-#' which removes accession IDs and provisional IDs, but not policy accession ID.
+#' ID fields to exclude. Defaults to
+#' `"(?<!policy_)accession_id|provisional_id"`, which removes accession
+#' IDs and provisional IDs, but not policy accession ID.
 #'
 #' @return A character vector with elements matching the pattern removed.
 #'
@@ -153,11 +155,11 @@ get_schemas <- function(api) {
 #' prettifying the labels.
 #'
 #' @param schema List. The schema containing `properties` and `required` fields.
-#' @param filter_ids Logical. Whether to filter out ID fields from the properties.
-#' Defaults to `TRUE`.
+#' @param filter_ids Logical. Whether to filter out ID fields from the
+#'   properties. Defaults to `TRUE`.
 #'
-#' @return A character vector of formatted property names and
-#' indications of required fields.
+#' @return A character vector of formatted property names and indications of
+#'   required fields.
 #'
 #' @examples
 #' \dontrun{

@@ -7,8 +7,8 @@
 default_parser(metadata_file, param_file = NULL)
 }
 \arguments{
-\item{metadata_file}{Character. Path to a default template xlsx file containing
-the submission metadata information.}
+\item{metadata_file}{Character. Path to a default template xlsx file
+containing the submission metadata information.}
 
 \item{param_file}{Character. Path to a yaml file with parameters for parser.}
 }
@@ -18,7 +18,7 @@ xlsx file.
 }
 \description{
 This function parses the \code{extdata/template.xlsx} using the bundled parser
-parameter file in \code{extdata/default_parser_params.yaml} to extract information
-for EGA submission into format that can be easily passed into EGA API
-endpoints.
+parameter file in \code{extdata/default_parser_params.yaml} to extract
+information for EGA submission into format that can be easily passed
+into EGA API endpoints.
 }

@@ -13,8 +13,9 @@ parameters, and request body schema.}
 \item{api}{List. The API specification, including host and global security
 definitions.}
 
-\item{verbosity}{Integer, optional, values 0-3. Indicates with which verbosity
-level should the requests \code{httr2::req_perform} be performed. Default: 0.}
+\item{verbosity}{Integer, optional, values 0-3. Indicates with which
+verbosity level should the requests \code{httr2::req_perform} be performed.
+Default: 0.}
 
 \item{api_key}{Character, optional. The API key for authentication, included
 in the headers of the request.}

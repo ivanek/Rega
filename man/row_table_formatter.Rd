@@ -14,8 +14,7 @@ params value from parser parameter yaml file.}
 }
 \value{
 A cleaned and formatted tibble with correctly organized rows and
-columns, whitespace trimmed, and folding applied to specified
-columns.
+columns, whitespace trimmed, and folding applied to specified columns.
 }
 \description{
 Format a Row Table
@@ -23,7 +22,9 @@ Format a Row Table
 \examples{
 \dontrun{
 # Format a row table
-tab <- data.frame(A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4))
+tab <- data.frame(
+  A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4)
+)
 params <- list(fold = c("A"))
 formatted_tab <- row_table_formatter(tab, params)
 }

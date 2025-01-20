@@ -11,9 +11,9 @@
 #' it returns a data frame with validation details.
 #'
 #' @param meta List of data frames. Correspond to tables of EGA submission.
-#' @param aliases List of lists. Aliases that should present in the EGA tables.
-#' If `NULL`, the function will attempt to locate it in the `meta` parameter.
-#' Defaults to `NULL`
+#' @param aliases List of lists. Aliases that should present in the
+#' EGA tables.  If `NULL`, the function will attempt to locate it in the
+#' `meta` parameter. Defaults to `NULL`
 #'
 #' @return Data frame. Validator object that includes all performed validations
 #' and their statistics (number of passes, fails and NAs, or whether errors or
@@ -24,8 +24,9 @@
 #' @export
 default_validator <- function(meta, aliases = NULL) {
   # lint
-  alias <- samples <- study <- experiment <- experiments <- run <- runs <- analyses <- NULL
-  files <- run_file_type <- title <- description <- resp <- NULL
+  alias <- samples <- study <- experiment <- experiments <- NULL # nolint
+  run <- runs <- analyses <- NULL # nolint
+  files <- run_file_type <- title <- description <- resp <- NULL # nolint
 
   # If aliases are not defined as a function argument, try to get them from
   # the metadata object
@@ -91,7 +92,6 @@ default_validator <- function(meta, aliases = NULL) {
     run_sample_is_na = !is.na(alias),
     run_file_type_is_na = !is.na(run_file_type),
     run_file_is_na = !is.na(files),
-    # run_file_is_unique = is_unique(unlist(files)),
     run_experiment_in_aliases = experiment %in% aliases$experiments,
     run_sample_in_aliases = alias %in% aliases$samples
   )
@@ -105,7 +105,8 @@ default_validator <- function(meta, aliases = NULL) {
     analysis_title_is_unique = is_unique(title),
     analysis_description_is_unique = is_unique(description),
     analysis_sample_in_aliases = unlist(samples) %in% aliases$samples,
-    analysis_experiment_in_aliases = unlist(experiments) %in% aliases$experiments,
+    analysis_experiment_in_aliases =
+      unlist(experiments) %in% aliases$experiments,
     analysis_file_is_na = !is.na(files)
   )
 
@@ -124,6 +125,7 @@ default_validator <- function(meta, aliases = NULL) {
   )
 
   # NOTE One submission was rejected because the study title and dataset
+  # TODO
   # title were identical.
   cross_validator <- validator()
 
@@ -154,8 +156,14 @@ default_validator <- function(meta, aliases = NULL) {
     ),
     confront(meta$submission, submission_validator),
     confront(meta$runs, runs_extra_validator, ref = list(aliases = aliases)),
-    confront(meta$studies, studies_extra_validator, ref = list(aliases = aliases)),
-    confront(meta$datasets, datasets_extra_validator, ref = list(aliases = aliases))
+    confront(
+      meta$studies, studies_extra_validator,
+      ref = list(aliases = aliases)
+    ),
+    confront(
+      meta$datasets, datasets_extra_validator,
+      ref = list(aliases = aliases)
+    )
   )
 
   if ("analyses" %in% names(meta)) {
@@ -188,13 +196,14 @@ default_validator <- function(meta, aliases = NULL) {
   )
 
   if (any(totals > 0)) {
-    message(sprintf(
+    err_msg <- sprintf(
       paste0(
         "Validation failed! See validation object for details:\n",
         "Fails: %s\nnNA: %s\nErrors: %s\nWarnings %s"
       ),
       totals["fails"], totals["nNA"], totals["error"], totals["warning"]
-    ))
+    )
+    message(err_msg)
   } else {
     message("Validation passed!")
   }
@@ -244,15 +253,15 @@ get_operation_schema <- function(op) {
 #' @examples
 #' \dontrun{
 #' # Validate a payload against a schema
-#' schema <- list(type = "object", properties = list(name = list(type = "string")))
+#' schema <- list(
+#'   type = "object", properties = list(name = list(type = "string"))
+#' )
 #' payload <- list(name = "John")
 #' is_valid <- validate_schema(payload, schema)
 #' }
 #'
 #' @export
 validate_schema <- function(payload, schema) {
-  # schema <- get_operation_schema(operation)
-
   # Convert to json
   json_schema <- toJSON(schema)
 
@@ -262,11 +271,8 @@ validate_schema <- function(payload, schema) {
   }
 
   # Create validator
-  topv <- suppressWarnings(
-    suppressMessages(
-      json_validator(json_schema, engine = "imjv")
-    )
-  )
+  topv <- json_validator(json_schema, engine = "imjv")
+
 
   valid <- topv(payload, verbose = TRUE)
 
@@ -278,11 +284,8 @@ validate_schema <- function(payload, schema) {
     # Iterate through list of oneOf schemas
     individual_validations <- lapply(schema$oneOf, function(x) {
       # Create validator and validate
-      subv <- suppressWarnings(
-        suppressMessages(
-          json_validator(toJSON(x), engine = "imjv")
-        )
-      )
+      subv <- json_validator(toJSON(x), engine = "imjv")
+
       subv(payload, verbose = TRUE)
     })
 
@@ -314,9 +317,11 @@ validate_schema <- function(payload, schema) {
 #' @examples
 #' \dontrun{
 #' # Generate a validation message
-#' validation_result <- list(errors = data.frame(field = "name", error = "Missing"))
+#' validation_result <- list(
+#'   errors = data.frame(field = "name", error = "Missing")
+#' )
 #' msg <- validation_to_msg(validation_result)
-#' print(msg)
+#' message(msg)
 #' }
 #'
 #' @export
@@ -332,7 +337,8 @@ validation_to_msg <- function(v) {
       val_message <- paste0(
         "Request body raised following validation errors:\n\n",
         paste0(
-          capture.output(print(v$errors, row.names = FALSE)),
+          # capture.output(print(v$errors, row.names = FALSE)),
+          capture.output(format(v$errors, row.names = FALSE)),
           collapse = "\n"
         )
       )

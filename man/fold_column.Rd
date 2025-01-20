@@ -18,9 +18,9 @@ column represented as list.}
 A data frame with the specified columns nested into a single column.
 }
 \description{
-If \code{NA} values are present in any of the columns to be nested, they will be
-removed. If the column is not present it will be added with \code{NA} as a single
-value.
+If \code{NA} values are present in any of the columns to be nested, they
+will be removed. If the column is not present it will be added with
+\code{NA} as a single value.
 }
 \examples{
 \dontrun{

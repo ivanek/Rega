@@ -12,13 +12,14 @@ link_sheet(metadata, sheet_name)
 \item{sheet_name}{Character. The name of the sheet to link with other sheets.}
 }
 \value{
-A list of updated metadata with the specified values replaced based on
-referenced values present in \code{sheet_name}.
+A list of updated metadata with the specified values replaced based
+on referenced values present in \code{sheet_name}.
 }
 \description{
 Data frames representing metadata sheets that contain column names
 corresponding to \code{sheet_name} containing an ID reference (to a first column
-in \code{sheet_name}) will be replaced with the rest of the values nested as a list.
+in \code{sheet_name}) will be replaced with the rest of the values nested as a
+list.
 }
 \examples{
 \dontrun{

@@ -14,8 +14,8 @@ new_submission(
 )
 }
 \arguments{
-\item{request_data}{List of data frames. Parsed submission metadata containing
-correctly formatted and linked information for submission}
+\item{request_data}{List of data frames. Parsed submission metadata
+containing correctly formatted and linked information for submission}
 
 \item{client}{List of functions. EGA API client created by \code{create_client}
 function from EGA API schema.}
@@ -39,10 +39,9 @@ studies, experiments, samples, runs, analyses, datasets. The files associated
 with the submission must be present in the EGA Inbox and they are fetched and
 matched according to Inbox path. In case the submission is interrupted or
 fails, all the information entered into EGA database is rolled back apart
-from the submission itself. If the workflow successfully creates a submission,
-but fails in the following steps, the returned submission ID can be used as
-a parameter to the workflow to continue entering data into existing
-submission.
-If logfile is specified, the responses from successfully executed steps
-(even if the error occurs), will be saved.
+from the submission itself. If the workflow successfully creates a
+submission, but fails in the following steps, the returned submission ID can
+be used as a parameter to the workflow to continue entering data into
+existing submission. If logfile is specified, the responses from successfully
+executed steps (even if the error occurs), will be saved.
 }

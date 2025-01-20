@@ -7,20 +7,20 @@
 parse_enum(enum, sep = "--")
 }
 \arguments{
-\item{enum}{Data frame or character vector. The enum to parse. If a data frame,
-its rows are concatenated into strings. If a character vector, its elements
-are joined with newlines.}
+\item{enum}{Data frame or character vector. The enum to parse. If a data
+frame, its rows are concatenated into strings. If a character vector, its
+elements are joined with newlines.}
 
-\item{sep}{Character. If enum has multiple fields, they will be pasted into
-a single string using this separator. Defaults to \verb{--}}
+\item{sep}{Character. If enum has multiple fields, they will be pasted into a
+single string using this separator. Defaults to \verb{--}}
 }
 \value{
 A single string representing the parsed enum. Rows are joined by
 newlines and multiple enum fields are joined by \code{sep}.
 }
 \description{
-This function parses an enum, represented as a data frame or character vector,
-into a formatted string for display or further use.
+This function parses an enum, represented as a data frame or character
+vector, into a formatted string for display or further use.
 }
 \examples{
 \dontrun{

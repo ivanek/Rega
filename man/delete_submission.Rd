@@ -26,7 +26,8 @@ response if a logfile is specified.
 }
 \examples{
 mock_client <- list(
-  delete__submissions__provisional_id = function(id) list(status = "deleted")
+  delete__submissions__provisional_id =
+    function(id) list(status = "deleted")
 )
 delete_submission("5678901", mock_client)
 

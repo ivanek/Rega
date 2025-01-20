@@ -21,9 +21,11 @@ Convert Validation Results to a Message
 \examples{
 \dontrun{
 # Generate a validation message
-validation_result <- list(errors = data.frame(field = "name", error = "Missing"))
+validation_result <- list(
+  errors = data.frame(field = "name", error = "Missing")
+)
 msg <- validation_to_msg(validation_result)
-print(msg)
+message(msg)
 }
 
 }

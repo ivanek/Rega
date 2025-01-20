@@ -24,7 +24,9 @@ Retrieve Chromosome Belonging to a Group
 \examples{
 \dontrun{
 # Get IDs for a specific chromosome group
-ids <- get_chr_group("group1", c("group1--1--chr1--name1", "group2--2--chr2--name2"))
+ids <- get_chr_group(
+  "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
+)
 }
 
 }

@@ -26,7 +26,8 @@ accession/provisional ID using a specified client and method.
 \examples{
 mock_client <- list(
   "get__submissions__accession_id__datasets" = function(id) list(data = id),
-  "delete__submissions__provisional_id__datasets" = function(id) list(status = "deleted")
+  "delete__submissions__provisional_id__datasets" =
+    function(id) list(status = "deleted")
 )
 use_submission("EGAB12345678901", mock_client, "get")
 

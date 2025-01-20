@@ -5,28 +5,28 @@
 \title{Retrieve EGA API Bearer Token}
 \usage{
 ega_token(
-  username = get_ega_username(),
-  password = get_ega_password(),
+  username = .get_ega_username(),
+  password = .get_ega_password(),
   token_url = NULL
 )
 }
 \arguments{
-\item{username}{Character. The username for EGA authentication.
-Defaults to the value returned by \code{get_ega_username()}.}
+\item{username}{Character. The username for EGA authentication. Defaults to
+the value returned by \code{.get_ega_username()}.}
 
-\item{password}{Character. The password for EGA authentication.
-Defaults to the value returned by \code{get_ega_password()}.}
+\item{password}{Character. The password for EGA authentication. Defaults to
+the value returned by \code{.get_ega_password()}.}
 
-\item{token_url}{Character. The URL for the EGA token endpoint.
-Defaults to the standard EGA token URL if not provided.}
+\item{token_url}{Character. The URL for the EGA token endpoint. Defaults to
+the standard EGA token URL if not provided.}
 }
 \value{
 A list containing the token details if successful. Actual token value
 can be retrieved by \code{token$access_token}
 }
 \description{
-This function retrieves an API token from the European Genome-phenome
-Archive (EGA) using user credentials.
+This function retrieves an API token from the European Genome-phenome Archive
+(EGA) using user credentials.
 }
 \examples{
 \dontrun{

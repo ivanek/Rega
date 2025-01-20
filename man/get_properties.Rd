@@ -9,12 +9,12 @@ get_properties(schema, filter_ids = TRUE)
 \arguments{
 \item{schema}{List. The schema containing \code{properties} and \code{required} fields.}
 
-\item{filter_ids}{Logical. Whether to filter out ID fields from the properties.
-Defaults to \code{TRUE}.}
+\item{filter_ids}{Logical. Whether to filter out ID fields from the
+properties. Defaults to \code{TRUE}.}
 }
 \value{
-A character vector of formatted property names and
-indications of required fields.
+A character vector of formatted property names and indications of
+required fields.
 }
 \description{
 This function extracts property names from a schema, optionally filters out

@@ -15,8 +15,8 @@ operations.}
 
 \item{endpoints}{A character vector of endpoint names to rollback.}
 
-\item{logfile}{A string specifying the path to a log file. If \code{NULL},
-no log is written.}
+\item{logfile}{A string specifying the path to a log file. If \code{NULL}, no
+log is written.}
 
 \item{...}{Additional arguments for future extensions (currently unused).}
 }
@@ -29,7 +29,8 @@ the client and logs the responses if a logfile is specified.
 }
 \examples{
 mock_client <- list(
-  "put__submissions__accession_id__datasets_rollback" = function(id) list(status = "rolled back")
+  "put__submissions__accession_id__datasets_rollback" =
+    function(id) list(status = "rolled back")
 )
 rollback_submission("provisional123", mock_client, c("datasets"))
 

@@ -1,12 +1,12 @@
 #' Parser for a Default EGA Excel Template
 #'
 #' This function parses the `extdata/template.xlsx` using the bundled parser
-#' parameter file in `extdata/default_parser_params.yaml` to extract information
-#' for EGA submission into format that can be easily passed into EGA API
-#' endpoints.
+#' parameter file in `extdata/default_parser_params.yaml` to extract
+#' information for EGA submission into format that can be easily passed
+#' into EGA API endpoints.
 #'
-#' @param metadata_file Character. Path to a default template xlsx file containing
-#' the submission metadata information.
+#' @param metadata_file Character. Path to a default template xlsx file
+#'   containing the submission metadata information.
 #' @param param_file Character. Path to a yaml file with parameters for parser.
 #'
 #' @return List of data frames or lists. Submission information parsed from the
@@ -29,7 +29,11 @@ default_parser <- function(metadata_file, param_file = NULL) {
   }
 
   params <- read_yaml(param_file)
-  sheets <- c(params$submission_sheets, params$linked_sheets, "Select Input Data")
+  sheets <- c(
+    params$submission_sheets,
+    params$linked_sheets,
+    "Select Input Data"
+  )
   params$formatter$select_input_data <- list(
     type = "aliases_formatter",
     params = list(
@@ -40,7 +44,7 @@ default_parser <- function(metadata_file, param_file = NULL) {
   # Read the xlsx file
   submission_meta <- lapply(
     sheets,
-    \(x) suppressMessages(read_xlsx(metadata_file, sheet = x, col_names = FALSE))
+    \(x) read_xlsx(metadata_file, sheet = x, col_names = FALSE)
   ) |>
     setNames(label_to_api_name(sheets))
 

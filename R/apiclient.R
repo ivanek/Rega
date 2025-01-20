@@ -101,14 +101,14 @@ extract_operation_definitions <- function(api) {
     methods <- paths[[path]]
     for (method in intersect(names(methods), valid_methods)) {
       operation <- methods[[method]]
-      operationId <- operation$operationId
-      if (is.null(operationId)) {
-        # Generate a unique operationId if missing
-        operationId <- paste0(tolower(method), "_", gsub("[/{}/]", "_", path))
-        operationId <- gsub("^_", "", operationId)
-        operationId <- gsub("_$", "", operationId)
+      operation_id <- operation$operation_id
+      if (is.null(operation_id)) {
+        # Generate a unique operation_id if missing
+        operation_id <- paste0(tolower(method), "_", gsub("[/{}/]", "_", path))
+        operation_id <- gsub("^_", "", operation_id)
+        operation_id <- gsub("_$", "", operation_id)
       }
-      operations[[operationId]] <- list(
+      operations[[operation_id]] <- list(
         method = toupper(method),
         path = path,
         parameters = operation$parameters,
@@ -152,7 +152,7 @@ extract_operation_definitions <- function(api) {
     for (param in parameters) {
       required <- param$required %||% FALSE
 
-      # if parameter is required remove the value from the list of future formals
+      # if parameter is required remove the value from the list of formals
       if (required) {
         args_list[[param$name]] <- quote(expr = )
       }
@@ -209,7 +209,8 @@ extract_operation_definitions <- function(api) {
 #' with corresponding parameter values.
 #'
 #' @param path_params Character vector. Names of the parameters to replace in
-#' the URL. Each name should correspond to a placeholder in the format `{param}`.
+#' the URL. Each name should correspond to a placeholder in the format
+#' `{param}`.
 #' @param url Character. The URL containing placeholders to be replaced.
 #'
 #' @return A list of expressions. Each expression replaces a `{param}`
@@ -220,13 +221,16 @@ extract_operation_definitions <- function(api) {
 #' @examples
 #' \dontrun{
 #' # Generate replacement expressions for path parameters
-#' replacers <- Rega:::.url_param_replacer(c("id", "type"), "https://api/{id}/{type}")
+#' replacers <- Rega:::.url_param_replacer(
+#'   c("id", "type"), "https://api/{id}/{type}"
+#' )
 #' }
 #'
 #' @keywords internal
 .url_param_replacer <- function(path_params, url) {
   replacers <- lapply(path_params, function(param_name) {
-    replace_expr <- bquote(
+    bquote(
+      # replace_expr <- bquote(
       url <- sub(
         .(paste0("{", param_name, "}")),
         as.character(.(sym(param_name))),
@@ -279,7 +283,9 @@ extract_operation_definitions <- function(api) {
     header_syms <- setNames(syms(params$header_params), params$header_params)
     headers_list <- c(headers_list, header_syms)
   }
-  headers_expr <- expr(req <- req_headers(req, !!!headers_list))
+
+  # headers_expr <- expr(req <- req_headers(req, !!!headers_list))
+  return(expr(req <- req_headers(req, !!!headers_list)))
 }
 
 #' Generate Query Parameter Expressions for an API Request
@@ -305,7 +311,6 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .add_queries <- function(params) {
-  # query_syms <- set_names(syms(params$query), params$query)
   query_syms <- setNames(syms(params$query), params$query)
   query_expr <- expr(
     req <- req_url_query(req, !!!query_syms)
@@ -321,20 +326,22 @@ extract_operation_definitions <- function(api) {
 #' construction, parameter validation, request execution, and response parsing.
 #'
 #' @param operation List. The API operation definition, including method, path,
-#' parameters, and request body schema.
+#'   parameters, and request body schema.
 #' @param api List. The API specification, including host and global security
-#' definitions.
-#' @param verbosity Integer, optional, values 0-3. Indicates with which verbosity
-#' level should the requests \code{httr2::req_perform} be performed. Default: 0.
+#'   definitions.
+#' @param verbosity Integer, optional, values 0-3. Indicates with which
+#'   verbosity level should the requests \code{httr2::req_perform} be performed.
+#'   Default: 0.
 #' @param api_key Character, optional. The API key for authentication, included
-#' in the headers of the request.
+#'   in the headers of the request.
 #'
 #' @return A dynamically generated function that performs the specified API
-#' operation. The function accepts arguments corresponding to operation
-#' parameters and executes the request using `httr2`.
+#'   operation. The function accepts arguments corresponding to operation
+#'   parameters and executes the request using `httr2`.
 #'
 #' @importFrom rlang pairlist2 expr new_function caller_env !! !!!
-#' @importFrom httr2 req_method request req_body_json req_perform resp_check_status
+#' @importFrom httr2 req_method request req_body_json req_perform
+#'   resp_check_status
 #' @examples
 #' \dontrun{
 #' # Generate an API function for a specific operation
@@ -345,7 +352,9 @@ extract_operation_definitions <- function(api) {
 #' }
 #'
 #' @export
-api_function_factory <- function(operation, api, verbosity = 0, api_key = NULL) {
+api_function_factory <- function(
+    operation, api, verbosity = 0,
+    api_key = NULL) {
   resp <- NULL # lint
   base_url <- api$host
   op <- operation
@@ -398,15 +407,17 @@ api_function_factory <- function(operation, api, verbosity = 0, api_key = NULL) 
   # Add headers
   body_exprs <- c(body_exprs, .add_headers(params, op, api, api_key))
 
-  # If there were query parameters added to the function formals, add appropriate
-  # code to the body in the form of httr2 query
+  # If there were query parameters added to the function formals,
+  # add appropriate code to the body in the form of httr2 query
   if (length(params$query) > 0) {
     body_exprs <- c(body_exprs, .add_queries(params))
   }
 
   # Add request body -----
   if (has_body) {
-    body_request_expr <- expr(req <- req_body_json(req, body, auto_unbox = FALSE))
+    body_request_expr <- expr(
+      req <- req_body_json(req, body, auto_unbox = FALSE)
+    )
     body_exprs <- c(body_exprs, body_request_expr)
   }
 
@@ -477,27 +488,18 @@ create_client <- function(api, ...) {
 #' @param resp An HTTP response object from the EGA API.
 #'
 #' @return A tibble containing the parsed and formatted response data. If the
-#' response is plain text without a JSON-like structure, a one-column tibble
-#' is returned with the raw content.
+#'   response is plain text without a JSON-like structure, a one-column tibble
+#'   is returned with the raw content.
 #'
-#' @importFrom httr2 resp_url_path resp_body_json resp_body_string resp_content_type
+#' @importFrom httr2 resp_url_path resp_body_json resp_body_string
+#'   resp_content_type
 #' @importFrom jsonlite fromJSON
 #' @importFrom rlang :=
 #' @importFrom stringr str_replace
 #' @importFrom tibble tibble
 #' @importFrom tidyr unnest_wider
 #'
-#' @examples \dontrun{
-#' url <- "https://submission.ega-archive.org/api/files"
-#' req <- req_method(request(url), "GET")
-#' req <- Rega:::ega_oauth(req)
-#' req <- req_headers(req, `Content-Type` = "application/json")
-#' req <- req_url_query(req, status = NULL, prefix = NULL)
-#' resp <- req_perform(req, verbosity = 3)
-#' Rega:::ega_parse_body(resp)
-#' }
-#'
-#' @keywords internal
+#' @export
 parse_ega_body <- function(resp) {
   resource_name <- resp |>
     resp_url_path() |>

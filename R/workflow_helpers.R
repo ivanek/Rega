@@ -37,9 +37,10 @@ is_accession <- function(x, schema = "submission") {
   )
 
   if (!schema %in% names(letter_lut)) {
-    stop(sprintf(
+    err_msg <- sprintf(
       "Unknown schema %s, please select one of the valid EGA schemas.", schema
-    ))
+    )
+    stop(err_msg)
   }
 
   letter <- letter_lut[schema]
@@ -68,7 +69,8 @@ is_accession <- function(x, schema = "submission") {
 step_msg <- function(steps) {
   cur <- 1
   inner <- function(msg) {
-    message(paste0("Step ", cur, "/", steps, " - ", msg))
+    step_msg <- paste0("Step ", cur, "/", steps, " - ", msg)
+    message(step_msg)
     assign("cur", cur + 1, envir = parent.env(environment()))
   }
   return(inner)
@@ -129,7 +131,8 @@ submit_table <- function(tab, id, endpoint_func) {
 #'
 #' This function retrieves existing data from an API or submits new data if it
 #' does not exist, with optional error handling and retrieval options.
-#' - If no data is present in the database, it will supplied data will be inserted.
+#' - If no data is present in the database, it will supplied data will be
+#' inserted.
 #' - If there is data already present in the database and the number of records
 #' don't match, error will raised.
 #' - If the number of records match and \code{retrieve_if_exists} is set to TRUE
@@ -161,17 +164,19 @@ get_or_post <- function(submission_id, data, client, endpoint,
       client[[paste0("post", built_url)]]
     )
   } else if (nrow(resp) != nrow(data)) {
-    stop(sprintf(
+    err_msg <- sprintf(
       "Number of present versus submitted records doesn't match: %s, %s",
       nrow(resp), nrow(data)
-    ))
+    )
+    stop(err_msg)
   } else if (retrieve_if_exists) {
     message("Retrieved IDs from database.")
   } else {
-    stop(sprintf(
+    err_msg <- sprintf(
       "%s records are already present in the database and 'retrive_if_exists'
       is set to FALSE", nrow(resp)
-    ))
+    )
+    stop(err_msg)
   }
   return(resp)
 }

@@ -61,12 +61,19 @@ if (out_type == "html") {
 
 # Setup credentials
 
-`httr2` is built around the notion that the key should live in an environment variable. So the first step is to make your package key available on your local development machine by adding a line to your your user-level `.Renviron` (which you can easily open with `usethis::edit_r_environ()`)
+`httr2` is built around the notion that the key should live in an environment 
+variable. So the first step is to make your package key available on your local 
+development machine by adding a line to your your user-level `.Renviron` 
+(which you can easily open with `usethis::edit_r_environ()`)
 
-The `REGA_EGA_PASSWORD` environmental variable isn't supposed to store the password in the plain text, instead:
+The `REGA_EGA_PASSWORD` environmental variable isn't supposed to store the 
+password in the plain text, instead:
 
- - generate a secret key using `httr2::secret_make_key()` and store it as the "REGA_KEY" environmental variable (e.g. using `export` command in bash or in `.Renviron` file)
- - generate an encrypted password using your secret key via `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
+ - generate a secret key using `httr2::secret_make_key()` and store it as the 
+ "REGA_KEY" environmental variable (e.g. using `export` command in bash or
+ in `.Renviron` file)
+ - generate an encrypted password using your secret key via 
+ `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
  - use the resulting value as "REGA_EGA_PASSWORD"
 
 ```{r env-credentials, eval=FALSE}
@@ -76,13 +83,19 @@ Sys.setenv("REGA_EGA_PASSWORD" = "<your-ega-password>")
 
 # Authentication
 
-`Rega` package supports authentication through OAuth or Bearer token via functions `ega_oauth` (default) and `ega_token` respectively.
+`Rega` package supports authentication through OAuth or Bearer token via 
+functions `ega_oauth` (default) and `ega_token` respectively.
 
 # Data submission
 
 ## Submission metadata parsing
 
-The default parser parses the bundled `xlsx` template. Changing the parser behavior, such as whether to append `c4gh` extension to files or which sheets to parse from the metadata files is controlled by YAML config file `inst/extdata/default_parser_params.yaml`. To modify the parameters, create a local copy of the file and pass it as `param_file` argument to `default_parser` function.
+The default parser parses the bundled `xlsx` template. Changing the parser 
+behavior, such as whether to append `c4gh` extension to files or which sheets 
+to parse from the metadata files is controlled by YAML config file 
+`inst/extdata/default_parser_params.yaml`. To modify the parameters, 
+create a local copy of the file and pass it as `param_file` argument to 
+`default_parser` function.
 
 ```{r parse-metadata}
 metadata_file <- "<path-to-metadata-file>"
@@ -93,7 +106,11 @@ parsed_metadata
 
 ## Submission metadata validation
 
-The internal validation is a bit stricter in enforcing uniqueness of titles and descriptions for individual tables (the API itself doesn't have this requirement). If the validation only fails in this particular case, you can still continue with creating the submission. However, there have been instances of failed reviews due to non-unique titles and descriptions before.
+The internal validation is a bit stricter in enforcing uniqueness of titles 
+and descriptions for individual tables (the API itself doesn't have this 
+requirement). If the validation only fails in this particular case, you can 
+still continue with creating the submission. However, there have been instances 
+of failed reviews due to non-unique titles and descriptions before.
 
 ```{r validate-metadata}
 validation_summary <- default_validator(parsed_metadata)
@@ -116,7 +133,8 @@ ega <- create_client(api, verbosity = 0)
 
 ## Run new submission workflow
 
-Specify one of the available workflow function with your parsed metadata and a client as parameters.
+Specify one of the available workflow function with your parsed metadata and 
+a client as parameters.
 
 ```{r run-workflow}
 responses <- new_submission(parsed_metadata, ega, "log.yaml")
@@ -124,14 +142,16 @@ responses <- new_submission(parsed_metadata, ega, "log.yaml")
 
 ## Other workflows
 
-You can get the entire contents of current submission metadata via `get_submission` workflow.
+You can get the entire contents of current submission metadata via 
+`get_submission` workflow.
 
 ```{r get-submission-contents}
 resp <- get_submission(00001, ega, logfile = "log.yaml")
 resp <- get_submission(00001, ega)
 ```
 
-Or delete the entire contents of current submission metadata via `delete_submission_contents` workflow.
+Or delete the entire contents of current submission metadata via 
+`delete_submission_contents` workflow.
 
 ```{r delete-submission-contents}
 resp <- delete_submission_contents(00001, ega)
@@ -143,18 +163,23 @@ Or delete the entire submission by using the `delete_submission` workflow.
 resp <- delete_submission(00001, ega)
 ```
 
-If you submission has an accession ID and you wish to roll back changes you made
-to since last time, you can use `rollback_submission` workflow. Apart from `accession_id` and API client, you need to specify which tables/endpoints you want to roll back.
+If you submission has an accession ID and you wish to roll back changes you 
+made to since last time, you can use `rollback_submission` workflow. Apart from 
+`accession_id` and API client, you need to specify which tables/endpoints 
+you want to roll back.
 
 ```{r rollback-submission}
 resp <- rollback_submission("EGA00000000001", ega, c("datasets", "runs"))
 ```
 
-**Workflow for updating the submission metadata by `PUT` method is under development.**
+**Workflow for updating the submission metadata by `PUT`
+method is under development.**
 
 # Utilities
 
-If you wish to create your own templates for EGA submissions, we provide a few functions to retrieve properties and enums through API and save them in text files. We will use the API and the client created above.
+If you wish to create your own templates for EGA submissions, we provide a few 
+functions to retrieve properties and enums through API and save them in text 
+files. We will use the API and the client created above.
 
 Relevant functions include:
 
@@ -172,10 +197,8 @@ schemas <- get_schemas(api)
 
 for (x in names(schemas)) {
   p <- get_properties(schemas[[x]], filter_ids = FALSE)
-  cat(
-    paste0("[", x, "]"), p, "",
-    file = properties_out, sep = "\n", append = TRUE
-  )
+  lines <- c(paste0("[", x, "]"), p, "")
+  writeLines(lines, con = properties_out, sep = "\n", useBytes = TRUE)
 }
 ```
 
@@ -186,10 +209,8 @@ enums_out <- "enums.txt"
 
 for (x in ega$get__enums()$enums) {
   e <- parse_enum(get_enum(ega, x))
-  cat(
-    paste0("[", x, "]"), e, "",
-    file = enums_out, sep = "\n", append = TRUE
-  )
+  lines <- c(paste0("[", x, "]"), e, "")
+  writeLines(lines, con = enums_out, sep = "\n", useBytes = TRUE)
 }
 ```
 
@@ -197,7 +218,10 @@ for (x in ega$get__enums()$enums) {
 
 ## Bearer token authentication
 
-For testing, debugging and prototyping purposes, it is possible to directly use generated bearer token with API when creating the client. It is then your responsibility of the user to track the validity and refresh the token as necessary.
+For testing, debugging and prototyping purposes, it is possible to directly use 
+generated bearer token with API when creating the client. It is then your 
+responsibility of the user to track the validity and refresh the token as
+necessary.
 
 ```{r client-with-token, eval=FALSE}
 bt <- ega_token()
@@ -208,12 +232,26 @@ ega$get__enums()
 
 ## Creating the YAML specification for API client generation
 
-The [EGA API yaml](https://submission.ega-archive.org/api/spec/#/) was download from EGA Submitter API website and references were resolved using [Swagger Editor](https://editor.swagger.io/). The resolved API YAML specification is bundled with the package.
+The [EGA API yaml](https://submission.ega-archive.org/api/spec/#/) was download 
+from EGA Submitter API website and references were resolved using 
+[Swagger Editor](https://editor.swagger.io/). The resolved API YAML 
+specification is bundled with the package.
 
-Following changes were made in the YAML specification for the package to work correctly.
+Following changes were made in the YAML specification for the package to work 
+correctly.
 
-- `servers/url` needs to be changed to: `https://submission.ega-archive.org/api>`
-- The schemas for Datasets are not completely correct. There is a possibility to submit a dataset without Runs and Analyses, but this is not reflected in the API. The requirement for `run_provisional_ids` and `analysis_provisional_ids` was commented out in the resolved YAML file to allow for this case. It was added to the unresolved YAML (corresponds to lines `13322` and `13323`). 
-
+- `servers/url` needs to be changed to: 
+`https://submission.ega-archive.org/api>`
+- The schemas for Datasets are not completely correct. There is a possibility 
+to submit a dataset without Runs and Analyses, but this is not reflected in the 
+API. The requirement for `run_provisional_ids` and `analysis_provisional_ids`
+was commented out in the resolved YAML file to allow for this case. It was 
+added to the unresolved YAML (corresponds to lines `13322` and `13323`). 
 
 # Issues
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```

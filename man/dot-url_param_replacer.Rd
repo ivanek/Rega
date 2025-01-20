@@ -8,7 +8,8 @@
 }
 \arguments{
 \item{path_params}{Character vector. Names of the parameters to replace in
-the URL. Each name should correspond to a placeholder in the format \code{{param}}.}
+the URL. Each name should correspond to a placeholder in the format
+\code{{param}}.}
 
 \item{url}{Character. The URL containing placeholders to be replaced.}
 }
@@ -23,7 +24,9 @@ with corresponding parameter values.
 \examples{
 \dontrun{
 # Generate replacement expressions for path parameters
-replacers <- Rega:::.url_param_replacer(c("id", "type"), "https://api/{id}/{type}")
+replacers <- Rega:::.url_param_replacer(
+  c("id", "type"), "https://api/{id}/{type}"
+)
 }
 
 }

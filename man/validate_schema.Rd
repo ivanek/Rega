@@ -24,7 +24,9 @@ tests separately against all \code{oneOf} sub schemas.
 \examples{
 \dontrun{
 # Validate a payload against a schema
-schema <- list(type = "object", properties = list(name = list(type = "string")))
+schema <- list(
+  type = "object", properties = list(name = list(type = "string"))
+)
 payload <- list(name = "John")
 is_valid <- validate_schema(payload, schema)
 }

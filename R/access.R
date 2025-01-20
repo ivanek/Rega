@@ -1,110 +1,126 @@
-#' Generate Rega Key
+#' Retrieve Rega secret from Environment Variable
 #'
-#' `set_rega_key` generates an encryption key and set it as an ENV variable
-#' "REGA_KEY". Alternative might be to set permanent key on the user-level in
-#' the `.Renviron` (which can be easily open with `usethis::edit_r_environ())`
+#' Retrieves the Rega secret from the specified environment variable. If the key
+#' is not found, a warning message is issued. REGA secret should be generated
+#' via `httr2::secret_make_key()` and stored as environmental variable either by
+#' using `export` command in bash or at the the user-level in the `.Renviron`
+#' file
 #'
-#' @return NULL
+#' @param envvar A string specifying the name of the environment variable to
+#'   retrieve the API key from. Defaults to \code{"REGA_KEY"}.
 #'
-#' @keywords internal
+#' @return A string containing the REGA API key, or an empty string if the
+#'   variable is not set.
 #'
 #' @importFrom httr2 secret_make_key
+#'
 #' @examples
-#' Rega:::set_rega_key()
-#'
-set_rega_key <- function() {
-  rega_key <- Sys.getenv("REGA_KEY")
-  if (identical(rega_key, "")) {
-    Sys.setenv("REGA_KEY" = secret_make_key())
-  }
-}
-
-#' Get EGA Username
-#'
-#' `get_ega_username` get EGA username either from ENV variable
-#' "REGA_EGA_USERNAME" or ask the user to provide it.
-#'
-#'
-#' @return character scalar with EGA username
+#' rega_key <-Rega:::.get_rega_key()
 #'
 #' @keywords internal
+.get_rega_key <- function(envvar = "REGA_KEY") {
+  rega_key <- Sys.getenv(envvar)
+  if (identical(rega_key, "")) {
+    warn_msg <- paste(
+      "No REGA_KEY environmental variable found.",
+      "Attempting to conect via unecrypted password."
+    )
+    warning(warn_msg)
+  }
+  return(rega_key)
+}
+
+#' Get EGA User Name
+#'
+#' Retrieves the EGA username from the specified environment variable. If the
+#' variable is not set, prompts the user to enter their username interactively.
+#'
+#' @param envvar A string specifying the name of the environment variable to
+#'   retrieve the username from. Defaults to \code{"REGA_EGA_USERNAME"}.
+#'
+#' @return A string containing the EGA username.
 #'
 #' @importFrom askpass askpass
 #'
 #' @examples
-#' ega_get_username <- Rega:::get_ega_username()
+#' ega_username <- Rega:::.get_ega_username()
 #'
-get_ega_username <- function() {
-  ega_username <- Sys.getenv("REGA_EGA_USERNAME")
+#' @keywords internal
+.get_ega_username <- function(envvar = "REGA_EGA_USERNAME") {
+  ega_username <- Sys.getenv(envvar)
   if (identical(ega_username, "")) {
     ega_username <- askpass(prompt = "Please enter your EGA username:")
-  }
-  if (!is.null(ega_username)) {
-    Sys.setenv("REGA_EGA_USERNAME" = ega_username)
   }
   return(ega_username)
 }
 
 #' Get EGA User Password
 #'
-#' `get_ega_password` get EGA password either from ENV variable "REGA_EGA_PASSWORD"
-#' or ask the user to provide it. The encrypted password is stored in the ENV
-#' variable "REGA_EGA_PASSWORD". ENV variable "REGA_KEY" is used to en-/de-crypt
-#' the password.
+#' Retrieves the EGA password from the specified environment variable. If not
+#' found, prompts the user to enter it. If an encryption key (usually stored in
+#' REGA_KEY environmental variable) is available, the password is decrypted.
 #'
+#' @param envvar A string specifying the name of the environment variable to
+#'   retrieve the password from. Defaults to \code{"REGA_EGA_PASSWORD"}.
+#' @param ... Additional arguments passed to \code{.get_rega_key}.
 #'
-#' @return character scalar with EGA password
+#' @return A string containing the decrypted EGA password.
 #'
-#' @keywords internal
-#'
-#' @importFrom httr2 secret_decrypt
-#' @importFrom httr2 secret_encrypt
 #' @importFrom askpass askpass
+#' @importFrom httr2 secret_decrypt
 #'
 #' @examples
-#' ega_get_password <- Rega:::get_ega_password()
+#' ega_password <- Rega:::.get_ega_password()
 #'
-get_ega_password <- function() {
-  set_rega_key()
-  ega_password <- secret_decrypt(Sys.getenv("REGA_EGA_PASSWORD"), "REGA_KEY")
-  if (identical(ega_password, "")) {
-    ega_password <- askpass(prompt = "Please enter your EGA password:")
-    if (!is.null(ega_password)) {
-      Sys.setenv("REGA_EGA_PASSWORD" = secret_encrypt(ega_password, "REGA_KEY"))
-    }
+#' @keywords internal
+.get_ega_password <- function(envvar = "REGA_EGA_PASSWORD", ...) {
+  rega_key <- .get_rega_key(...)
+  ega_password <- Sys.getenv(envvar)
+
+  if (!identical(ega_password, "") && identical(rega_key, "")) {
+    warning("Storing unencrypted password in plaintext is not recommended.")
   }
+
+  # Ask for password if not found in environmental variable
+  if (identical(ega_password, "")) {
+    ega_password <- askpass(prompt = "Please enter your EGA username:")
+  }
+
+  # If `rega_key` environmental variable secret is set, decrypt the password
+  if (!identical(rega_key, "")) {
+    ega_password <- secret_decrypt(Sys.getenv(envvar), I(rega_key))
+  }
+
   return(ega_password)
 }
 
 #' Set The OAUTH With EGA Username And Password
 #'
-#' `ega_oauth` implements the EGA OAuth resource owner password flow, as
-#' defined by Section 4.3 of RFC 6749. It allows the user to supply their
-#' password once, exchanging it for an access token that can be cached locally.
+#' `ega_oauth` implements the EGA OAuth resource owner password flow, as defined
+#' by Section 4.3 of RFC 6749. It allows the user to supply their password once,
+#' exchanging it for an access token that can be cached locally. Please avoid
+#' entering the password directly when calling this function as it will be
+#' captured by `.Rhistory`.
 #'
 #' @param req A httr2 request.
-#' @param ega_username Character scalar. EGA User name. By default the content
-#' of ENV variable "REGA_EGA_USERNAME".
-#' @param ega_password Character scalar. EGA user Password. By default the
-#' content of ENV variable "REGA_EGA_PASSWORD". Please avoid entering the
-#' password directly when calling this function as it will be captured by
-#' `.Rhistory`.
+#' @param username Character. EGA User name. Defaults to the value returned by
+#'   `.get_ega_username()`.
+#' @param password Character. EGA user Password. Defaults to the value returned
+#'   by `.get_ega_password()`.
+#' @param token_url Character. The URL for the EGA token endpoint. Defaults to
+#'   the standard EGA token URL if not provided.
 #'
-#' @return returns a modified HTTP request that will use OAuth;
-#'
-#' @keywords internal
-#' @noRd
+#' @return returns a modified HTTP request that will use OAuth
 #'
 #' @importFrom httr2 oauth_client
 #' @importFrom httr2 req_oauth_password
-#' @examples \dontrun{
-#' Rega:::ega_oauth(req)
-#' }
 #'
-ega_oauth <- function(req, username = get_ega_username(),
-                      password = get_ega_password(), token_url = NULL) {
+#' @export
+ega_oauth <- function(req, username = .get_ega_username(),
+                      password = .get_ega_password(), token_url = NULL) {
   if (is.null(token_url)) {
-    token_url <- "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
+    token_url <-
+      "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
   }
 
   client <- oauth_client(
@@ -127,20 +143,21 @@ ega_oauth <- function(req, username = get_ega_username(),
 
 #' Retrieve EGA API Bearer Token
 #'
-#' This function retrieves an API token from the European Genome-phenome
-#' Archive (EGA) using user credentials.
+#' This function retrieves an API token from the European Genome-phenome Archive
+#' (EGA) using user credentials.
 #'
-#' @param username Character. The username for EGA authentication.
-#'   Defaults to the value returned by `get_ega_username()`.
-#' @param password Character. The password for EGA authentication.
-#' Defaults to the value returned by `get_ega_password()`.
-#' @param token_url Character. The URL for the EGA token endpoint.
-#' Defaults to the standard EGA token URL if not provided.
+#' @param username Character. The username for EGA authentication. Defaults to
+#'   the value returned by `.get_ega_username()`.
+#' @param password Character. The password for EGA authentication. Defaults to
+#'   the value returned by `.get_ega_password()`.
+#' @param token_url Character. The URL for the EGA token endpoint. Defaults to
+#'   the standard EGA token URL if not provided.
 #'
 #' @return A list containing the token details if successful. Actual token value
-#'  can be retrieved by `token$access_token`
+#'   can be retrieved by `token$access_token`
 #'
-#' @importFrom httr2 request req_body_form req_perform resp_body_json resp_body_string
+#' @importFrom httr2 request req_body_form req_perform resp_body_json
+#'   resp_body_string
 #'
 #' @examples
 #' \dontrun{
@@ -155,11 +172,12 @@ ega_oauth <- function(req, username = get_ega_username(),
 #' }
 #'
 #' @export
-ega_token <- function(username = get_ega_username(),
-                      password = get_ega_password(), token_url = NULL) {
+ega_token <- function(username = .get_ega_username(),
+                      password = .get_ega_password(), token_url = NULL) {
   if (is.null(token_url)) {
     # Use default EGA token URL
-    token_url <- "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
+    token_url <-
+      "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
   }
 
   response <- request(token_url) |>

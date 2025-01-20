@@ -10,8 +10,9 @@ filter_id_fields(x, pattern = NULL)
 \item{x}{Character vector. The input vector to filter.}
 
 \item{pattern}{Character. Optional. A regular expression pattern for matching
-ID fields to exclude. Defaults to \code{"(?<!policy_)accession_id|provisional_id"}
-which removes accession IDs and provisional IDs, but not policy accession ID.}
+ID fields to exclude. Defaults to
+\code{"(?<!policy_)accession_id|provisional_id"}, which removes accession
+IDs and provisional IDs, but not policy accession ID.}
 }
 \value{
 A character vector with elements matching the pattern removed.
