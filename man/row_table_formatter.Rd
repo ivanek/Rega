@@ -20,13 +20,17 @@ columns, whitespace trimmed, and folding applied to specified columns.
 Format a Row Table
 }
 \examples{
-\dontrun{
-# Format a row table
-tab <- data.frame(
-  A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4)
+# Formatter parameters
+params = list(fold = "extra_attributes")
+
+# Sample data frame
+df = data.frame(
+  ...1 = c("* Study", "* Title", "Extra Attributes", "Extra Attributes"),
+  ...2 = c("Study1", "Title1", "A", "B"),
+  ...3 = c("* Study", "* Title", "Extra Attributes", NA),
+  ...4 = c("Study2", "Title2", "C", NA)
 )
-params <- list(fold = c("A"))
-formatted_tab <- row_table_formatter(tab, params)
-}
+
+row_table_formatter(df, params)
 
 }

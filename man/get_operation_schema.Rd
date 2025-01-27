@@ -18,9 +18,10 @@ schema is defined.
 Retrieve the Schema for an API Operation
 }
 \examples{
-\dontrun{
+# Get operations from API
+opdefs <- extract_operation_definitions(extract_api())
+
 # Retrieve the schema for a specific operation
-schema <- get_operation_schema(operation)
-}
+schema <- get_operation_schema(opdefs[["post__submissions"]])
 
 }

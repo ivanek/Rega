@@ -23,12 +23,10 @@ This function parses an API specification file (JSON or YAML) and extracts
 relevant details.
 }
 \examples{
-\dontrun{
-# Extract API details from a YAML specification file
-api <- extract_api("api_spec.yaml")
+# Extract API details from a default YAML specification file
+api <- extract_api()
 
 # Extract API details with a custom host
-api <- extract_api("api_spec.json", host = "https://api.example.com")
-}
+api <- extract_api(host = "https://api.example.com")
 
 }

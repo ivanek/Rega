@@ -23,7 +23,7 @@ This function verifies whether the input string matches the format of a
 valid accession identifier based on a specified schema.
 }
 \examples{
-is_accession("EGA00000000001", "submission") # TRUE
+is_accession("EGAB00000000001", "submission") # TRUE
 is_accession("EGA12345678901", "sample") # FALSE
 
 }

@@ -21,10 +21,12 @@ This function transforms an operation's parameter definitions into a list of
 function arguments. Required parameters are marked as missing arguments.
 }
 \examples{
-\dontrun{
 # Convert operation parameters to function arguments
-args <- Rega:::.operation_params_to_args(op)
-}
+opdefs <- extract_operation_definitions(extract_api())
+
+Rega:::.operation_params_to_args(
+  opdefs[["post__submissions__provisional_id__samples"]]
+)
 
 }
 \keyword{internal}

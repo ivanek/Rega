@@ -24,10 +24,11 @@ This function organizes API operation parameters into categories based on
 their location (\code{path}, \code{query}, or \code{header}).
 }
 \examples{
-\dontrun{
+# Convert operation parameters to function arguments
+opdefs <- extract_operation_definitions(extract_api())
+
 # Extract parameters categorized by location
-params <- Rega:::.get_operation_params(op)
-}
+Rega:::.get_operation_params(opdefs[["get__files"]])
 
 }
 \keyword{internal}

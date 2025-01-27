@@ -21,6 +21,8 @@
 #'
 #' @importFrom validate validator confront is_unique summary
 #'
+#'
+#'
 #' @export
 default_validator <- function(meta, aliases = NULL) {
   # lint
@@ -223,10 +225,11 @@ default_validator <- function(meta, aliases = NULL) {
 #' schema is defined.
 #'
 #' @examples
-#' \dontrun{
+#' # Get operations from API
+#' opdefs <- extract_operation_definitions(extract_api())
+#'
 #' # Retrieve the schema for a specific operation
-#' schema <- get_operation_schema(operation)
-#' }
+#' schema <- get_operation_schema(opdefs[["post__submissions"]])
 #'
 #' @export
 get_operation_schema <- function(op) {
@@ -251,14 +254,20 @@ get_operation_schema <- function(op) {
 #' @importFrom jsonvalidate json_validator
 #'
 #' @examples
-#' \dontrun{
-#' # Validate a payload against a schema
 #' schema <- list(
-#'   type = "object", properties = list(name = list(type = "string"))
+#'   type = "object",
+#'   properties = list(
+#'     id = list(type = "integer"),
+#'     title = list(type = "string")
+#'   ),
+#'   required = c("id")
 #' )
-#' payload <- list(name = "John")
-#' is_valid <- validate_schema(payload, schema)
-#' }
+#'
+#' payload_true <- data.frame(id = c(12345), title = c("abcd"))
+#' payload_false <- data.frame(id = c("12345"), title = c(0.355))
+#'
+#' validate_schema(jsonlite::unbox(payload_true), schema)
+#' validate_schema(jsonlite::unbox(payload_false), schema)
 #'
 #' @export
 validate_schema <- function(payload, schema) {
@@ -315,14 +324,12 @@ validate_schema <- function(payload, schema) {
 #' @importFrom utils capture.output
 #'
 #' @examples
-#' \dontrun{
 #' # Generate a validation message
 #' validation_result <- list(
 #'   errors = data.frame(field = "name", error = "Missing")
 #' )
 #' msg <- validation_to_msg(validation_result)
 #' message(msg)
-#' }
 #'
 #' @export
 validation_to_msg <- function(v) {

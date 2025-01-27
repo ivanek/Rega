@@ -22,13 +22,19 @@ fail, it displays the overall result of the validation as first and then it
 tests separately against all \code{oneOf} sub schemas.
 }
 \examples{
-\dontrun{
-# Validate a payload against a schema
 schema <- list(
-  type = "object", properties = list(name = list(type = "string"))
+  type = "object",
+  properties = list(
+    id = list(type = "integer"),
+    title = list(type = "string")
+  ),
+  required = c("id")
 )
-payload <- list(name = "John")
-is_valid <- validate_schema(payload, schema)
-}
+
+payload_true <- data.frame(id = c(12345), title = c("abcd"))
+payload_false <- data.frame(id = c("12345"), title = c(0.355))
+
+validate_schema(jsonlite::unbox(payload_true), schema)
+validate_schema(jsonlite::unbox(payload_false), schema)
 
 }

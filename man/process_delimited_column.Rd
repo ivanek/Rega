@@ -14,20 +14,18 @@ process_delimited_column(metadata, column_name, separator)
 \item{separator}{Character. The delimiter used to split column values.}
 }
 \value{
-A list of updated metadata with the specified column split into
-lists based on the delimiter and trimmed.
+A list of updated metadata with the specified column split into lists
+based on the delimiter and trimmed.
 }
 \description{
 The specified column name is searched for across all the data frames. If the
 column is \code{pubmed_ids}, values are converted to integers.
 }
 \examples{
-\dontrun{
-# Process a delimited column in metadata
 metadata <- list(
-  sheet1 = data.frame(pubmed_ids = c("123, 456", "789"))
+  sheet1 = data.frame(pubmed_ids = c("123; 456", "130; 789; 102", NA))
 )
-updated_metadata <- process_delimited_column(metadata, "pubmed_ids", ",")
-}
+
+process_delimited_column(metadata, "pubmed_ids", ";")
 
 }

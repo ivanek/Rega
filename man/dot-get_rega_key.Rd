@@ -22,7 +22,7 @@ using \code{export} command in bash or at the the user-level in the \code{.Renvi
 file
 }
 \examples{
-rega_key <-Rega:::.get_rega_key()
+rega_key <- Rega:::.get_rega_key()
 
 }
 \keyword{internal}

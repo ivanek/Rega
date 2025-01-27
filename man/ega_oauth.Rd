@@ -33,3 +33,13 @@ exchanging it for an access token that can be cached locally. Please avoid
 entering the password directly when calling this function as it will be
 captured by \code{.Rhistory}.
 }
+\examples{
+req <- httr2::request("https://example.com/")
+
+# Request OAuth with default credentials
+oauth_req <- ega_oauth(req)
+
+# Request OAuth with custom credentials
+oauth_req <- ega_oauth(req, username = "user", password = "pass")
+
+}

@@ -10,7 +10,9 @@ get_chr_group(group_id, chr_enum, sep = "--")
 \item{group_id}{Character. The group ID to filter by.}
 
 \item{chr_enum}{Character vector. Chromosome enumeration data, where each
-element is a string containing fields separated by \code{sep}.}
+element is a string containing fields separated by \code{sep}. Enum data is
+created by \code{parse_enum} and \code{get_enum} functions. See vignette for more
+details.}
 
 \item{sep}{Character. Field separator in a string. Defaults to \code{"--"}}
 }
@@ -22,11 +24,8 @@ group ID.
 Retrieve Chromosome Belonging to a Group
 }
 \examples{
-\dontrun{
-# Get IDs for a specific chromosome group
-ids <- get_chr_group(
-  "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
+get_chr_group(
+ "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
 )
-}
 
 }

@@ -15,19 +15,19 @@ host, and global settings.}
 }
 \value{
 A named list of functions, where each function corresponds to an API
-operation. The function names match the operation IDs from the specification.
+operation. The function names match the operation IDs from the
+specification.
 }
 \description{
 This function creates a named list of functions for interacting with an API,
 based on its specification and operation definitions.
 }
 \examples{
-\dontrun{
-# Create an API client
-client <- create_client(api, api_key = "your_api_key")
+client <- create_client(extract_api(), api_key = "my_key", verbosity = 1)
 
-# Call an operation using the client
-result <- client$operation_id(param1 = "value1", param2 = "value2")
-}
+# Call an operation using the client (requires credentials)
+try(
+  result <- client$get__files(status = "value1", prefix = "value2")
+)
 
 }

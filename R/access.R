@@ -15,14 +15,14 @@
 #' @importFrom httr2 secret_make_key
 #'
 #' @examples
-#' rega_key <-Rega:::.get_rega_key()
+#' rega_key <- Rega:::.get_rega_key()
 #'
 #' @keywords internal
 .get_rega_key <- function(envvar = "REGA_KEY") {
   rega_key <- Sys.getenv(envvar)
   if (identical(rega_key, "")) {
     warn_msg <- paste(
-      "No REGA_KEY environmental variable found.",
+      sprintf("No %s environmental variable found.", envvar),
       "Attempting to conect via unecrypted password."
     )
     warning(warn_msg)
@@ -44,6 +44,7 @@
 #'
 #' @examples
 #' ega_username <- Rega:::.get_ega_username()
+#' ega_username <- Rega:::.get_ega_username("EGA_USERNAME")
 #'
 #' @keywords internal
 .get_ega_username <- function(envvar = "REGA_EGA_USERNAME") {
@@ -115,6 +116,15 @@
 #' @importFrom httr2 oauth_client
 #' @importFrom httr2 req_oauth_password
 #'
+#' @examples
+#' req <- httr2::request("https://example.com/")
+#'
+#' # Request OAuth with default credentials
+#' oauth_req <- ega_oauth(req)
+#'
+#' # Request OAuth with custom credentials
+#' oauth_req <- ega_oauth(req, username = "user", password = "pass")
+#'
 #' @export
 ega_oauth <- function(req, username = .get_ega_username(),
                       password = .get_ega_password(), token_url = NULL) {
@@ -160,16 +170,13 @@ ega_oauth <- function(req, username = .get_ega_username(),
 #'   resp_body_string
 #'
 #' @examples
-#' \dontrun{
-#' # Retrieve token with default credentials and URL
-#' token <- ega_token()
+#' try(
+#'   ega_token(username = "my_username", password = "my_password")
+#' )
 #'
-#' # Retrieve token with custom credentials
-#' token <- ega_token(username = "my_username", password = "my_password")
-#'
-#' # Retrieve token with a custom URL
-#' token <- ega_token(token_url = "https://custom-token-url.example.com")
-#' }
+#' try(
+#'   ega_token(token_url = "https://www.example.com")
+#' )
 #'
 #' @export
 ega_token <- function(username = .get_ega_username(),

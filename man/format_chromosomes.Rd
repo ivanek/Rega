@@ -9,7 +9,7 @@ format_chromosomes(metadata)
 \arguments{
 \item{metadata}{List. A list of data frames representing metadata sheets,
 containing \code{analyses}. Each row in \code{analyses} can have entry in
-\code{chromosomes} or \code{chromosome_group} column.}
+\code{chromosomes} or \code{chromosome_groups} column.}
 }
 \value{
 A list of formatted chromosome data extracted or computed from the
@@ -21,15 +21,20 @@ applying chromosome group lookups or splitting chromosome strings from the
 EGA enums.
 }
 \examples{
-\dontrun{
+# Mock metadata data frame
 metadata <- list(
   analyses = data.frame(
-    chromosomes = c(NA, "chr1--chr2"),
-    chromosome_group = c("group1", NA),
+    chromosomes = I(list(
+      NA,
+      list("group1--1--chr1--name1", "group2--3--chr3--name3"))
+    ),
+    chromosome_groups = c("group1", NA),
     stringsAsFactors = FALSE
   ),
-  select_input_data = list(chromosomes = list(group1 = c("chr1", "chr2")))
+  select_input_data = list(
+    chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2"))
 )
+
 format_chromosomes(metadata)
-}
+
 }

@@ -23,14 +23,12 @@ This function parses an enum, represented as a data frame or character
 vector, into a formatted string for display or further use.
 }
 \examples{
-\dontrun{
 # Parse an enum as a data frame
 df_enum <- data.frame(key = c("A", "B"), value = c("1", "2"))
-parsed <- parse_enum(df_enum)
+parse_enum(df_enum)
 
 # Parse an enum as a character vector
 vec_enum <- c("A", "B", "C")
-parsed <- parse_enum(vec_enum)
-}
+parse_enum(vec_enum)
 
 }

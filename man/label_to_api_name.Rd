@@ -19,9 +19,7 @@ A character vector with labels converted to API-style names.
 Convert Prettified Labels to API Names
 }
 \examples{
-\dontrun{
-# Convert labels to API names
-api_names <- label_to_api_name(c("* First Name", "Last Name"))
-}
+label_to_api_name(c("* First Name", "Last Name"))
+label_to_api_name(c("# Instrument Model", "# Fragment SD"), req_str = "# ")
 
 }

@@ -21,10 +21,12 @@ rows removed, and whitespace trimmed from all values.
 Format a Column Table
 }
 \examples{
-\dontrun{
-# Format a column table
-tab <- data.frame(Alias = c(" Name1 ", " Name2 ", NA), Value = c(1, 2, NA))
-formatted_tab <- column_table_formatter(tab, params = list())
-}
+df = data.frame(
+  ...1 = c("* Alias", "Sample1", "Sample2"),
+  ...2 = c("* Phenotype", "wt", "ko"),
+  ...3 = c("Description", NA, NA)
+)
+
+column_table_formatter(df, list())
 
 }

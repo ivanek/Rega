@@ -17,6 +17,14 @@
 #' @importFrom stats setNames
 #' @importFrom stringr str_split_i
 #'
+#' @examples
+#' # Template file is empty, trying to parse it as is will fail
+#' try(
+#'   default_parser(
+#'     system.file("extdata/ega_full_template_v2.xlsx", package = "Rega")
+#'   )
+#' )
+#'
 #' @export
 default_parser <- function(metadata_file, param_file = NULL) {
   # Run metadata parsing -------------------------------------------------------
@@ -35,89 +43,61 @@ default_parser <- function(metadata_file, param_file = NULL) {
     "Select Input Data"
   )
   params$formatter$select_input_data <- list(
-    type = "aliases_formatter",
-    params = list(
-      na_omit = TRUE
-    )
+    type = "aliases_formatter", params = list(na_omit = TRUE)
   )
 
   # Read the xlsx file
-  submission_meta <- lapply(
+  sm <- setNames(lapply(
     sheets,
     \(x) read_xlsx(metadata_file, sheet = x, col_names = FALSE)
-  ) |>
-    setNames(label_to_api_name(sheets))
+  ), label_to_api_name(sheets))
 
   # Parse the xlsx sheets
-  parsed_metadata <- lapply(names(submission_meta), function(x) {
+  pm <- setNames(lapply(names(sm), function(x) {
     fp <- get_formatter_params(x, params)
-    df <- get_formatter(x, params)(submission_meta[[x]], fp)
-    df
-  }) |>
-    setNames(names(submission_meta))
+    get_formatter(x, params)(sm[[x]], fp)
+  }), names(sm))
 
   # Cleanup parsed metadata ----------------------------------------------------
-  parsed_metadata <- lapply(parsed_metadata, function(x) {
+  pm <- lapply(pm, function(x) {
     if (is.data.frame(x)) {
-      # Replace all empty characters with NA. Can happen e.g. if the drop-down
-      # selection menu for Extra Attributes has been replaced by empty excel
-      # cell or deleted
-      # Remove columns that are all NA
-      x <- x[, colSums(!is.na(x)) > 0]
+      x <- x[, colSums(!is.na(x)) > 0] # Remove columns that are all NA
     }
     x
   })
 
   # Checks if the Aliases have an analysis entry or if there are Analysis Files
   # specified, if not, deletes both Analyses and Analyses Files sheet
-  if (is.null(parsed_metadata$aliases$analyses) ||
-    length(parsed_metadata$aliases$analyses) == 0 ||
-    dim(parsed_metadata$analysis_files)[1] == 0) {
-    parsed_metadata$analysis_files <- NULL
-    parsed_metadata$analyses <- NULL
+  if (is.null(pm$aliases$analyses) ||
+    length(pm$aliases$analyses) == 0 ||
+    dim(pm$analysis_files)[1] == 0) {
+    pm$analysis_files <- NULL
+    pm$analyses <- NULL
   }
 
   # Merge runs with file sheet, replace file with ega_file
-  files_lut <- setNames(
-    parsed_metadata$files$ega_file,
-    parsed_metadata$files$file
-  )
-
-  parsed_metadata$runs <- lut_add(
-    parsed_metadata$runs,
-    "files",
-    "files",
-    files_lut
-  )
+  files_lut <- setNames(pm$files$ega_file, pm$files$file)
+  pm$runs <- lut_add(pm$runs, "files", "files", files_lut)
 
   # Merge analysis with file sheet, files are in nested column
   # If analyses sheet is present
-  if ("analyses" %in% names(parsed_metadata)) {
-    analysis_files_lut <- setNames(
-      parsed_metadata$analysis_files$ega_file,
-      parsed_metadata$analysis_files$file
-    )
-
-    parsed_metadata$analyses <- lut_add(
-      parsed_metadata$analyses,
-      "files",
-      "files",
-      analysis_files_lut
-    )
+  if ("analyses" %in% names(pm)) {
+    af_lut <- setNames(pm$analysis_files$ega_file, pm$analysis_files$file)
+    pm$analyses <- lut_add(pm$analyses, "files", "files", af_lut)
   }
 
   # Link the sheets with extra nested info
   if (length(params$linked_sheets) > 0) {
-    parsed_metadata <- Reduce(
+    pm <- Reduce(
       function(m, sheet_name) link_sheet(m, sheet_name),
       label_to_api_name(params$linked_sheets),
-      init = parsed_metadata
+      init = pm
     )
   }
 
   # Separate the delimited columns from metadata into lists for JSON conversion
   if (length(params$delimited_columns$names) > 0) {
-    parsed_metadata <- Reduce(
+    pm <- Reduce(
       function(m, column_name) {
         process_delimited_column(
           m,
@@ -126,35 +106,32 @@ default_parser <- function(metadata_file, param_file = NULL) {
         )
       },
       label_to_api_name(params$delimited_columns$names),
-      init = parsed_metadata
+      init = pm
     )
   }
 
   # Get only instrument ids for experiments (API: mandatory)
-  parsed_metadata$experiments$instrument_model_id <-
-    as.integer(
-      str_split_i(parsed_metadata$experiments$instrument_model_id, "--", 1)
-    )
+  pm$experiments$instrument_model_id <-
+    as.integer(str_split_i(pm$experiments$instrument_model_id, "--", 1))
 
   # Get only file type ids for runs (API: mandatory)
-  parsed_metadata$runs$run_file_type <-
-    str_split_i(parsed_metadata$runs$run_file_type, "--", 1)
+  pm$runs$run_file_type <- str_split_i(pm$runs$run_file_type, "--", 1)
 
   # If analyses sheet is present
-  if ("analyses" %in% names(parsed_metadata)) {
+  if ("analyses" %in% names(pm)) {
     # Get only genome IDs (API: mandatory)
-    parsed_metadata$analyses$genome_id <-
-      as.integer(str_split_i(parsed_metadata$analyses$genome_id, "--", 2))
+    pm$analyses$genome_id <-
+      as.integer(str_split_i(pm$analyses$genome_id, "--", 2))
 
     # Get only chromosome ids for analysis (API: optional)
-    chr_list <- format_chromosomes(parsed_metadata)
-    parsed_metadata$analyses$chromosomes <- chr_list
+    chr_list <- format_chromosomes(pm)
+    pm$analyses$chromosomes <- chr_list
 
     # Replace NAs in experiment_types with empty lists
     # To not mess with the link_sheet function, code for this specific case
     # is not included in fold_columns
-    parsed_metadata$analyses$experiment_types <-
-      lapply(parsed_metadata$analyses$experiment_types, function(x) {
+    pm$analyses$experiment_types <-
+      lapply(pm$analyses$experiment_types, function(x) {
         if (is.na(x)) {
           return(list())
         } else {
@@ -163,5 +140,5 @@ default_parser <- function(metadata_file, param_file = NULL) {
       })
   }
 
-  return(parsed_metadata)
+  return(pm)
 }

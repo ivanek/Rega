@@ -22,14 +22,14 @@ A formatted data frame with cleaned column names, and updated
 Format File Table with EGA File Paths
 }
 \examples{
-\dontrun{
-# Format a file table
-tab <- data.frame(
-  file = c("file1.txt", "file2.txt"),
-  ega_inbox_relative_path = c("/path1", "/path2")
+params = list(prefix = "", crypt_ext = "c4gh", prepend_slash = FALSE)
+
+# Dummy data, first row will be moved to column names
+tab = data.frame(
+  x1 = c("file", "value1", "value2"),
+  x2 = c("ega_inbox_relative_path", NA, "proj1")
 )
-params <- list(crypt_ext = "enc", prepend_slash = TRUE)
-formatted_tab <- file_formatter(tab, params)
-}
+
+file_formatter(tab, params)
 
 }

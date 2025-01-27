@@ -4,11 +4,12 @@
 \alias{.add_headers}
 \title{Generate Header Expressions for an API Request}
 \usage{
-.add_headers(params, operation, api, token = NULL)
+.add_headers(header_params, operation, api, token = NULL)
 }
 \arguments{
-\item{params}{List. A list containing \code{header_params}, a character vector of
-header parameter names to include in the request.}
+\item{header_params}{A character vector of header parameter names to include
+in the request. Header parameters are created \code{.get_operation_params}
+function.}
 
 \item{operation}{List. The operation definition, which may include security
 details.}
@@ -25,10 +26,11 @@ content type, authorization, and any additional headers specified in the
 parameters.
 }
 \examples{
-\dontrun{
-# Generate header expressions for a request
-headers_expr <- Rega:::.add_headers(params, operation, api)
-}
+api <- extract_api()
+opdefs <- extract_operation_definitions(api)
+params <- Rega:::.get_operation_params(opdefs[["get__files"]])
+# No header parameters in operation, `Content-Type` added by default
+Rega:::.add_headers(params$header, opdefs[["get__files"]], api)
 
 }
 \keyword{internal}

@@ -19,6 +19,7 @@ variable is not set, prompts the user to enter their username interactively.
 }
 \examples{
 ega_username <- Rega:::.get_ega_username()
+ega_username <- Rega:::.get_ega_username("EGA_USERNAME")
 
 }
 \keyword{internal}

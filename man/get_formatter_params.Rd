@@ -19,3 +19,21 @@ A list of parameters for the specified formatter.
 \description{
 Retrieve Formatter Parameters by Name
 }
+\examples{
+# Load formatter params
+params <- yaml::read_yaml(system.file(
+  "extdata/default_parser_params.yaml", package = "Rega"
+))
+
+# Dummy data, first row will be moved to column names
+tab = data.frame(
+  x1 = c("file", "value1", "value2"),
+  x2 = c("ega_inbox_relative_path", NA, "proj1")
+)
+
+ff = get_formatter("files", params)
+ff_params = get_formatter_params("files", params)
+
+ff(tab, ff_params)
+
+}

@@ -19,9 +19,7 @@ This function extracts and returns schemas related to requests from the API
 specification.
 }
 \examples{
-\dontrun{
 # Extract request schemas from an API specification
-request_schemas <- get_schemas(api)
-}
+request_schemas <- get_schemas(extract_api())
 
 }

@@ -17,9 +17,6 @@ This function converts API-style names with underscores into human-readable
 labels by replacing underscores with spaces and applying title case.
 }
 \examples{
-\dontrun{
-# Convert API names to labels
-labels <- api_name_to_label(c("first_name", "last_name"))
-}
+api_name_to_label(c("first_name", "last_name", "instument_model"))
 
 }

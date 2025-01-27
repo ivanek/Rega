@@ -17,8 +17,8 @@ definitions.}
 verbosity level should the requests \code{httr2::req_perform} be performed.
 Default: 0.}
 
-\item{api_key}{Character, optional. The API key for authentication, included
-in the headers of the request.}
+\item{api_key}{Character, optional. The API key for authentication, will be
+included in the headers of the request.}
 }
 \value{
 A dynamically generated function that performs the specified API
@@ -31,12 +31,15 @@ definition and API specification. The generated function handles URL
 construction, parameter validation, request execution, and response parsing.
 }
 \examples{
-\dontrun{
-# Generate an API function for a specific operation
-api_func <- api_function_factory(operation, api, api_key = "your_api_key")
+api <- extract_api()
+opdefs <- extract_operation_definitions(api)
 
-# Call the generated function with parameters
-result <- api_func(param1 = "value1", param2 = "value2")
-}
+# Generate an API function for a specific operation
+f <- api_function_factory(opdefs[["get__files"]], api, api_key = "my_key")
+
+# Call the generated function with parameters (requires credentials)
+try(
+  result <- f(status = "value1", prefix = "value2")
+)
 
 }

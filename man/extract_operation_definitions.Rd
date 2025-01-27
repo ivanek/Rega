@@ -28,9 +28,8 @@ This function extracts operation definitions from an API specification,
 including HTTP methods, paths, parameters, request bodies, and responses.
 }
 \examples{
-\dontrun{
 # Extract operation definitions from a parsed API specification
-operations <- extract_operation_definitions(api)
-}
+opdefs <- extract_operation_definitions(extract_api())
+opdefs[["post__submissions"]]
 
 }

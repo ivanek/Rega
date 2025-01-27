@@ -2,13 +2,14 @@
 % Please edit documentation in R/apiclient.R
 \name{.add_queries}
 \alias{.add_queries}
-\title{Generate Query Parameter Expressions for an API Request}
+\title{Generate Query Expressions for an API Request}
 \usage{
-.add_queries(params)
+.add_queries(query_params)
 }
 \arguments{
-\item{params}{List. A list containing \code{query}, a character vector of query
-parameter names to include in the request.}
+\item{query_params}{A character vector of query parameter names to include
+in the request. Query parameters are created \code{.get_operation_params}
+function.}
 }
 \value{
 An expression to add query parameters to an API request using
@@ -19,10 +20,11 @@ This function creates an expression to add query parameters to an API
 request.
 }
 \examples{
-\dontrun{
-# Generate query parameter expressions for a request
-query_expr <- Rega:::.add_queries(params)
-}
+Rega:::.add_queries(list())
+
+opdefs <- extract_operation_definitions(extract_api())
+params <- Rega:::.get_operation_params(opdefs[["get__files"]])
+Rega:::.add_queries(params$query)
 
 }
 \keyword{internal}

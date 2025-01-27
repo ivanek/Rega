@@ -13,16 +13,14 @@ save_log(responses, logfile)
 no file is written.}
 }
 \value{
-Invisibly returns \code{NULL}.
+Invisibly returns \code{NULL}
 }
 \description{
 This function saves a list of API responses to a specified log file in YAML
 format.
 }
 \examples{
-\dontrun{
 responses <- list(status = "success", data = list(a = 1, b = "text"))
-save_log(responses, "log.yaml")
-}
+save_log(responses, logfile = NULL)
 
 }

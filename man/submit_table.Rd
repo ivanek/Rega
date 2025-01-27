@@ -23,8 +23,8 @@ specified API endpoint function, and combines the responses into a single
 data structure.
 }
 \examples{
-tab <- data.frame(a = 1:2, b = c("x", "y"), stringsAsFactors = FALSE)
+tab <- data.frame(a = 1:2, b = c("x", "y"))
 mock_endpoint <- function(id, body) list(id = id, body = body)
-submit_table(tab, "example_id", mock_endpoint)
+submit_table(tab, 12345, mock_endpoint)
 
 }

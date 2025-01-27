@@ -9,10 +9,8 @@
 #' appear before non-required fields.
 #'
 #' @examples
-#' \dontrun{
 #' # Mark required fields with a prefix
-#' fields <- add_required_str(c("name", "id", "age"), c("id", "name"))
-#' }
+#' add_required_str(c("Name", "Id", "Age"), c("Id", "Name"))
 #'
 #' @export
 add_required_str <- function(p, r, req_str = "* ") {
@@ -43,10 +41,13 @@ add_required_str <- function(p, r, req_str = "* ") {
 #' @return The values of the specified enum.
 #'
 #' @examples
-#' \dontrun{
-#' # Retrieve enum values from the client
-#' enums <- get_enum(client, enum_name = "status")
-#' }
+#' # Create API client with mock api_key
+#' client <- create_client(extract_api(), api_key = "ABCD")
+#'
+#' # Retrieve enum values from the API client (requires credentials to work)
+#' try(
+#'   platform_models <- get_enum(client, enum_name = "platform_models")
+#' )
 #'
 #' @export
 get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
@@ -69,15 +70,13 @@ get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
 #'   newlines and multiple enum fields are joined by `sep`.
 #'
 #' @examples
-#' \dontrun{
 #' # Parse an enum as a data frame
 #' df_enum <- data.frame(key = c("A", "B"), value = c("1", "2"))
-#' parsed <- parse_enum(df_enum)
+#' parse_enum(df_enum)
 #'
 #' # Parse an enum as a character vector
 #' vec_enum <- c("A", "B", "C")
-#' parsed <- parse_enum(vec_enum)
-#' }
+#' parse_enum(vec_enum)
 #'
 #' @export
 parse_enum <- function(enum, sep = "--") {
@@ -109,14 +108,12 @@ parse_enum <- function(enum, sep = "--") {
 #' @return A character vector with elements matching the pattern removed.
 #'
 #' @examples
-#' \dontrun{
 #' # Filter out default ID fields
 #' fields <- c("accession_id", "policy_accession_id", "name", "provisional_id")
-#' filtered <- filter_id_fields(fields)
+#' filter_id_fields(fields)
 #'
 #' # Filter with a custom pattern
-#' filtered <- filter_id_fields(fields, pattern = "accession_id")
-#' }
+#' filter_id_fields(fields, pattern = "_id")
 #'
 #' @export
 filter_id_fields <- function(x, pattern = NULL) {
@@ -136,10 +133,8 @@ filter_id_fields <- function(x, pattern = NULL) {
 #' `schemas` element of the API specification.
 #'
 #' @examples
-#' \dontrun{
 #' # Extract request schemas from an API specification
-#' request_schemas <- get_schemas(api)
-#' }
+#' request_schemas <- get_schemas(extract_api())
 #'
 #' @export
 get_schemas <- function(api) {
@@ -162,13 +157,13 @@ get_schemas <- function(api) {
 #'   required fields.
 #'
 #' @examples
-#' \dontrun{
+#' schemas <- get_schemas(extract_api())
+#'
 #' # Extract and format properties from a schema
-#' formatted_props <- get_properties(schema)
+#' get_properties(schemas[[5]])
 #'
 #' # Extract properties without filtering ID fields
-#' all_props <- get_properties(schema, filter_ids = FALSE)
-#' }
+#' get_properties(schemas[[6]], filter_ids = FALSE)
 #'
 #' @export
 get_properties <- function(schema, filter_ids = TRUE) {

@@ -20,12 +20,9 @@ A data frame with updated column names and the first row removed.
 Use First Row as Column Names for a Data Frame
 }
 \examples{
-\dontrun{
-# Use the first row as column names
-df <- first_row_to_colnames(df)
+df = data.frame(id = c("A B", "C D_"), value = c("* E F", "GH"))
 
-# Use the first row as column names without converting to API names
-df <- first_row_to_colnames(df, to_api = FALSE)
-}
+first_row_to_colnames(df)
+first_row_to_colnames(df, to_api = FALSE)
 
 }

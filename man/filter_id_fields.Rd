@@ -22,13 +22,11 @@ This function filters out elements from a character vector that match a
 specified regular expression pattern, removing ID fields.
 }
 \examples{
-\dontrun{
 # Filter out default ID fields
 fields <- c("accession_id", "policy_accession_id", "name", "provisional_id")
-filtered <- filter_id_fields(fields)
+filter_id_fields(fields)
 
 # Filter with a custom pattern
-filtered <- filter_id_fields(fields, pattern = "accession_id")
-}
+filter_id_fields(fields, pattern = "_id")
 
 }

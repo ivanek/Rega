@@ -22,12 +22,12 @@ ID fields, and applies formatting such as marking required fields and
 prettifying the labels.
 }
 \examples{
-\dontrun{
+schemas <- get_schemas(extract_api())
+
 # Extract and format properties from a schema
-formatted_props <- get_properties(schema)
+get_properties(schemas[[5]])
 
 # Extract properties without filtering ID fields
-all_props <- get_properties(schema, filter_ids = FALSE)
-}
+get_properties(schemas[[6]], filter_ids = FALSE)
 
 }

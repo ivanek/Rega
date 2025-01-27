@@ -10,10 +10,7 @@
 #' @importFrom tools toTitleCase
 #'
 #' @examples
-#' \dontrun{
-#' # Convert API names to labels
-#' labels <- api_name_to_label(c("first_name", "last_name"))
-#' }
+#' api_name_to_label(c("first_name", "last_name", "instument_model"))
 #'
 #' @export
 api_name_to_label <- function(x) {
@@ -29,10 +26,8 @@ api_name_to_label <- function(x) {
 #' @return A character vector with labels converted to API-style names.
 #'
 #' @examples
-#' \dontrun{
-#' # Convert labels to API names
-#' api_names <- label_to_api_name(c("* First Name", "Last Name"))
-#' }
+#' label_to_api_name(c("* First Name", "Last Name"))
+#' label_to_api_name(c("# Instrument Model", "# Fragment SD"), req_str = "# ")
 #'
 #' @export
 label_to_api_name <- function(x, req_str = "* ") {
@@ -50,13 +45,10 @@ label_to_api_name <- function(x, req_str = "* ") {
 #' @return A data frame with updated column names and the first row removed.
 #'
 #' @examples
-#' \dontrun{
-#' # Use the first row as column names
-#' df <- first_row_to_colnames(df)
+#' df = data.frame(id = c("A B", "C D_"), value = c("* E F", "GH"))
 #'
-#' # Use the first row as column names without converting to API names
-#' df <- first_row_to_colnames(df, to_api = FALSE)
-#' }
+#' first_row_to_colnames(df)
+#' first_row_to_colnames(df, to_api = FALSE)
 #'
 #' @export
 first_row_to_colnames <- function(df, to_api = TRUE) {
@@ -100,7 +92,6 @@ lut_add <- function(df, to, from, lut) {
   df[[to]] <- new_col
   return(df)
 }
-
 
 #' Add Multiple Lookup-Based Columns to a Data Frame
 #'
@@ -165,11 +156,8 @@ multi_lut_add <- function(df, ...) {
 #' and values are non-NA elements of the respective column.
 #'
 #' @examples
-#' \dontrun{
-#' # Format aliases from a table
 #' tab <- data.frame(Alias = c("name1", "name2", NA), Value = c(1, 2, 3))
-#' formatted <- aliases_formatter(tab, params = list())
-#' }
+#' aliases_formatter(tab, params = list())
 #'
 #' @export
 aliases_formatter <- function(tab, params) {
@@ -192,11 +180,13 @@ aliases_formatter <- function(tab, params) {
 #' @importFrom stringr str_trim
 #'
 #' @examples
-#' \dontrun{
-#' # Format a column table
-#' tab <- data.frame(Alias = c(" Name1 ", " Name2 ", NA), Value = c(1, 2, NA))
-#' formatted_tab <- column_table_formatter(tab, params = list())
-#' }
+#' df = data.frame(
+#'   ...1 = c("* Alias", "Sample1", "Sample2"),
+#'   ...2 = c("* Phenotype", "wt", "ko"),
+#'   ...3 = c("Description", NA, NA)
+#' )
+#'
+#' column_table_formatter(df, list())
 #'
 #' @export
 column_table_formatter <- function(tab, params) {
@@ -231,14 +221,18 @@ column_table_formatter <- function(tab, params) {
 #' @importFrom tibble as_tibble
 #'
 #' @examples
-#' \dontrun{
-#' # Format a row table
-#' tab <- data.frame(
-#'   A = c("Name1", NA, "Name2"), B = c(1, 2, NA), C = c(NA, 3, 4)
+#' # Formatter parameters
+#' params = list(fold = "extra_attributes")
+#'
+#' # Sample data frame
+#' df = data.frame(
+#'   ...1 = c("* Study", "* Title", "Extra Attributes", "Extra Attributes"),
+#'   ...2 = c("Study1", "Title1", "A", "B"),
+#'   ...3 = c("* Study", "* Title", "Extra Attributes", NA),
+#'   ...4 = c("Study2", "Title2", "C", NA)
 #' )
-#' params <- list(fold = c("A"))
-#' formatted_tab <- row_table_formatter(tab, params)
-#' }
+#'
+#' row_table_formatter(df, params)
 #'
 #' @export
 row_table_formatter <- function(tab, params) {
@@ -335,15 +329,15 @@ multi_table_formatter <- function(tab, params) {
 #' @importFrom stringr str_trim
 #'
 #' @examples
-#' \dontrun{
-#' # Format a file table
-#' tab <- data.frame(
-#'   file = c("file1.txt", "file2.txt"),
-#'   ega_inbox_relative_path = c("/path1", "/path2")
+#' params = list(prefix = "", crypt_ext = "c4gh", prepend_slash = FALSE)
+#'
+#' # Dummy data, first row will be moved to column names
+#' tab = data.frame(
+#'   x1 = c("file", "value1", "value2"),
+#'   x2 = c("ega_inbox_relative_path", NA, "proj1")
 #' )
-#' params <- list(crypt_ext = "enc", prepend_slash = TRUE)
-#' formatted_tab <- file_formatter(tab, params)
-#' }
+#'
+#' file_formatter(tab, params)
 #'
 #' @export
 file_formatter <- function(tab, params) {
@@ -393,6 +387,23 @@ file_formatter <- function(tab, params) {
 #'
 #' @return The formatter function corresponding to the specified table.
 #'
+#' @examples
+#' # Load formatter params
+#' params <- yaml::read_yaml(system.file(
+#'   "extdata/default_parser_params.yaml", package = "Rega"
+#' ))
+#'
+#' # Dummy data, first row will be moved to column names
+#' tab = data.frame(
+#'   x1 = c("file", "value1", "value2"),
+#'   x2 = c("ega_inbox_relative_path", NA, "proj1")
+#' )
+#'
+#' ff = get_formatter("files", params)
+#' ff_params = get_formatter_params("files", params)
+#'
+#' ff(tab, ff_params)
+#'
 #' @export
 get_formatter <- function(x, params) {
   return(get(params$formatter[[x]][["type"]]))
@@ -406,6 +417,23 @@ get_formatter <- function(x, params) {
 #' parameter yaml file.
 #'
 #' @return A list of parameters for the specified formatter.
+#'
+#' @examples
+#' # Load formatter params
+#' params <- yaml::read_yaml(system.file(
+#'   "extdata/default_parser_params.yaml", package = "Rega"
+#' ))
+#'
+#' # Dummy data, first row will be moved to column names
+#' tab = data.frame(
+#'   x1 = c("file", "value1", "value2"),
+#'   x2 = c("ega_inbox_relative_path", NA, "proj1")
+#' )
+#'
+#' ff = get_formatter("files", params)
+#' ff_params = get_formatter_params("files", params)
+#'
+#' ff(tab, ff_params)
 #'
 #' @export
 get_formatter_params <- function(x, params) {
@@ -428,11 +456,8 @@ get_formatter_params <- function(x, params) {
 #' @importFrom stats na.omit
 #'
 #' @examples
-#' \dontrun{
-#' # Fold columns with a common prefix into a new column
-#' tab <- data.frame(A_name = c("A1", NA), B_name = c("B1", "B2"))
-#' folded_tab <- fold_column(tab, "name", "folded_column")
-#' }
+#' tab <- data.frame(id = c(1,2), name.1 = c("A1", NA), name.2 = c("B1", "B2"))
+#' fold_column(tab, "name", "folded_column")
 #'
 #' @export
 fold_column <- function(tab, column_prefix, new_name) {
@@ -447,8 +472,8 @@ fold_column <- function(tab, column_prefix, new_name) {
     function(row) {
       ft <- as.character(na.omit(row))
       # if the original column prefix didn't contain any values, it will replace
-      # the resulting character(0) with NA for easier handling
-      # also if the column didn't exist it will add it with NA value
+      # the resulting character(0) with NA for easier handling also if the
+      # column didn't exist it will add it with NA value
       if (is.null(ft) || (is.character(ft) && length(ft) == 0)) {
         ft <- NA_character_
       }
@@ -545,19 +570,17 @@ link_sheet <- function(metadata, sheet_name) {
 #' @param column_name Character. The name of the column to process.
 #' @param separator Character. The delimiter used to split column values.
 #'
-#' @return A list of updated metadata with the specified column split into
-#' lists based on the delimiter and trimmed.
+#' @return A list of updated metadata with the specified column split into lists
+#'   based on the delimiter and trimmed.
 #'
 #' @importFrom stringr str_split str_trim
 #'
 #' @examples
-#' \dontrun{
-#' # Process a delimited column in metadata
 #' metadata <- list(
-#'   sheet1 = data.frame(pubmed_ids = c("123, 456", "789"))
+#'   sheet1 = data.frame(pubmed_ids = c("123; 456", "130; 789; 102", NA))
 #' )
-#' updated_metadata <- process_delimited_column(metadata, "pubmed_ids", ",")
-#' }
+#'
+#' process_delimited_column(metadata, "pubmed_ids", ";")
 #'
 #' @export
 process_delimited_column <- function(metadata, column_name, separator) {
@@ -573,8 +596,12 @@ process_delimited_column <- function(metadata, column_name, separator) {
           list()
         } else {
           # API specific processing
-          # Pubmed ids need to be integer
-          ifelse(column_name == "pubmed_ids", as.integer(y), y)
+          # Pubmed ids need to be integer, ifelse doesn't work on vectors
+          if (column_name == "pubmed_ids") {
+            as.integer(y)
+          } else {
+            y
+          }
         }
       })
     }
@@ -587,22 +614,21 @@ process_delimited_column <- function(metadata, column_name, separator) {
 #'
 #' @param group_id Character. The group ID to filter by.
 #' @param chr_enum Character vector. Chromosome enumeration data, where each
-#' element is a string containing fields separated by `sep`.
+#'   element is a string containing fields separated by `sep`. Enum data is
+#'   created by `parse_enum` and `get_enum` functions. See vignette for more
+#'   details.
 #' @param sep Character. Field separator in a string. Defaults to `"--"`
 #'
 #' @return An integer vector of chromosome IDs corresponding to the specified
-#' group ID.
+#'   group ID.
 #'
 #' @importFrom stats setNames
 #' @importFrom stringr str_split
 #'
 #' @examples
-#' \dontrun{
-#' # Get IDs for a specific chromosome group
-#' ids <- get_chr_group(
-#'   "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
+#' get_chr_group(
+#'  "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
 #' )
-#' }
 #'
 #' @export
 get_chr_group <- function(group_id, chr_enum, sep = "--") {
@@ -625,26 +651,31 @@ get_chr_group <- function(group_id, chr_enum, sep = "--") {
 #' EGA enums.
 #'
 #' @param metadata List. A list of data frames representing metadata sheets,
-#' containing \code{analyses}. Each row in \code{analyses} can have entry in
-#' \code{chromosomes} or \code{chromosome_group} column.
+#'   containing \code{analyses}. Each row in \code{analyses} can have entry in
+#'   \code{chromosomes} or \code{chromosome_groups} column.
 #'
 #' @return A list of formatted chromosome data extracted or computed from the
-#' input metadata.
+#'   input metadata.
 #'
 #' @importFrom stringr str_split_i
 #'
 #' @examples
-#' \dontrun{
+#' # Mock metadata data frame
 #' metadata <- list(
 #'   analyses = data.frame(
-#'     chromosomes = c(NA, "chr1--chr2"),
-#'     chromosome_group = c("group1", NA),
+#'     chromosomes = I(list(
+#'       NA,
+#'       list("group1--1--chr1--name1", "group2--3--chr3--name3"))
+#'     ),
+#'     chromosome_groups = c("group1", NA),
 #'     stringsAsFactors = FALSE
 #'   ),
-#'   select_input_data = list(chromosomes = list(group1 = c("chr1", "chr2")))
+#'   select_input_data = list(
+#'     chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2"))
 #' )
+#'
 #' format_chromosomes(metadata)
-#' }
+#'
 #' @export
 format_chromosomes <- function(metadata) {
   # TODO fix examples

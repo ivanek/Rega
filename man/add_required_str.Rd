@@ -22,9 +22,7 @@ appear before non-required fields.
 Mark Required Fields with a Prefix
 }
 \examples{
-\dontrun{
 # Mark required fields with a prefix
-fields <- add_required_str(c("name", "id", "age"), c("id", "name"))
-}
+add_required_str(c("Name", "Id", "Age"), c("Id", "Name"))
 
 }

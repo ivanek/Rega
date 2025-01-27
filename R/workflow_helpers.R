@@ -13,7 +13,7 @@
 #' valid accession identifier for the specified schema.
 #'
 #' @examples
-#' is_accession("EGA00000000001", "submission") # TRUE
+#' is_accession("EGAB00000000001", "submission") # TRUE
 #' is_accession("EGA12345678901", "sample") # FALSE
 #'
 #' @export
@@ -85,11 +85,11 @@ step_msg <- function(steps) {
 #'
 #' @return A JSON object with unboxed values for the input row.
 #'
+#' @importFrom jsonlite fromJSON toJSON unbox
+#'
 #' @examples
 #' row <- data.frame(a = 1, b = "text", stringsAsFactors = FALSE)[1, ]
 #' unbox_row(row)
-#'
-#' @importFrom jsonlite fromJSON toJSON unbox
 #'
 #' @export
 unbox_row <- function(row) {
@@ -111,9 +111,9 @@ unbox_row <- function(row) {
 #' @return Data frame. A combined response object from the API.
 #'
 #' @examples
-#' tab <- data.frame(a = 1:2, b = c("x", "y"), stringsAsFactors = FALSE)
+#' tab <- data.frame(a = 1:2, b = c("x", "y"))
 #' mock_endpoint <- function(id, body) list(id = id, body = body)
-#' submit_table(tab, "example_id", mock_endpoint)
+#' submit_table(tab, 12345, mock_endpoint)
 #'
 #' @export
 submit_table <- function(tab, id, endpoint_func) {
@@ -149,6 +149,31 @@ submit_table <- function(tab, id, endpoint_func) {
 #'
 #' @return A data frame containing the response from the API.
 #'
+#' @examples
+#' # Create mock client for API endpoint
+#' mock_client <- list(
+#'   get__submissions__provisional_id__endpoint = function(id) {
+#'     message("Mock GET request")
+#'     # Simulate an empty response (no existing data)
+#'     return(NULL)
+#'   },
+#'   post__submissions__provisional_id__endpoint = function(id, body) {
+#'     message("Mock POST request")
+#'     message(body) # Simulate returning submitted data
+#'   }
+#' )
+#'
+#' # Create mock data to test the function
+#' test_data <- data.frame(id = 1:3, value = c("A", "B", "C"))
+#'
+#' # Test the function with mock data and client
+#' result <- get_or_post(
+#'   submission_id = 12345,
+#'   data = test_data,
+#'   client = mock_client,
+#'   endpoint = "endpoint",
+#'   retrieve_if_exists = FALSE
+#' )
 #'
 #' @export
 get_or_post <- function(submission_id, data, client, endpoint,
@@ -190,15 +215,13 @@ get_or_post <- function(submission_id, data, client, endpoint,
 #' @param logfile A string specifying the path to the log file. If \code{NULL},
 #' no file is written.
 #'
-#' @return Invisibly returns \code{NULL}.
-#'
-#' @examples
-#' \dontrun{
-#' responses <- list(status = "success", data = list(a = 1, b = "text"))
-#' save_log(responses, "log.yaml")
-#' }
+#' @return Invisibly returns \code{NULL}
 #'
 #' @importFrom yaml write_yaml
+#'
+#' @examples
+#' responses <- list(status = "success", data = list(a = 1, b = "text"))
+#' save_log(responses, logfile = NULL)
 #'
 #' @export
 save_log <- function(responses, logfile) {
@@ -217,18 +240,25 @@ save_log <- function(responses, logfile) {
 #' @param step A string representing the current workflow step.
 #' @param responses A list of responses to be logged in case of an error.
 #' @param logfile A string specifying the path to the log file. If \code{NULL},
-#' no file is written.
+#'   no file is written.
 #' @param ... Additional expressions to evaluate when an error occurs.
 #'
 #' @return A function to handle errors during the specified workflow step.
 #'
-#' @examples
-#' \dontrun{
-#' handler <- workflow_error_handler("submission", list(), "log.yaml")
-#' tryCatch(stop("Example error"), error = handler)
-#' }
-#'
 #' @importFrom rlang enquos eval_tidy caller_env trace_back abort
+#'
+#' @examples
+#' handler <- workflow_error_handler(
+#'   step = "submission",
+#'   responses = list(),
+#'   logfile = NULL
+#' )
+#'
+#' tryCatch("Example code without error", error = handler)
+#'
+#' \dontrun{
+#' tryCatch(stop("Example code with error"), error = handler)
+#' }
 #'
 #' @export
 workflow_error_handler <- function(step, responses, logfile, ...) {

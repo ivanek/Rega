@@ -29,15 +29,12 @@ This function retrieves an API token from the European Genome-phenome Archive
 (EGA) using user credentials.
 }
 \examples{
-\dontrun{
-# Retrieve token with default credentials and URL
-token <- ega_token()
+try(
+  ega_token(username = "my_username", password = "my_password")
+)
 
-# Retrieve token with custom credentials
-token <- ega_token(username = "my_username", password = "my_password")
-
-# Retrieve token with a custom URL
-token <- ega_token(token_url = "https://custom-token-url.example.com")
-}
+try(
+  ega_token(token_url = "https://www.example.com")
+)
 
 }

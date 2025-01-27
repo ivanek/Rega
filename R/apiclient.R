@@ -17,13 +17,11 @@
 #' @importFrom jsonlite fromJSON
 #'
 #' @examples
-#' \dontrun{
-#' # Extract API details from a YAML specification file
-#' api <- extract_api("api_spec.yaml")
+#' # Extract API details from a default YAML specification file
+#' api <- extract_api()
 #'
 #' # Extract API details with a custom host
-#' api <- extract_api("api_spec.json", host = "https://api.example.com")
-#' }
+#' api <- extract_api(host = "https://api.example.com")
 #'
 #' @export
 extract_api <- function(spec_file = NULL, host = NULL) {
@@ -86,10 +84,9 @@ extract_api <- function(spec_file = NULL, host = NULL) {
 #' - `security`: Security requirements for the operation.
 #'
 #' @examples
-#' \dontrun{
 #' # Extract operation definitions from a parsed API specification
-#' operations <- extract_operation_definitions(api)
-#' }
+#' opdefs <- extract_operation_definitions(extract_api())
+#' opdefs[["post__submissions"]]
 #'
 #' @export
 extract_operation_definitions <- function(api) {
@@ -135,10 +132,12 @@ extract_operation_definitions <- function(api) {
 #' and others initialized to `NULL`.
 #'
 #' @examples
-#' \dontrun{
 #' # Convert operation parameters to function arguments
-#' args <- Rega:::.operation_params_to_args(op)
-#' }
+#' opdefs <- extract_operation_definitions(extract_api())
+#'
+#' Rega:::.operation_params_to_args(
+#'   opdefs[["post__submissions__provisional_id__samples"]]
+#' )
 #'
 #' @keywords internal
 .operation_params_to_args <- function(op) {
@@ -176,10 +175,11 @@ extract_operation_definitions <- function(api) {
 #' - `header`: Character vector of header parameter names.
 #'
 #' @examples
-#' \dontrun{
+#' # Convert operation parameters to function arguments
+#' opdefs <- extract_operation_definitions(extract_api())
+#'
 #' # Extract parameters categorized by location
-#' params <- Rega:::.get_operation_params(op)
-#' }
+#' Rega:::.get_operation_params(opdefs[["get__files"]])
 #'
 #' @keywords internal
 .get_operation_params <- function(op) {
@@ -203,34 +203,30 @@ extract_operation_definitions <- function(api) {
   return(params)
 }
 
-#' Generate URL Parameter Replacement Expressions
+#' Generate URL Parameter Replacement Expressions for an API Request
 #'
 #' This function creates a list of expressions to replace placeholders in a URL
 #' with corresponding parameter values.
 #'
-#' @param path_params Character vector. Names of the parameters to replace in
-#' the URL. Each name should correspond to a placeholder in the format
-#' `{param}`.
+#' @param path_params A character vector of names of the parameters to replace
+#'   in the URL. Each name should correspond to a placeholder in the URL in the
+#'   format `{param}`. Path parameters are created `.get_operation_params`
+#'   function.
 #' @param url Character. The URL containing placeholders to be replaced.
 #'
 #' @return A list of expressions. Each expression replaces a `{param}`
-#' placeholder in the URL with the value of the corresponding parameter.
+#'   placeholder in the URL with the value of the corresponding parameter.
 #'
 #' @importFrom rlang sym
 #'
 #' @examples
-#' \dontrun{
 #' # Generate replacement expressions for path parameters
-#' replacers <- Rega:::.url_param_replacer(
-#'   c("id", "type"), "https://api/{id}/{type}"
-#' )
-#' }
+#' Rega:::.add_paths(c("id", "type"), "https://api/{id}/{type}")
 #'
 #' @keywords internal
-.url_param_replacer <- function(path_params, url) {
+.add_paths <- function(path_params, url) {
   replacers <- lapply(path_params, function(param_name) {
     bquote(
-      # replace_expr <- bquote(
       url <- sub(
         .(paste0("{", param_name, "}")),
         as.character(.(sym(param_name))),
@@ -248,12 +244,13 @@ extract_operation_definitions <- function(api) {
 #' content type, authorization, and any additional headers specified in the
 #' parameters.
 #'
-#' @param params List. A list containing `header_params`, a character vector of
-#' header parameter names to include in the request.
+#' @param header_params A character vector of header parameter names to include
+#'   in the request. Header parameters are created `.get_operation_params`
+#'   function.
 #' @param operation List. The operation definition, which may include security
-#' details.
+#'   details.
 #' @param api List. The API definition, which may include global security
-#' details and other metadata.
+#'   details and other metadata.
 #'
 #' @return An expression to add headers to an API request using `req_headers()`.
 #'
@@ -262,13 +259,16 @@ extract_operation_definitions <- function(api) {
 #' @importFrom stats setNames
 #'
 #' @examples
-#' \dontrun{
-#' # Generate header expressions for a request
-#' headers_expr <- Rega:::.add_headers(params, operation, api)
-#' }
+#' api <- extract_api()
+#' opdefs <- extract_operation_definitions(api)
+#' params <- Rega:::.get_operation_params(opdefs[["get__files"]])
+#' # No header parameters in operation, `Content-Type` added by default
+#' Rega:::.add_headers(params$header, opdefs[["get__files"]], api)
 #'
 #' @keywords internal
-.add_headers <- function(params, operation, api, token = NULL) {
+.add_headers <- function(header_params, operation, api, token = NULL) {
+  # token variable is only used to check whether api key is being passed into
+  # the function
   api_key <- NULL # for linting
   # Add headers
   headers_list <- list(
@@ -279,39 +279,40 @@ extract_operation_definitions <- function(api) {
     # Assuming API key authentication in header
     headers_list[["Authorization"]] <- expr(paste("Bearer", api_key))
   }
-  if (length(params$header_params) > 0) {
-    header_syms <- setNames(syms(params$header_params), params$header_params)
+  if (length(header_params) > 0) {
+    header_syms <- setNames(syms(header_params), header_params)
     headers_list <- c(headers_list, header_syms)
   }
 
-  # headers_expr <- expr(req <- req_headers(req, !!!headers_list))
   return(expr(req <- req_headers(req, !!!headers_list)))
 }
 
-#' Generate Query Parameter Expressions for an API Request
+#' Generate Query Expressions for an API Request
 #'
 #' This function creates an expression to add query parameters to an API
 #' request.
 #'
-#' @param params List. A list containing `query`, a character vector of query
-#' parameter names to include in the request.
+#' @param query_params A character vector of query parameter names to include
+#'   in the request. Query parameters are created `.get_operation_params`
+#'   function.
 #'
 #' @return An expression to add query parameters to an API request using
-#' `req_url_query()`.
+#'   `req_url_query()`.
 #'
 #' @importFrom rlang syms expr
 #' @importFrom httr2 req_url_query
 #' @importFrom stats setNames
 #'
 #' @examples
-#' \dontrun{
-#' # Generate query parameter expressions for a request
-#' query_expr <- Rega:::.add_queries(params)
-#' }
+#' Rega:::.add_queries(list())
+#'
+#' opdefs <- extract_operation_definitions(extract_api())
+#' params <- Rega:::.get_operation_params(opdefs[["get__files"]])
+#' Rega:::.add_queries(params$query)
 #'
 #' @keywords internal
-.add_queries <- function(params) {
-  query_syms <- setNames(syms(params$query), params$query)
+.add_queries <- function(query_params) {
+  query_syms <- setNames(syms(query_params), query_params)
   query_expr <- expr(
     req <- req_url_query(req, !!!query_syms)
   )
@@ -332,8 +333,8 @@ extract_operation_definitions <- function(api) {
 #' @param verbosity Integer, optional, values 0-3. Indicates with which
 #'   verbosity level should the requests \code{httr2::req_perform} be performed.
 #'   Default: 0.
-#' @param api_key Character, optional. The API key for authentication, included
-#'   in the headers of the request.
+#' @param api_key Character, optional. The API key for authentication, will be
+#'   included in the headers of the request.
 #'
 #' @return A dynamically generated function that performs the specified API
 #'   operation. The function accepts arguments corresponding to operation
@@ -343,18 +344,20 @@ extract_operation_definitions <- function(api) {
 #' @importFrom httr2 req_method request req_body_json req_perform
 #'   resp_check_status
 #' @examples
-#' \dontrun{
-#' # Generate an API function for a specific operation
-#' api_func <- api_function_factory(operation, api, api_key = "your_api_key")
+#' api <- extract_api()
+#' opdefs <- extract_operation_definitions(api)
 #'
-#' # Call the generated function with parameters
-#' result <- api_func(param1 = "value1", param2 = "value2")
-#' }
+#' # Generate an API function for a specific operation
+#' f <- api_function_factory(opdefs[["get__files"]], api, api_key = "my_key")
+#'
+#' # Call the generated function with parameters (requires credentials)
+#' try(
+#'   result <- f(status = "value1", prefix = "value2")
+#' )
 #'
 #' @export
-api_function_factory <- function(
-    operation, api, verbosity = 0,
-    api_key = NULL) {
+api_function_factory <- function(operation, api, verbosity = 0,
+                                 api_key = NULL) {
   resp <- NULL # lint
   base_url <- api$host
   op <- operation
@@ -393,7 +396,7 @@ api_function_factory <- function(
   # If there are parameters in the path, add the URL substitution into the
   # function body
   if (length(params$path) > 0) {
-    body_exprs <- c(body_exprs, .url_param_replacer(params$path))
+    body_exprs <- c(body_exprs, .add_paths(params$path))
   }
 
   # Build the request -----
@@ -405,12 +408,12 @@ api_function_factory <- function(
   }
 
   # Add headers
-  body_exprs <- c(body_exprs, .add_headers(params, op, api, api_key))
+  body_exprs <- c(body_exprs, .add_headers(params$header, op, api, api_key))
 
   # If there were query parameters added to the function formals,
   # add appropriate code to the body in the form of httr2 query
   if (length(params$query) > 0) {
-    body_exprs <- c(body_exprs, .add_queries(params))
+    body_exprs <- c(body_exprs, .add_queries(params$query))
   }
 
   # Add request body -----
@@ -452,23 +455,23 @@ api_function_factory <- function(
 #' based on its specification and operation definitions.
 #'
 #' @param api List. The API specification, including operation definitions,
-#' host, and global settings.
+#'   host, and global settings.
 #' @param ... List. List of additional arguments passed to
-#' \code{api_function_factory}
+#'   \code{api_function_factory}
 #'
 #' @return A named list of functions, where each function corresponds to an API
-#' operation. The function names match the operation IDs from the specification.
+#'   operation. The function names match the operation IDs from the
+#'   specification.
 #'
 #' @importFrom stats setNames
 #'
 #' @examples
-#' \dontrun{
-#' # Create an API client
-#' client <- create_client(api, api_key = "your_api_key")
+#' client <- create_client(extract_api(), api_key = "my_key", verbosity = 1)
 #'
-#' # Call an operation using the client
-#' result <- client$operation_id(param1 = "value1", param2 = "value2")
-#' }
+#' # Call an operation using the client (requires credentials)
+#' try(
+#'   result <- client$get__files(status = "value1", prefix = "value2")
+#' )
 #'
 #' @export
 create_client <- function(api, ...) {
@@ -498,6 +501,27 @@ create_client <- function(api, ...) {
 #' @importFrom stringr str_replace
 #' @importFrom tibble tibble
 #' @importFrom tidyr unnest_wider
+#'
+#' @examples
+#' # Example with JSON response
+#' json_resp <- httr2::response(
+#'   method = "GET",
+#'   url = "/api/files",
+#'   status = 200,
+#'   headers = list("content-type" = "application/json"),
+#'   body = charToRaw('[{"id": 1, "name": "test"}]')
+#' )
+#' parse_ega_body(json_resp)
+#'
+#' # Example with plain text response
+#' text_resp <- httr2::response(
+#'   method = "POST",
+#'   url = "/api/submissions",
+#'   status = 200,
+#'   headers = list("content-type" = "text/plain"),
+#'   body = charToRaw("Sample response text")
+#' )
+#' parse_ega_body(text_resp)
 #'
 #' @export
 parse_ega_body <- function(resp) {

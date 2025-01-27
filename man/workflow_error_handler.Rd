@@ -25,9 +25,16 @@ Logs responses, executes additional expressions, and stops execution with a
 detailed message and a stack trace.
 }
 \examples{
+handler <- workflow_error_handler(
+  step = "submission",
+  responses = list(),
+  logfile = NULL
+)
+
+tryCatch("Example code without error", error = handler)
+
 \dontrun{
-handler <- workflow_error_handler("submission", list(), "log.yaml")
-tryCatch(stop("Example error"), error = handler)
+tryCatch(stop("Example code with error"), error = handler)
 }
 
 }

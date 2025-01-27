@@ -21,10 +21,7 @@ and values are non-NA elements of the respective column.
 Format Aliases from a Table
 }
 \examples{
-\dontrun{
-# Format aliases from a table
 tab <- data.frame(Alias = c("name1", "name2", NA), Value = c(1, 2, 3))
-formatted <- aliases_formatter(tab, params = list())
-}
+aliases_formatter(tab, params = list())
 
 }
