@@ -14,17 +14,17 @@
 #'
 #' @export
 add_required_str <- function(p, r, req_str = "* ") {
-  pos_req <- which(p %in% r)
-  pos_other <- which(!p %in% r)
-  ordering <- c(pos_req, pos_other)
+    pos_req <- which(p %in% r)
+    pos_other <- which(!p %in% r)
+    ordering <- c(pos_req, pos_other)
 
-  out <- c(
-    paste0(req_str, p[p %in% r]),
-    p[!p %in% r]
-  )
+    out <- c(
+        paste0(req_str, p[p %in% r]),
+        p[!p %in% r]
+    )
 
-  out <- out[ordering]
-  return(out)
+    out <- out[ordering]
+    return(out)
 }
 
 #' Retrieve Enum Values from an API
@@ -46,13 +46,13 @@ add_required_str <- function(p, r, req_str = "* ") {
 #'
 #' # Retrieve enum values from the API client (requires credentials to work)
 #' try(
-#'   platform_models <- get_enum(client, enum_name = "platform_models")
+#'     platform_models <- get_enum(client, enum_name = "platform_models")
 #' )
 #'
 #' @export
 get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
-  enum_string <- paste0(enum_prefix, enum_name)
-  return(client[[enum_string]]())
+    enum_string <- paste0(enum_prefix, enum_name)
+    return(client[[enum_string]]())
 }
 
 #' Parse Enum into a Formatted String
@@ -80,18 +80,22 @@ get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
 #'
 #' @export
 parse_enum <- function(enum, sep = "--") {
-  # If enum is a data frame
-  if (is.data.frame(enum)) {
-    # Create a data frame from nested values
-    parsed_str <- apply(enum, 1, \(row) paste0(str_trim(row), collapse = sep))
-    # Paste together in a single string
-    parsed_str <- paste(parsed_str, collapse = "\n")
-  } else if (is.character(enum)) {
-    parsed_str <- paste(enum, collapse = "\n")
-  } else {
-    stop("Unknown type of enum returned for parsing.")
-  }
-  return(parsed_str)
+    # If enum is a data frame
+    if (is.data.frame(enum)) {
+        # Create a data frame from nested values
+        parsed_str <- apply(
+            enum,
+            1,
+            \(row) paste0(str_trim(row), collapse = sep)
+        )
+        # Paste together in a single string
+        parsed_str <- paste(parsed_str, collapse = "\n")
+    } else if (is.character(enum)) {
+        parsed_str <- paste(enum, collapse = "\n")
+    } else {
+        stop("Unknown type of enum returned for parsing.")
+    }
+    return(parsed_str)
 }
 
 #' Filter Out ID Fields from a Character Vector
@@ -117,8 +121,8 @@ parse_enum <- function(enum, sep = "--") {
 #'
 #' @export
 filter_id_fields <- function(x, pattern = NULL) {
-  if (is.null(pattern)) pattern <- "(?<!policy_)accession_id|provisional_id"
-  return(x[!grepl(pattern, x, perl = TRUE)])
+    if (is.null(pattern)) pattern <- "(?<!policy_)accession_id|provisional_id"
+    return(x[!grepl(pattern, x, perl = TRUE)])
 }
 
 #' Retrieve Request Schemas from an API Specification
@@ -138,9 +142,9 @@ filter_id_fields <- function(x, pattern = NULL) {
 #'
 #' @export
 get_schemas <- function(api) {
-  schemas <- Filter(Negate(is.null), api$components$schemas)
-  schemas <- schemas[grepl("Request", names(schemas))]
-  return(schemas)
+    schemas <- Filter(Negate(is.null), api$components$schemas)
+    schemas <- schemas[grepl("Request", names(schemas))]
+    return(schemas)
 }
 
 #' Extract and Format Properties from a Schema
@@ -167,10 +171,10 @@ get_schemas <- function(api) {
 #'
 #' @export
 get_properties <- function(schema, filter_ids = TRUE) {
-  required <- schema$required
-  out <- names(schema$properties)
-  if (filter_ids) out <- filter_id_fields(out)
-  out <- add_required_str(out, required)
-  out <- api_name_to_label(out)
-  return(out)
+    required <- schema$required
+    out <- names(schema$properties)
+    if (filter_ids) out <- filter_id_fields(out)
+    out <- add_required_str(out, required)
+    out <- api_name_to_label(out)
+    return(out)
 }

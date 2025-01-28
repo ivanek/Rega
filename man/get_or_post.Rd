@@ -38,15 +38,15 @@ data will be retrieved from database and nothing will be inserted. If
 \examples{
 # Create mock client for API endpoint
 mock_client <- list(
-  get__submissions__provisional_id__endpoint = function(id) {
-    message("Mock GET request")
-    # Simulate an empty response (no existing data)
-    return(NULL)
-  },
-  post__submissions__provisional_id__endpoint = function(id, body) {
-    message("Mock POST request")
-    message(body) # Simulate returning submitted data
-  }
+    get__submissions__provisional_id__endpoint = function(id) {
+        message("Mock GET request")
+        # Simulate an empty response (no existing data)
+        return(NULL)
+    },
+    post__submissions__provisional_id__endpoint = function(id, body) {
+        message("Mock POST request")
+        message(body) # Simulate returning submitted data
+    }
 )
 
 # Create mock data to test the function
@@ -54,11 +54,11 @@ test_data <- data.frame(id = 1:3, value = c("A", "B", "C"))
 
 # Test the function with mock data and client
 result <- get_or_post(
-  submission_id = 12345,
-  data = test_data,
-  client = mock_client,
-  endpoint = "endpoint",
-  retrieve_if_exists = FALSE
+    submission_id = 12345,
+    data = test_data,
+    client = mock_client,
+    endpoint = "endpoint",
+    retrieve_if_exists = FALSE
 )
 
 }

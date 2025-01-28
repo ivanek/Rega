@@ -30,11 +30,11 @@ This function retrieves an API token from the European Genome-phenome Archive
 }
 \examples{
 try(
-  ega_token(username = "my_username", password = "my_password")
+    ega_token(username = "my_username", password = "my_password")
 )
 
 try(
-  ega_token(token_url = "https://www.example.com")
+    ega_token(token_url = "https://www.example.com")
 )
 
 }

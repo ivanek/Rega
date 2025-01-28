@@ -20,7 +20,7 @@ A data frame with updated column names and the first row removed.
 Use First Row as Column Names for a Data Frame
 }
 \examples{
-df = data.frame(id = c("A B", "C D_"), value = c("* E F", "GH"))
+df <- data.frame(id = c("A B", "C D_"), value = c("* E F", "GH"))
 
 first_row_to_colnames(df)
 first_row_to_colnames(df, to_api = FALSE)

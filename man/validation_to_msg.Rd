@@ -21,7 +21,7 @@ Convert Validation Results to a Message
 \examples{
 # Generate a validation message
 validation_result <- list(
-  errors = data.frame(field = "name", error = "Missing")
+    errors = data.frame(field = "name", error = "Missing")
 )
 msg <- validation_to_msg(validation_result)
 message(msg)

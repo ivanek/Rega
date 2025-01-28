@@ -25,7 +25,7 @@ Retrieve Chromosome Belonging to a Group
 }
 \examples{
 get_chr_group(
- "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
+    "group1", c("group1--1--chr1--name1", "group2--2--chr2--name2")
 )
 
 }

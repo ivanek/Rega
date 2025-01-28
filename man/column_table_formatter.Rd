@@ -21,10 +21,10 @@ rows removed, and whitespace trimmed from all values.
 Format a Column Table
 }
 \examples{
-df = data.frame(
-  ...1 = c("* Alias", "Sample1", "Sample2"),
-  ...2 = c("* Phenotype", "wt", "ko"),
-  ...3 = c("Description", NA, NA)
+df <- data.frame(
+    ...1 = c("* Alias", "Sample1", "Sample2"),
+    ...2 = c("* Phenotype", "wt", "ko"),
+    ...3 = c("Description", NA, NA)
 )
 
 column_table_formatter(df, list())

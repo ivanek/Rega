@@ -27,7 +27,7 @@ client <- create_client(extract_api(), api_key = "my_key", verbosity = 1)
 
 # Call an operation using the client (requires credentials)
 try(
-  result <- client$get__files(status = "value1", prefix = "value2")
+    result <- client$get__files(status = "value1", prefix = "value2")
 )
 
 }

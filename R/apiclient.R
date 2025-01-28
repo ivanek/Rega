@@ -25,44 +25,47 @@
 #'
 #' @export
 extract_api <- function(spec_file = NULL, host = NULL) {
-  # if specification file is NULL, use the default one bundled with the package
-  if (is.null(spec_file)) {
-    spec_file <- system.file("extdata/ega_api_resolved.yaml", package = "Rega")
-  }
-  ext <- tolower(file_ext(spec_file))
-  parse_fun <- switch(ext,
-    yml = ,
-    yaml = read_yaml,
-    json = \(x) fromJSON(x, simplifyDataFrame = FALSE),
-    stop("Specification file does not appear to be JSON or YAML.")
-  )
-
-  api <- parse_fun(spec_file)
-
-  # used (including the port).
-  if (is.null(host)) {
-    server_urls <- vapply(api$servers, \(x) x$url, FUN.VALUE = character(1))
-    if (length(server_urls) < 1) {
-      stop("Host URL not supplied and not found in specification file.")
+    # if specification file is NULL, use the default bundled with the package
+    if (is.null(spec_file)) {
+        spec_file <- system.file(
+            "extdata/ega_api_resolved.yaml",
+            package = "Rega"
+        )
     }
-    api$host <- server_urls[1]
-  } else {
-    api$host <- host
-  }
+    ext <- tolower(file_ext(spec_file))
+    parse_fun <- switch(ext,
+        yml = ,
+        yaml = read_yaml,
+        json = \(x) fromJSON(x, simplifyDataFrame = FALSE),
+        stop("Specification file does not appear to be JSON or YAML.")
+    )
 
-  # If basepath is not included, the API is served directly under the host
-  if (is.null(api$basePath)) {
-    api$basePath <- ""
-  }
+    api <- parse_fun(spec_file)
 
-  # remove the trailing "/" from base path
-  api$basePath <- gsub("/$", "", api$basePath)
+    # used (including the port).
+    if (is.null(host)) {
+        server_urls <- vapply(api$servers, \(x) x$url, FUN.VALUE = character(1))
+        if (length(server_urls) < 1) {
+            stop("Host URL not supplied and not found in specification file.")
+        }
+        api$host <- server_urls[1]
+    } else {
+        api$host <- host
+    }
 
-  if (is.null(api$paths)) {
-    warning("There is no paths element in the API specification")
-  }
+    # If basepath is not included, the API is served directly under the host
+    if (is.null(api$basePath)) {
+        api$basePath <- ""
+    }
 
-  return(api)
+    # remove the trailing "/" from base path
+    api$basePath <- gsub("/$", "", api$basePath)
+
+    if (is.null(api$paths)) {
+        warning("There is no paths element in the API specification")
+    }
+
+    return(api)
 }
 
 #' Extract API Operation Definitions
@@ -90,32 +93,36 @@ extract_api <- function(spec_file = NULL, host = NULL) {
 #'
 #' @export
 extract_operation_definitions <- function(api) {
-  valid_methods <- c("post", "patch", "get", "head", "delete", "put")
+    valid_methods <- c("post", "patch", "get", "head", "delete", "put")
 
-  operations <- list()
-  paths <- api$paths
-  for (path in names(paths)) {
-    methods <- paths[[path]]
-    for (method in intersect(names(methods), valid_methods)) {
-      operation <- methods[[method]]
-      operation_id <- operation$operation_id
-      if (is.null(operation_id)) {
-        # Generate a unique operation_id if missing
-        operation_id <- paste0(tolower(method), "_", gsub("[/{}/]", "_", path))
-        operation_id <- gsub("^_", "", operation_id)
-        operation_id <- gsub("_$", "", operation_id)
-      }
-      operations[[operation_id]] <- list(
-        method = toupper(method),
-        path = path,
-        parameters = operation$parameters,
-        requestBody = operation$requestBody,
-        responses = operation$responses,
-        security = operation$security
-      )
+    operations <- list()
+    paths <- api$paths
+    for (path in names(paths)) {
+        methods <- paths[[path]]
+        for (method in intersect(names(methods), valid_methods)) {
+            operation <- methods[[method]]
+            operation_id <- operation$operation_id
+            if (is.null(operation_id)) {
+                # Generate a unique operation_id if missing
+                operation_id <- paste0(
+                    tolower(method),
+                    "_",
+                    gsub("[/{}/]", "_", path)
+                )
+                operation_id <- gsub("^_", "", operation_id)
+                operation_id <- gsub("_$", "", operation_id)
+            }
+            operations[[operation_id]] <- list(
+                method = toupper(method),
+                path = path,
+                parameters = operation$parameters,
+                requestBody = operation$requestBody,
+                responses = operation$responses,
+                security = operation$security
+            )
+        }
     }
-  }
-  return(operations)
+    return(operations)
 }
 
 #' Convert Operation Parameters to Function Arguments
@@ -136,28 +143,31 @@ extract_operation_definitions <- function(api) {
 #' opdefs <- extract_operation_definitions(extract_api())
 #'
 #' Rega:::.operation_params_to_args(
-#'   opdefs[["post__submissions__provisional_id__samples"]]
+#'     opdefs[["post__submissions__provisional_id__samples"]]
 #' )
 #'
 #' @keywords internal
 .operation_params_to_args <- function(op) {
-  parameters <- op$parameters
-  # create a list of NULLs of the same length as parameters and initialize
-  # the names
-  args_list <- vector("list", length(parameters))
-  names(args_list) <- vapply(parameters, \(x) x$name, FUN.VALUE = character(1))
+    parameters <- op$parameters
+    # create a list of NULLs of the same length as parameters and initialize
+    # the names
+    args_list <- vector("list", length(parameters))
+    names(args_list) <- vapply(
+        parameters,
+        \(x) x$name, FUN.VALUE = character(1)
+    )
 
-  if (!is.null(parameters)) {
-    for (param in parameters) {
-      required <- param$required %||% FALSE
+    if (!is.null(parameters)) {
+        for (param in parameters) {
+            required <- param$required %||% FALSE
 
-      # if parameter is required remove the value from the list of formals
-      if (required) {
-        args_list[[param$name]] <- quote(expr = )
-      }
+            # if parameter is required remove the value from the list of formals
+            if (required) {
+                args_list[[param$name]] <- quote(expr = )
+            }
+        }
     }
-  }
-  return(args_list)
+    return(args_list)
 }
 
 #' Extract Operation Parameters by Location
@@ -183,24 +193,24 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .get_operation_params <- function(op) {
-  # Setup the output list
-  params <- list(
-    path = character(),
-    query = character(),
-    header = character()
-  )
+    # Setup the output list
+    params <- list(
+        path = character(),
+        query = character(),
+        header = character()
+    )
 
-  parameters <- op$parameters
+    parameters <- op$parameters
 
-  if (!is.null(parameters)) {
-    for (p in parameters) {
-      # Categorize parameters
-      if (p$`in` %in% c("path", "query", "header")) {
-        params[[p$`in`]] <- c(params[[p$`in`]], p$name)
-      }
+    if (!is.null(parameters)) {
+        for (p in parameters) {
+            # Categorize parameters
+            if (p$`in` %in% c("path", "query", "header")) {
+                params[[p$`in`]] <- c(params[[p$`in`]], p$name)
+            }
+        }
     }
-  }
-  return(params)
+    return(params)
 }
 
 #' Generate URL Parameter Replacement Expressions for an API Request
@@ -225,17 +235,21 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .add_paths <- function(path_params, url) {
-  replacers <- lapply(path_params, function(param_name) {
-    bquote(
-      url <- sub(
-        .(paste0("{", param_name, "}")),
-        as.character(.(sym(param_name))),
-        url,
-        fixed = TRUE
-      )
-    )
-  })
-  return(replacers)
+    if (length(path_params) > 0) {
+        rep_urls <- lapply(path_params, function(param_name) {
+            bquote(
+                url <- sub(
+                    .(paste0("{", param_name, "}")),
+                    as.character(.(sym(param_name))),
+                    url,
+                    fixed = TRUE
+                )
+            )
+        })
+        return(rep_urls)
+    } else {
+        return(list())
+    }
 }
 
 #' Generate Header Expressions for an API Request
@@ -267,24 +281,24 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .add_headers <- function(header_params, operation, api, token = NULL) {
-  # token variable is only used to check whether api key is being passed into
-  # the function
-  api_key <- NULL # for linting
-  # Add headers
-  headers_list <- list(
-    `Content-Type` = "application/json"
-  )
-  if ((!is.null(operation$security) || !is.null(api$security)) &&
-    !is.null(token)) {
-    # Assuming API key authentication in header
-    headers_list[["Authorization"]] <- expr(paste("Bearer", api_key))
-  }
-  if (length(header_params) > 0) {
-    header_syms <- setNames(syms(header_params), header_params)
-    headers_list <- c(headers_list, header_syms)
-  }
+    # token variable is only used to check whether api key is being passed into
+    # the function
+    api_key <- NULL # for linting
+    # Add headers
+    headers_list <- list(
+        `Content-Type` = "application/json"
+    )
+    if ((!is.null(operation$security) || !is.null(api$security)) &&
+        !is.null(token)) {
+        # Assuming API key authentication in header
+        headers_list[["Authorization"]] <- expr(paste("Bearer", api_key))
+    }
+    if (length(header_params) > 0) {
+        header_syms <- setNames(syms(header_params), header_params)
+        headers_list <- c(headers_list, header_syms)
+    }
 
-  return(expr(req <- req_headers(req, !!!headers_list)))
+    return(expr(req <- req_headers(req, !!!headers_list)))
 }
 
 #' Generate Query Expressions for an API Request
@@ -312,13 +326,81 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .add_queries <- function(query_params) {
-  query_syms <- setNames(syms(query_params), query_params)
-  query_expr <- expr(
-    req <- req_url_query(req, !!!query_syms)
-  )
-  return(query_expr)
+    if (length(query_params) > 0) {
+        query_syms <- setNames(syms(query_params), query_params)
+        query_expr <- expr(
+            req <- req_url_query(req, !!!query_syms)
+        )
+        return(query_expr)
+    } else {
+        return(list())
+    }
 }
 
+#' Add JSON Schema Validation to API Operation
+#'
+#' Generates validation expressions for an API operation based on its JSON
+#' schema. If a schema is present, the function returns expressions to validate
+#' the request body and raise an error if validation fails.
+#'
+#' @param op A list representing the API operation, which may contain a
+#'   request body and schema.
+#'
+#' @return A list of expressions for JSON schema validation, or an empty list
+#'   if no schema is found.
+#'
+#' @importFrom rlang expr
+#'
+#' @examples
+#' \dontrun{
+#' op <- list(requestBody = TRUE, schema = list(type = "object"))
+#' Rega:::.add_json_validation(op)
+#' }
+#'
+#' @keywords internal
+.add_json_validation <- function(op) {
+    has_body <- !is.null(op$requestBody)
+    schema <- get_operation_schema(op)
+
+    if (!is.null(schema)) {
+        validate_expr <- expr(
+            valid <- validate_schema(body, !!schema)
+        )
+        stop_expr <- expr(if (!valid) {
+            stop(validation_to_msg(valid), call. = FALSE)
+        })
+        return(list(validate_expr, stop_expr))
+    } else {
+        return(list())
+    }
+}
+
+#' Add Request Body to API Request
+#'
+#' Adds a JSON request body to an API request if required. If the request
+#' requires a body, an expression is returned to include it; otherwise, an
+#' empty list is returned.
+#'
+#' @param has_body A logical value indicating whether the request requires a
+#'   body.
+#'
+#' @return An expression to add the JSON request body if \code{has_body} is
+#'   \code{TRUE}, otherwise an empty list.
+#'
+#' @importFrom rlang expr
+#'
+#' @examples
+#' Rega:::.add_request_body(TRUE)
+#' Rega:::.add_request_body(FALSE)
+#'
+#' @keywords internal
+.add_request_body <- function(has_body) {
+    if (has_body) {
+        return(expr(req <- req_body_json(req, body, auto_unbox = FALSE)))
+    } else {
+        return(list())
+    }
+}
 
 #' Generate an API Function from Operation and Specification
 #'
@@ -326,7 +408,7 @@ extract_operation_definitions <- function(api) {
 #' definition and API specification. The generated function handles URL
 #' construction, parameter validation, request execution, and response parsing.
 #'
-#' @param operation List. The API operation definition, including method, path,
+#' @param op List. The API operation definition, including method, path,
 #'   parameters, and request body schema.
 #' @param api List. The API specification, including host and global security
 #'   definitions.
@@ -352,101 +434,59 @@ extract_operation_definitions <- function(api) {
 #'
 #' # Call the generated function with parameters (requires credentials)
 #' try(
-#'   result <- f(status = "value1", prefix = "value2")
+#'     result <- f(status = "value1", prefix = "value2")
 #' )
 #'
 #' @export
-api_function_factory <- function(operation, api, verbosity = 0,
-                                 api_key = NULL) {
-  resp <- NULL # lint
-  base_url <- api$host
-  op <- operation
+api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
+    resp <- NULL # lint
+    func_args <- list() # will contain function arguments
+    body_exprs <- list() # will contain function body
+    # Prepare function arguments
+    has_body <- !is.null(op$requestBody)
+    params <- .get_operation_params(op)
 
-  # Prepare function arguments
-  has_body <- !is.null(op$requestBody)
+    # Build the function arguments based on api operation -----
+    func_args <- c(func_args, .operation_params_to_args(op))
+    if (has_body) func_args <- c(func_args, pairlist2(body = ))
 
-  # Build the function arguments based on api operation -----
-  func_args <- list()
-  func_args <- c(func_args, .operation_params_to_args(op))
-  if (has_body) func_args <- c(func_args, pairlist2(body = ))
-  # Add api key as the last function argument
-  if (!is.null(api_key)) func_args <- c(func_args, pairlist2(api_key = api_key))
+    # Build function body -----
+    body_exprs <- c(body_exprs, .add_json_validation(op))
+    url <- paste0(api$host, op$path) # Process API URL
+    body_exprs <- c(body_exprs, expr(url <- !!url), .add_paths(params$path))
+    req_expr <- bquote(req <- req_method(request(url), .(op$method)))
+    body_exprs <- c(body_exprs, req_expr)
 
-  # Build function body -----
-  body_exprs <- list()
-
-  if (has_body) {
-    schema <- get_operation_schema(op)
-    if (!is.null(schema)) {
-      validate_expr <- expr(
-        valid <- validate_schema(body, !!schema)
-      )
-      stop_expr <- expr(if (!valid) {
-        stop(validation_to_msg(valid), call. = FALSE)
-      })
-      body_exprs <- c(body_exprs, validate_expr, stop_expr)
+    if (is.null(api_key)) { # Add OAuth if API key not specified
+        body_exprs <- c(body_exprs, expr(req <- ega_oauth(req)))
+    } else { # otherwise modify function args
+        func_args <- c(func_args, pairlist2(api_key = api_key))
     }
-  }
-
-  # Create full URL and add it to the function body
-  url <- paste0(base_url, op$path)
-  body_exprs <- c(body_exprs, expr(url <- !!url))
-
-  params <- .get_operation_params(op)
-  # If there are parameters in the path, add the URL substitution into the
-  # function body
-  if (length(params$path) > 0) {
-    body_exprs <- c(body_exprs, .add_paths(params$path))
-  }
-
-  # Build the request -----
-  req_expr <- bquote(req <- req_method(request(url), .(op$method)))
-  body_exprs <- c(body_exprs, req_expr)
-
-  if (is.null(api_key)) {
-    body_exprs <- c(body_exprs, expr(req <- ega_oauth(req)))
-  }
-
-  # Add headers
-  body_exprs <- c(body_exprs, .add_headers(params$header, op, api, api_key))
-
-  # If there were query parameters added to the function formals,
-  # add appropriate code to the body in the form of httr2 query
-  if (length(params$query) > 0) {
+    body_exprs <- c(body_exprs, .add_headers(params$header, op, api, api_key))
     body_exprs <- c(body_exprs, .add_queries(params$query))
-  }
+    body_exprs <- c(body_exprs, .add_request_body(has_body))
 
-  # Add request body -----
-  if (has_body) {
-    body_request_expr <- expr(
-      req <- req_body_json(req, body, auto_unbox = FALSE)
+    # Perform the request and handle the response -----
+    perform_req <- list(
+        bquote(resp <- req_perform(req, verbosity = .(verbosity))),
+        expr(resp_check_status(resp)),
+        expr(result <- parse_ega_body(resp)),
+        expr(return(result))
     )
-    body_exprs <- c(body_exprs, body_request_expr)
-  }
+    body_exprs <- c(body_exprs, perform_req)
 
-  # Perform the request and handle the response -----
-  perform_req <- list(
-    bquote(resp <- req_perform(req, verbosity = .(verbosity))),
-    expr(resp_check_status(resp)),
-    expr(result <- parse_ega_body(resp)),
-    expr(return(result))
-  )
+    # Combine body expressions into one expression
+    func_body <- expr({
+        !!!body_exprs
+    })
 
-  body_exprs <- c(body_exprs, perform_req)
-
-  # Combine body expressions into one expression
-  func_body <- expr({
-    !!!body_exprs
-  })
-
-  # Create the function based on formals, body and env
-  func <- new_function(
-    args = as.pairlist(func_args),
-    body = func_body,
-    env = caller_env()
-  )
-
-  return(func)
+    # Create the function based on formals, body and env
+    func <- new_function(
+        args = as.pairlist(func_args),
+        body = func_body,
+        env = caller_env()
+    )
+    return(func)
 }
 
 #' Generate API Client Functions
@@ -470,16 +510,16 @@ api_function_factory <- function(operation, api, verbosity = 0,
 #'
 #' # Call an operation using the client (requires credentials)
 #' try(
-#'   result <- client$get__files(status = "value1", prefix = "value2")
+#'     result <- client$get__files(status = "value1", prefix = "value2")
 #' )
 #'
 #' @export
 create_client <- function(api, ...) {
-  opdefs <- extract_operation_definitions(api)
-  setNames(
-    lapply(opdefs, \(x) api_function_factory(x, api, ...)),
-    names(opdefs)
-  )
+    opdefs <- extract_operation_definitions(api)
+    setNames(
+        lapply(opdefs, \(x) api_function_factory(x, api, ...)),
+        names(opdefs)
+    )
 }
 
 #' Parse The Information From EGA httr2 Response Object.
@@ -505,64 +545,64 @@ create_client <- function(api, ...) {
 #' @examples
 #' # Example with JSON response
 #' json_resp <- httr2::response(
-#'   method = "GET",
-#'   url = "/api/files",
-#'   status = 200,
-#'   headers = list("content-type" = "application/json"),
-#'   body = charToRaw('[{"id": 1, "name": "test"}]')
+#'     method = "GET",
+#'     url = "/api/files",
+#'     status = 200,
+#'     headers = list("content-type" = "application/json"),
+#'     body = charToRaw('[{"id": 1, "name": "test"}]')
 #' )
 #' parse_ega_body(json_resp)
 #'
 #' # Example with plain text response
 #' text_resp <- httr2::response(
-#'   method = "POST",
-#'   url = "/api/submissions",
-#'   status = 200,
-#'   headers = list("content-type" = "text/plain"),
-#'   body = charToRaw("Sample response text")
+#'     method = "POST",
+#'     url = "/api/submissions",
+#'     status = 200,
+#'     headers = list("content-type" = "text/plain"),
+#'     body = charToRaw("Sample response text")
 #' )
 #' parse_ega_body(text_resp)
 #'
 #' @export
 parse_ega_body <- function(resp) {
-  resource_name <- resp |>
-    resp_url_path() |>
-    str_replace("\\/api\\/(\\w+)\\/?.*", "\\1")
+    resource_name <- resp |>
+        resp_url_path() |>
+        str_replace("\\/api\\/(\\w+)\\/?.*", "\\1")
 
-  if (resp_content_type(resp) == "application/json") {
-    # check if the content is JSON
-    resp <- resp_body_json(resp)
+    if (resp_content_type(resp) == "application/json") {
+        # check if the content is JSON
+        resp <- resp_body_json(resp)
 
-    # special treatment for short list (e.g. user info)
-    if (!is.null(names(resp))) resp <- list(resp)
-  } else if (resp_content_type(resp) == "text/plain") {
-    # if plain text, convert to JSON list
-    resp <- resp_body_string(resp)
+        # special treatment for short list (e.g. user info)
+        if (!is.null(names(resp))) resp <- list(resp)
+    } else if (resp_content_type(resp) == "text/plain") {
+        # if plain text, convert to JSON list
+        resp <- resp_body_string(resp)
 
-    if (grepl("^\\{.*\\}$", resp)) {
-      # if there is JSON like structure
-      resp <- resp |>
-        fromJSON() |>
-        lapply(function(x) if (is.null(x)) list() else x) |>
-        list()
-    } else {
-      # in case there is no JSON like structure
-      # return the value as an one-column tibble
-      return(tibble("{resource_name}" := resp))
+        if (grepl("^\\{.*\\}$", resp)) {
+            # if there is JSON like structure
+            resp <- resp |>
+                fromJSON() |>
+                lapply(function(x) if (is.null(x)) list() else x) |>
+                list()
+        } else {
+            # in case there is no JSON like structure
+            # return the value as an one-column tibble
+            return(tibble("{resource_name}" := resp))
+        }
     }
-  }
 
-  resp <- resp |>
-    tibble() |>
-    unnest_wider(resp, names_sep = "/", names_repair = "unique")
-  # in the datasets response, there are 2 columns with status, why?
+    resp <- resp |>
+        tibble() |>
+        unnest_wider(resp, names_sep = "/", names_repair = "unique")
+    # in the datasets response, there are 2 columns with status, why?
 
-  if (ncol(resp) == 1) {
-    names(resp)[names(resp) == "resp"] <- resource_name
-  }
+    if (ncol(resp) == 1) {
+        names(resp)[names(resp) == "resp"] <- resource_name
+    }
 
-  # remove anything before slash .*/from column names
-  colnames(resp) <- sub(".*\\/", "", colnames(resp))
+    # remove anything before slash .*/from column names
+    colnames(resp) <- sub(".*\\/", "", colnames(resp))
 
-  return(resp)
+    return(resp)
 }

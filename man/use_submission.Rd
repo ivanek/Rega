@@ -7,13 +7,13 @@
 use_submission(id, client, method)
 }
 \arguments{
-\item{id}{Character or numeric. Represents the submission identifier.
-Can be either an accession or provisional ID.}
+\item{id}{Character or numeric. Represents the submission identifier. Can be
+either an accession or provisional ID.}
 
 \item{client}{An API client object with \code{get} and \code{delete} methods.}
 
-\item{method}{A string specifying the operation to perform. Valid options
-are "get" or "delete".}
+\item{method}{A string specifying the operation to perform. Valid options are
+"get" or "delete".}
 }
 \value{
 A named list containing responses for datasets, analyses, runs,
@@ -25,9 +25,11 @@ accession/provisional ID using a specified client and method.
 }
 \examples{
 mock_client <- list(
-  "get__submissions__accession_id__datasets" = function(id) list(data = id),
-  "delete__submissions__provisional_id__datasets" =
-    function(id) list(status = "deleted")
+    "get__submissions__accession_id__datasets" = function(id) {
+        list(data = id)
+     },
+    "delete__submissions__provisional_id__datasets" =
+        function(id) list(status = "deleted")
 )
 use_submission("EGAB12345678901", mock_client, "get")
 

@@ -23,12 +23,12 @@ tests separately against all \code{oneOf} sub schemas.
 }
 \examples{
 schema <- list(
-  type = "object",
-  properties = list(
-    id = list(type = "integer"),
-    title = list(type = "string")
-  ),
-  required = c("id")
+    type = "object",
+    properties = list(
+        id = list(type = "integer"),
+        title = list(type = "string")
+    ),
+    required = c("id")
 )
 
 payload_true <- data.frame(id = c(12345), title = c("abcd"))

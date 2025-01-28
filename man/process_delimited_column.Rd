@@ -23,7 +23,7 @@ column is \code{pubmed_ids}, values are converted to integers.
 }
 \examples{
 metadata <- list(
-  sheet1 = data.frame(pubmed_ids = c("123; 456", "130; 789; 102", NA))
+    sheet1 = data.frame(pubmed_ids = c("123; 456", "130; 789; 102", NA))
 )
 
 process_delimited_column(metadata, "pubmed_ids", ";")

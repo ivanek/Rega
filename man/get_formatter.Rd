@@ -21,17 +21,18 @@ Retrieve a Formatter Function by Type of Submission Metadata Table
 \examples{
 # Load formatter params
 params <- yaml::read_yaml(system.file(
-  "extdata/default_parser_params.yaml", package = "Rega"
+    "extdata/default_parser_params.yaml",
+    package = "Rega"
 ))
 
 # Dummy data, first row will be moved to column names
-tab = data.frame(
-  x1 = c("file", "value1", "value2"),
-  x2 = c("ega_inbox_relative_path", NA, "proj1")
+tab <- data.frame(
+    x1 = c("file", "value1", "value2"),
+    x2 = c("ega_inbox_relative_path", NA, "proj1")
 )
 
-ff = get_formatter("files", params)
-ff_params = get_formatter_params("files", params)
+ff <- get_formatter("files", params)
+ff_params <- get_formatter_params("files", params)
 
 ff(tab, ff_params)
 

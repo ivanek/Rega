@@ -26,15 +26,12 @@ detailed message and a stack trace.
 }
 \examples{
 handler <- workflow_error_handler(
-  step = "submission",
-  responses = list(),
-  logfile = NULL
+    step = "submission",
+    responses = list(),
+    logfile = NULL
 )
 
 tryCatch("Example code without error", error = handler)
 
-\dontrun{
-tryCatch(stop("Example code with error"), error = handler)
-}
 
 }

@@ -23,10 +23,7 @@ will be removed. If the column is not present it will be added with
 \code{NA} as a single value.
 }
 \examples{
-\dontrun{
-# Fold columns with a common prefix into a new column
-tab <- data.frame(A_name = c("A1", NA), B_name = c("B1", "B2"))
-folded_tab <- fold_column(tab, "name", "folded_column")
-}
+tab <- data.frame(id = c(1, 2), name.1 = c("A1", NA), name.2 = c("B1", "B2"))
+fold_column(tab, "name", "folded_column")
 
 }

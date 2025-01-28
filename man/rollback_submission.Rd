@@ -29,8 +29,8 @@ the client and logs the responses if a logfile is specified.
 }
 \examples{
 mock_client <- list(
-  "put__submissions__accession_id__datasets_rollback" =
-    function(id) list(status = "rolled back")
+    "put__submissions__accession_id__datasets_rollback" =
+        function(id) list(status = "rolled back")
 )
 rollback_submission("provisional123", mock_client, c("datasets"))
 

@@ -18,33 +18,34 @@
 #'
 #' @export
 is_accession <- function(x, schema = "submission") {
-  letter_lut <- c(
-    "study" = "S",
-    "studies" = "S",
-    "sample" = "N",
-    "samples" = "N",
-    "experiment" = "X",
-    "experiments" = "X",
-    "analysis" = "Z",
-    "analyses" = "Z",
-    "run" = "R",
-    "runs" = "R",
-    "policy" = "P",
-    "DAC" = "C",
-    "dataset" = "D",
-    "datasets" = "D",
-    "submission" = "B"
-  )
-
-  if (!schema %in% names(letter_lut)) {
-    err_msg <- sprintf(
-      "Unknown schema %s, please select one of the valid EGA schemas.", schema
+    letter_lut <- c(
+        "study" = "S",
+        "studies" = "S",
+        "sample" = "N",
+        "samples" = "N",
+        "experiment" = "X",
+        "experiments" = "X",
+        "analysis" = "Z",
+        "analyses" = "Z",
+        "run" = "R",
+        "runs" = "R",
+        "policy" = "P",
+        "DAC" = "C",
+        "dataset" = "D",
+        "datasets" = "D",
+        "submission" = "B"
     )
-    stop(err_msg)
-  }
 
-  letter <- letter_lut[schema]
-  grepl(paste0("^EGA", letter, "\\d{11}$"), x)
+    if (!schema %in% names(letter_lut)) {
+        err_msg <- sprintf(
+            "Unknown schema %s, please select one of the valid EGA schemas.",
+            schema
+        )
+        stop(err_msg)
+    }
+
+    letter <- letter_lut[schema]
+    grepl(paste0("^EGA", letter, "\\d{11}$"), x)
 }
 
 
@@ -67,13 +68,13 @@ is_accession <- function(x, schema = "submission") {
 #'
 #' @export
 step_msg <- function(steps) {
-  cur <- 1
-  inner <- function(msg) {
-    step_msg <- paste0("Step ", cur, "/", steps, " - ", msg)
-    message(step_msg)
-    assign("cur", cur + 1, envir = parent.env(environment()))
-  }
-  return(inner)
+    cur <- 1
+    inner <- function(msg) {
+        step_msg <- paste0("Step ", cur, "/", steps, " - ", msg)
+        message(step_msg)
+        assign("cur", cur + 1, envir = parent.env(environment()))
+    }
+    return(inner)
 }
 
 #' Convert a Data Frame Row to an Unboxed JSON Object
@@ -93,7 +94,7 @@ step_msg <- function(steps) {
 #'
 #' @export
 unbox_row <- function(row) {
-  unbox(fromJSON(toJSON(row)))
+    unbox(fromJSON(toJSON(row)))
 }
 
 
@@ -117,14 +118,14 @@ unbox_row <- function(row) {
 #'
 #' @export
 submit_table <- function(tab, id, endpoint_func) {
-  row_resp <- vector("list", length = nrow(tab))
-  # For seems to work best/least problematic when maintaining structure to be
-  # converted to JSON
-  for (x in seq_len(nrow(tab))) {
-    row_resp[[x]] <- endpoint_func(id, body = unbox_row(tab[x, ]))
-  }
-  row_resp <- do.call(rbind, row_resp)
-  return(row_resp)
+    row_resp <- vector("list", length = nrow(tab))
+    # For seems to work best/least problematic when maintaining structure to be
+    # converted to JSON
+    for (x in seq_len(nrow(tab))) {
+        row_resp[[x]] <- endpoint_func(id, body = unbox_row(tab[x, ]))
+    }
+    row_resp <- do.call(rbind, row_resp)
+    return(row_resp)
 }
 
 #' Retrieve or Submit Data to an EGA API Endpoint
@@ -152,15 +153,15 @@ submit_table <- function(tab, id, endpoint_func) {
 #' @examples
 #' # Create mock client for API endpoint
 #' mock_client <- list(
-#'   get__submissions__provisional_id__endpoint = function(id) {
-#'     message("Mock GET request")
-#'     # Simulate an empty response (no existing data)
-#'     return(NULL)
-#'   },
-#'   post__submissions__provisional_id__endpoint = function(id, body) {
-#'     message("Mock POST request")
-#'     message(body) # Simulate returning submitted data
-#'   }
+#'     get__submissions__provisional_id__endpoint = function(id) {
+#'         message("Mock GET request")
+#'         # Simulate an empty response (no existing data)
+#'         return(NULL)
+#'     },
+#'     post__submissions__provisional_id__endpoint = function(id, body) {
+#'         message("Mock POST request")
+#'         message(body) # Simulate returning submitted data
+#'     }
 #' )
 #'
 #' # Create mock data to test the function
@@ -168,42 +169,42 @@ submit_table <- function(tab, id, endpoint_func) {
 #'
 #' # Test the function with mock data and client
 #' result <- get_or_post(
-#'   submission_id = 12345,
-#'   data = test_data,
-#'   client = mock_client,
-#'   endpoint = "endpoint",
-#'   retrieve_if_exists = FALSE
+#'     submission_id = 12345,
+#'     data = test_data,
+#'     client = mock_client,
+#'     endpoint = "endpoint",
+#'     retrieve_if_exists = FALSE
 #' )
 #'
 #' @export
 get_or_post <- function(submission_id, data, client, endpoint,
                         retrieve_if_exists = FALSE) {
-  built_url <- paste0("__", "submissions__provisional_id", "__", endpoint)
-  resp <- client[[paste0("get", built_url)]](submission_id)
+    built_url <- paste0("__", "submissions__provisional_id", "__", endpoint)
+    resp <- client[[paste0("get", built_url)]](submission_id)
 
-  if (is.null(resp) || nrow(resp) == 0) {
-    # Submit table
-    resp <- submit_table(
-      data,
-      submission_id,
-      client[[paste0("post", built_url)]]
-    )
-  } else if (nrow(resp) != nrow(data)) {
-    err_msg <- sprintf(
-      "Number of present versus submitted records doesn't match: %s, %s",
-      nrow(resp), nrow(data)
-    )
-    stop(err_msg)
-  } else if (retrieve_if_exists) {
-    message("Retrieved IDs from database.")
-  } else {
-    err_msg <- sprintf(
-      "%s records are already present in the database and 'retrive_if_exists'
-      is set to FALSE", nrow(resp)
-    )
-    stop(err_msg)
-  }
-  return(resp)
+    if (is.null(resp) || nrow(resp) == 0) {
+        # Submit table
+        resp <- submit_table(
+            data,
+            submission_id,
+            client[[paste0("post", built_url)]]
+        )
+    } else if (nrow(resp) != nrow(data)) {
+        err_msg <- sprintf(
+            "Number of present versus submitted records doesn't match: %s, %s",
+            nrow(resp), nrow(data)
+        )
+        stop(err_msg)
+    } else if (retrieve_if_exists) {
+        message("Retrieved IDs from database.")
+    } else {
+        err_msg <- sprintf(
+            "%s records are already present in the database and
+            'retrive_if_exists' is set to FALSE", nrow(resp)
+        )
+        stop(err_msg)
+    }
+    return(resp)
 }
 
 #' Save API Responses to a Log File
@@ -225,10 +226,10 @@ get_or_post <- function(submission_id, data, client, endpoint,
 #'
 #' @export
 save_log <- function(responses, logfile) {
-  if (!is.null(logfile)) {
-    write_yaml(responses, logfile, column.major = FALSE)
-  }
-  return(invisible(NULL))
+    if (!is.null(logfile)) {
+        write_yaml(responses, logfile, column.major = FALSE)
+    }
+    return(invisible(NULL))
 }
 
 #' Workflow Error Handler
@@ -249,33 +250,30 @@ save_log <- function(responses, logfile) {
 #'
 #' @examples
 #' handler <- workflow_error_handler(
-#'   step = "submission",
-#'   responses = list(),
-#'   logfile = NULL
+#'     step = "submission",
+#'     responses = list(),
+#'     logfile = NULL
 #' )
 #'
 #' tryCatch("Example code without error", error = handler)
 #'
-#' \dontrun{
-#' tryCatch(stop("Example code with error"), error = handler)
-#' }
 #'
 #' @export
 workflow_error_handler <- function(step, responses, logfile, ...) {
-  captured_exprs <- enquos(...)
+    captured_exprs <- enquos(...)
 
-  em <- paste0("Error while creating ", step, ".")
+    em <- paste0("Error while creating ", step, ".")
 
-  if (step != "submission") {
-    em <- paste0(em, " All ", step, " were removed.")
-  }
+    if (step != "submission") {
+        em <- paste0(em, " All ", step, " were removed.")
+    }
 
-  ef <- function(e) {
-    message(em)
-    save_log(responses, logfile)
-    lapply(captured_exprs, \(x) eval_tidy(x, env = caller_env()))
-    abort(e$message, trace = trace_back())
-  }
+    ef <- function(e) {
+        message(em)
+        save_log(responses, logfile)
+        lapply(captured_exprs, \(x) eval_tidy(x, env = caller_env()))
+        abort(e$message, trace = trace_back())
+    }
 
-  return(ef)
+    return(ef)
 }

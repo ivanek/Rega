@@ -45,3 +45,51 @@ be used as a parameter to the workflow to continue entering data into
 existing submission. If logfile is specified, the responses from successfully
 executed steps (even if the error occurs), will be saved.
 }
+\examples{
+minimal_metadata <- list(
+    aliases = list(
+        studies = "Study1", experiments = "Experiment1",
+        datasets = "Dataset1", samples = "Sample1", runs = "Run1",
+        analyses = "Analysis1"
+    ),
+    files = tibble::tibble(
+        file = "raw.fastq.gz", ega_file = list("raw.fastq.gz.c4gh")
+    ),
+    submission = tibble::tibble(title = "Submission"),
+    studies = tibble::tibble(
+        study = "Study1", title = "Study Title",
+        description = "Study Description",
+        study_type = "Whole Genome Sequencing"
+    ),
+    samples = tibble::tibble(
+        alias = "Sample1", phenotype = "wild-type",
+        biological_sex = "female", subject_id = "ID1"
+    ),
+    experiments = tibble::tibble(
+        study = "Study1", experiment = "Experiment1",
+        design_description = "Experiment Design",
+        library_selection = "RANDOM", instrument_model_id = 1L,
+        library_layout = "SINGLE", library_strategy = "WGS",
+        library_source = "GENOMIC"
+    ),
+    runs = tibble::tibble(
+        run = "Run1", experiment = "Experiment1", run_file_type = "srf",
+        alias = "Sample1", files = list("raw.fastq.gz.c4gh")
+    ),
+    datasets = tibble::tibble(
+        dataset = "Dataset1", title = "Dataset Title",
+        description = "Dataset Description",
+        policy_accession_id = "EGAP00000000001",
+        dataset_types = list("Whole genome sequencing"),
+        runs = list("Run1")
+    )
+)
+
+ega <- create_client(extract_api(), verbosity = 0)
+
+# Requires credentials
+try(
+    new_submission(minimal_metadata, ega)
+)
+
+}

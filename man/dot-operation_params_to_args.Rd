@@ -25,7 +25,7 @@ function arguments. Required parameters are marked as missing arguments.
 opdefs <- extract_operation_definitions(extract_api())
 
 Rega:::.operation_params_to_args(
-  opdefs[["post__submissions__provisional_id__samples"]]
+    opdefs[["post__submissions__provisional_id__samples"]]
 )
 
 }

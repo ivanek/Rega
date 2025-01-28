@@ -22,13 +22,11 @@ in \code{sheet_name}) will be replaced with the rest of the values nested as a
 list.
 }
 \examples{
-\dontrun{
 # Link data from a specific sheet to other sheets in metadata
 metadata <- list(
-  sheet1 = data.frame(id = c(1, 2), linked_sheet = c("A", "B")),
-  linked_sheet = data.frame(id = c("A", "B"), value = c(10, 20))
+    sheet1 = data.frame(id = c(1, 2), linked_sheet = c("A", "B")),
+    linked_sheet = data.frame(id = c("A", "B"), value = c(10, 20))
 )
 updated_metadata <- link_sheet(metadata, "linked_sheet")
-}
 
 }

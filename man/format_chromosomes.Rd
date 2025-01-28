@@ -23,16 +23,17 @@ EGA enums.
 \examples{
 # Mock metadata data frame
 metadata <- list(
-  analyses = data.frame(
-    chromosomes = I(list(
-      NA,
-      list("group1--1--chr1--name1", "group2--3--chr3--name3"))
+    analyses = data.frame(
+        chromosomes = I(list(
+            NA,
+            list("group1--1--chr1--name1", "group2--3--chr3--name3")
+        )),
+        chromosome_groups = c("group1", NA),
+        stringsAsFactors = FALSE
     ),
-    chromosome_groups = c("group1", NA),
-    stringsAsFactors = FALSE
-  ),
-  select_input_data = list(
-    chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2"))
+    select_input_data = list(
+        chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2")
+    )
 )
 
 format_chromosomes(metadata)

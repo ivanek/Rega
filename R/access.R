@@ -19,15 +19,15 @@
 #'
 #' @keywords internal
 .get_rega_key <- function(envvar = "REGA_KEY") {
-  rega_key <- Sys.getenv(envvar)
-  if (identical(rega_key, "")) {
-    warn_msg <- paste(
-      sprintf("No %s environmental variable found.", envvar),
-      "Attempting to conect via unecrypted password."
-    )
-    warning(warn_msg)
-  }
-  return(rega_key)
+    rega_key <- Sys.getenv(envvar)
+    if (identical(rega_key, "")) {
+        warn_msg <- paste(
+            sprintf("No %s environmental variable found.", envvar),
+            "Attempting to conect via unecrypted password."
+        )
+        warning(warn_msg)
+    }
+    return(rega_key)
 }
 
 #' Get EGA User Name
@@ -48,11 +48,11 @@
 #'
 #' @keywords internal
 .get_ega_username <- function(envvar = "REGA_EGA_USERNAME") {
-  ega_username <- Sys.getenv(envvar)
-  if (identical(ega_username, "")) {
-    ega_username <- askpass(prompt = "Please enter your EGA username:")
-  }
-  return(ega_username)
+    ega_username <- Sys.getenv(envvar)
+    if (identical(ega_username, "")) {
+        ega_username <- askpass(prompt = "Please enter your EGA username:")
+    }
+    return(ega_username)
 }
 
 #' Get EGA User Password
@@ -75,24 +75,24 @@
 #'
 #' @keywords internal
 .get_ega_password <- function(envvar = "REGA_EGA_PASSWORD", ...) {
-  rega_key <- .get_rega_key(...)
-  ega_password <- Sys.getenv(envvar)
+    rega_key <- .get_rega_key(...)
+    ega_password <- Sys.getenv(envvar)
 
-  if (!identical(ega_password, "") && identical(rega_key, "")) {
-    warning("Storing unencrypted password in plaintext is not recommended.")
-  }
+    if (!identical(ega_password, "") && identical(rega_key, "")) {
+        warning("Storing unencrypted password in plaintext is not recommended.")
+    }
 
-  # Ask for password if not found in environmental variable
-  if (identical(ega_password, "")) {
-    ega_password <- askpass(prompt = "Please enter your EGA username:")
-  }
+    # Ask for password if not found in environmental variable
+    if (identical(ega_password, "")) {
+        ega_password <- askpass(prompt = "Please enter your EGA username:")
+    }
 
-  # If `rega_key` environmental variable secret is set, decrypt the password
-  if (!identical(rega_key, "")) {
-    ega_password <- secret_decrypt(Sys.getenv(envvar), I(rega_key))
-  }
+    # If `rega_key` environmental variable secret is set, decrypt the password
+    if (!identical(rega_key, "")) {
+        ega_password <- secret_decrypt(Sys.getenv(envvar), I(rega_key))
+    }
 
-  return(ega_password)
+    return(ega_password)
 }
 
 #' Set The OAUTH With EGA Username And Password
@@ -126,29 +126,34 @@
 #' oauth_req <- ega_oauth(req, username = "user", password = "pass")
 #'
 #' @export
-ega_oauth <- function(req, username = .get_ega_username(),
-                      password = .get_ega_password(), token_url = NULL) {
-  if (is.null(token_url)) {
-    token_url <-
-      "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
-  }
+ega_oauth <- function(
+    req, username = .get_ega_username(), password = .get_ega_password(),
+    token_url = NULL
+) {
+    if (is.null(token_url)) {
+        token_url <- paste0(
+            "https://idp.ega-archive.org/",
+            "realms/EGA/protocol/openid-connect/token"
+        )
 
-  client <- oauth_client(
-    id = "sp-api",
-    token_url = token_url,
-    name = "Rega"
-  )
+    }
 
-  request <- req_oauth_password(
-    req,
-    client = client,
-    username = username,
-    password = password,
-    cache_disk = TRUE,
-    cache_key = username
-  )
+    client <- oauth_client(
+        id = "sp-api",
+        token_url = token_url,
+        name = "Rega"
+    )
 
-  return(request)
+    request <- req_oauth_password(
+        req,
+        client = client,
+        username = username,
+        password = password,
+        cache_disk = TRUE,
+        cache_key = username
+    )
+
+    return(request)
 }
 
 #' Retrieve EGA API Bearer Token
@@ -171,37 +176,41 @@ ega_oauth <- function(req, username = .get_ega_username(),
 #'
 #' @examples
 #' try(
-#'   ega_token(username = "my_username", password = "my_password")
+#'     ega_token(username = "my_username", password = "my_password")
 #' )
 #'
 #' try(
-#'   ega_token(token_url = "https://www.example.com")
+#'     ega_token(token_url = "https://www.example.com")
 #' )
 #'
 #' @export
-ega_token <- function(username = .get_ega_username(),
-                      password = .get_ega_password(), token_url = NULL) {
-  if (is.null(token_url)) {
-    # Use default EGA token URL
-    token_url <-
-      "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
-  }
+ega_token <- function(
+    username = .get_ega_username(), password = .get_ega_password(),
+    token_url = NULL
+) {
+    if (is.null(token_url)) {
+        # Use default EGA token URL
+        token_url <- paste0(
+            "https://idp.ega-archive.org/",
+            "realms/EGA/protocol/openid-connect/token"
+        )
+    }
 
-  response <- request(token_url) |>
-    req_body_form(
-      grant_type = "password",
-      client_id = "sp-api",
-      username = username,
-      password = password
-    ) |>
-    req_perform()
+    response <- request(token_url) |>
+        req_body_form(
+            grant_type = "password",
+            client_id = "sp-api",
+            username = username,
+            password = password
+        ) |>
+        req_perform()
 
-  if (response$status_code == 200) {
-    content <- resp_body_json(response)
-  } else {
-    content <- resp_body_string(response)
-    message("Failed to obtain token: ", response$status_code)
-  }
+    if (response$status_code == 200) {
+        content <- resp_body_json(response)
+    } else {
+        content <- resp_body_string(response)
+        message("Failed to obtain token: ", response$status_code)
+    }
 
-  return(content)
+    return(content)
 }

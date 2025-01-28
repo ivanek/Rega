@@ -22,12 +22,12 @@ A formatted data frame with cleaned column names, and updated
 Format File Table with EGA File Paths
 }
 \examples{
-params = list(prefix = "", crypt_ext = "c4gh", prepend_slash = FALSE)
+params <- list(prefix = "", crypt_ext = "c4gh", prepend_slash = FALSE)
 
 # Dummy data, first row will be moved to column names
-tab = data.frame(
-  x1 = c("file", "value1", "value2"),
-  x2 = c("ega_inbox_relative_path", NA, "proj1")
+tab <- data.frame(
+    x1 = c("file", "value1", "value2"),
+    x2 = c("ega_inbox_relative_path", NA, "proj1")
 )
 
 file_formatter(tab, params)

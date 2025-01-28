@@ -21,14 +21,14 @@ Format a Row Table
 }
 \examples{
 # Formatter parameters
-params = list(fold = "extra_attributes")
+params <- list(fold = "extra_attributes")
 
 # Sample data frame
-df = data.frame(
-  ...1 = c("* Study", "* Title", "Extra Attributes", "Extra Attributes"),
-  ...2 = c("Study1", "Title1", "A", "B"),
-  ...3 = c("* Study", "* Title", "Extra Attributes", NA),
-  ...4 = c("Study2", "Title2", "C", NA)
+df <- data.frame(
+    ...1 = c("* Study", "* Title", "Extra Attributes", "Extra Attributes"),
+    ...2 = c("Study1", "Title1", "A", "B"),
+    ...3 = c("* Study", "* Title", "Extra Attributes", NA),
+    ...4 = c("Study2", "Title2", "C", NA)
 )
 
 row_table_formatter(df, params)

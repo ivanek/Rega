@@ -4,10 +4,10 @@
 \alias{api_function_factory}
 \title{Generate an API Function from Operation and Specification}
 \usage{
-api_function_factory(operation, api, verbosity = 0, api_key = NULL)
+api_function_factory(op, api, verbosity = 0, api_key = NULL)
 }
 \arguments{
-\item{operation}{List. The API operation definition, including method, path,
+\item{op}{List. The API operation definition, including method, path,
 parameters, and request body schema.}
 
 \item{api}{List. The API specification, including host and global security
@@ -39,7 +39,7 @@ f <- api_function_factory(opdefs[["get__files"]], api, api_key = "my_key")
 
 # Call the generated function with parameters (requires credentials)
 try(
-  result <- f(status = "value1", prefix = "value2")
+    result <- f(status = "value1", prefix = "value2")
 )
 
 }

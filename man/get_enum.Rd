@@ -28,7 +28,7 @@ client <- create_client(extract_api(), api_key = "ABCD")
 
 # Retrieve enum values from the API client (requires credentials to work)
 try(
-  platform_models <- get_enum(client, enum_name = "platform_models")
+    platform_models <- get_enum(client, enum_name = "platform_models")
 )
 
 }

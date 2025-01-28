@@ -33,29 +33,29 @@ editor_options:
 ```{r options, include=FALSE}
 library(knitr)
 opts_chunk$set(
-  echo = TRUE,
-  eval = FALSE,
-  message = FALSE,
-  warning = FALSE,
-  collapse = FALSE,
-  comment = NA,
-  prompt = FALSE,
-  tidy = FALSE,
-  dev = "png",
-  out.width = "100%"
+    echo = TRUE,
+    eval = FALSE,
+    message = FALSE,
+    warning = FALSE,
+    collapse = FALSE,
+    comment = NA,
+    prompt = FALSE,
+    tidy = FALSE,
+    dev = "png",
+    out.width = "100%"
 )
 
 ## check the output type
 out_type <- opts_knit$get("rmarkdown.pandoc.to")
 if (is.null(out_type)) {
-  out_type <- "html"
+    out_type <- "html"
 }
 
 ## add styling
 if (out_type == "html") {
-  BiocStyle::markdown()
+    BiocStyle::markdown()
 } else if (out_type == "latex") {
-  BiocStyle::latex()
+    BiocStyle::latex()
 }
 ```
 
@@ -68,13 +68,13 @@ development machine by adding a line to your your user-level `.Renviron`
 
 The `REGA_EGA_PASSWORD` environmental variable isn't supposed to store the 
 password in the plain text, instead:
-
- - generate a secret key using `httr2::secret_make_key()` and store it as the 
- "REGA_KEY" environmental variable (e.g. using `export` command in bash or
- in `.Renviron` file)
- - generate an encrypted password using your secret key via 
- `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
- - use the resulting value as "REGA_EGA_PASSWORD"
+    
+- generate a secret key using `httr2::secret_make_key()` and store it as the 
+    "REGA_KEY" environmental variable (e.g. using `export` command in bash or
+    in `.Renviron` file)
+- generate an encrypted password using your secret key via 
+    `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
+- use the resulting value as "REGA_EGA_PASSWORD"
 
 ```{r env-credentials, eval=FALSE}
 Sys.setenv("REGA_EGA_USERNAME" = "<your-ega-username>")
@@ -196,9 +196,9 @@ properties_out <- "properties.txt"
 schemas <- get_schemas(api)
 
 for (x in names(schemas)) {
-  p <- get_properties(schemas[[x]], filter_ids = FALSE)
-  lines <- c(paste0("[", x, "]"), p, "")
-  writeLines(lines, con = properties_out, sep = "\n", useBytes = TRUE)
+    p <- get_properties(schemas[[x]], filter_ids = FALSE)
+    lines <- c(paste0("[", x, "]"), p, "")
+    writeLines(lines, con = properties_out, sep = "\n", useBytes = TRUE)
 }
 ```
 
@@ -208,9 +208,9 @@ for (x in names(schemas)) {
 enums_out <- "enums.txt"
 
 for (x in ega$get__enums()$enums) {
-  e <- parse_enum(get_enum(ega, x))
-  lines <- c(paste0("[", x, "]"), e, "")
-  writeLines(lines, con = enums_out, sep = "\n", useBytes = TRUE)
+    e <- parse_enum(get_enum(ega, x))
+    lines <- c(paste0("[", x, "]"), e, "")
+    writeLines(lines, con = enums_out, sep = "\n", useBytes = TRUE)
 }
 ```
 

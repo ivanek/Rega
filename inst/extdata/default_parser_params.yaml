@@ -23,6 +23,10 @@ formatter:
     type: aliases_formatter
     params:
       na_omit: True
+  select_input_data:
+    type: aliases_formatter
+    params:
+      na_omit: True
   files:
     type: file_formatter
     params:

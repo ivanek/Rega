@@ -22,3 +22,12 @@ parameter file in \code{extdata/default_parser_params.yaml} to extract
 information for EGA submission into format that can be easily passed
 into EGA API endpoints.
 }
+\examples{
+# Template file is empty, trying to parse it as is will fail
+try(
+    default_parser(
+        system.file("extdata/ega_full_template_v2.xlsx", package = "Rega")
+    )
+)
+
+}
