@@ -64,13 +64,6 @@ default_parser <- function(metadata_file, param_file = NULL) {
     files_lut <- setNames(pm$files$ega_file, pm$files$file)
     pm$runs <- lut_add(pm$runs, "files", "files", files_lut)
 
-    # Merge analysis with file sheet, files are in nested column
-    # If analyses sheet is present
-    # if ("analyses" %in% names(pm)) {
-    #   af_lut <- setNames(pm$analysis_files$ega_file, pm$analysis_files$file)
-    #   pm$analyses <- lut_add(pm$analyses, "files", "files", af_lut)
-    # }
-
     # Link the sheets with extra nested info
     if (length(p$linked_sheets) > 0) {
         pm <- Reduce(
@@ -105,7 +98,7 @@ default_parser <- function(metadata_file, param_file = NULL) {
         af_lut <- setNames(pm$analysis_files$ega_file, pm$analysis_files$file)
         pm$analyses <- lut_add(pm$analyses, "files", "files", af_lut)
         # Get only genome IDs (API: sometimes mandatory)
-        if("genome_id" %in% names(pm$analyses)) {
+        if ("genome_id" %in% names(pm$analyses)) {
             pm$analyses$genome_id <-
                 as.integer(str_split_i(pm$analyses$genome_id, "--", 2))
         }
@@ -114,7 +107,7 @@ default_parser <- function(metadata_file, param_file = NULL) {
         # Replace NAs in experiment_types with empty lists
         # Not to mess with the link_sheet function, code for this specific case
         # is not included in fold_columns
-        if("experiment_types" %in% names(pm$analyses)) {
+        if ("experiment_types" %in% names(pm$analyses)) {
             pm$analyses$experiment_types <-
                 na_to_empty_list(pm$analyses$experiment_types)
         }
@@ -136,13 +129,17 @@ default_parser <- function(metadata_file, param_file = NULL) {
 #'
 #' @examples
 #' meta <- list(
-#'   aliases = list(analyses = c("A1", "A2")),
-#'   analysis_files = data.frame(name = character(0))
+#'     aliases = list(analyses = c("A1", "A2")),
+#'     analysis_files = data.frame(name = character(0))
 #' )
 #' Rega:::.has_analyses(meta)
 #'
 #' @keywords internal
 .has_analyses <- function(meta) {
+    if (!"aliases" %in% names(meta)) {
+        stop("'meta' arguments must have 'aliases' as a list")
+    }
+
     # Checks if the Aliases have an analysis entry or if there are Analysis
     # Files specified, if not, deletes both Analyses and Analyses Files sheet
     if (is.null(meta$aliases$analyses) ||
@@ -154,27 +151,3 @@ default_parser <- function(metadata_file, param_file = NULL) {
     }
 }
 
-#' Convert NA Values to Empty Lists
-#'
-#' Replaces \code{NA} values in a list with empty lists, preserving the original
-#' structure of the list.
-#'
-#' @param l A list containing elements that may include \code{NA} values.
-#'
-#' @return A list where any \code{NA} values have been replaced with empty
-#'   lists.
-#'
-#' @examples
-#' input_list <- list(1, NA, "text", NA)
-#' na_to_empty_list(input_list)
-#'
-#' @export
-na_to_empty_list <- function(l) {
-    lapply(l, function(x) {
-        if (is.na(x)) {
-            return(list())
-        } else {
-            return(x)
-        }
-    })
-}

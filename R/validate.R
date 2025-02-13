@@ -118,6 +118,11 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @keywords internal
 .summarise_validation <- function(validation_summary) {
+    required_cols <- c("fails", "nNA", "error", "warning")
+    if (!all(required_cols %in% names(validation_summary))) {
+        stop("Missing required columns in 'validation_summary'.")
+    }
+
     totals <- c(
         fails = sum(validation_summary$fails > 0),
         nas = sum(validation_summary$nNA > 0),
@@ -249,7 +254,7 @@ default_validator <- function(meta, aliases = NULL) {
 #'     title = c("StudyA", "StudyA", "StudyB"),
 #'     description = c("Desc1", "Desc2", NA)
 #' ))
-#' Rega:::.studies_extra_validator (meta, list())
+#' Rega:::.studies_extra_validator(meta, list())
 #'
 #' @keywords internal
 .studies_extra_validator <- function(meta, aliases) {
@@ -288,7 +293,7 @@ default_validator <- function(meta, aliases = NULL) {
 #'     files = I(list(c("File1", "File2"), c("File3"), NA))
 #' ))
 #'
-#' aliases = list(
+#' aliases <- list(
 #'     experiments = c("ExperimentA", "ExperimentB", "ExperimentC"),
 #'     samples = c("Sample1", "Sample3")
 #' )
@@ -303,6 +308,7 @@ default_validator <- function(meta, aliases = NULL) {
         run_sample_is_na = !is.na(alias),
         run_file_type_is_na = !is.na(run_file_type),
         run_file_is_na = !is.na(files),
+        run_file_is_unique = is_unique(unlist(files)),
         run_experiment_in_aliases = experiment %in% aliases$experiments,
         run_sample_in_aliases = alias %in% aliases$samples
     )
@@ -333,13 +339,13 @@ default_validator <- function(meta, aliases = NULL) {
 #'     title = c("TitleA", "TitleB", NA),
 #'     description = c("DescriptionA", "DescriptionB", "DescriptionA"),
 #'     samples = I(
-#'         list(c("Sample1" , NA), c("Sample2", "Sample3"), c("Sample3"))
+#'         list(c("Sample1", NA), c("Sample2", "Sample3"), c("Sample3"))
 #'     ),
 #'     experiments = I(list(NA, c("ExpA", "ExpB"), c("ExpD"))),
 #'     files = I(list(c("File1", "File2"), c("File3"), NA))
 #' ))
 #'
-#' aliases = list(
+#' aliases <- list(
 #'     samples = c("Sample1", "Sample3"),
 #'     experiments = c("ExpA", "ExpB", "ExpC")
 #' )
@@ -355,7 +361,8 @@ default_validator <- function(meta, aliases = NULL) {
         analysis_sample_in_aliases = unlist(samples) %in% aliases$samples,
         analysis_experiment_in_aliases =
             unlist(experiments) %in% aliases$experiments,
-        analysis_file_is_na = !is.na(files)
+        analysis_file_is_na = !is.na(files),
+        analysis_file_is_unique = is_unique(unlist(files))
     )
     v <- if ("analyses" %in% names(meta)) {
         confront(meta$analyses, cond, ref = list(aliases = aliases))
@@ -386,10 +393,10 @@ default_validator <- function(meta, aliases = NULL) {
 #' meta <- list(datasets = data.frame(
 #'     title = c("TitleA", "TitleB", NA),
 #'     description = c("DescriptionA", "DescriptionB", "DescriptionA"),
-#'     runs = I(list(c("Run1" , NA), c("Run2", "Run3"), c("Run3")))
+#'     runs = I(list(c("Run1", NA), c("Run2", "Run3"), c("Run3")))
 #' ))
 #'
-#' aliases = list(
+#' aliases <- list(
 #'     runs = c("Run1", "Run3", "Run4")
 #' )
 #'
@@ -424,10 +431,10 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @examples
 #' meta <- list(analyses = data.frame(
-#'    analyses = c("AnalysisA", "AnalysisB", NA)
+#'     analyses = c("AnalysisA", "AnalysisB", NA)
 #' ))
 #'
-#' aliases = list(
+#' aliases <- list(
 #'     analyses = c("AnalysisA", "AnalysisC")
 #' )
 #'
@@ -440,7 +447,7 @@ default_validator <- function(meta, aliases = NULL) {
         dataset_analysis_in_aliases = unlist(analyses) %in% aliases$analyses
     )
     v <- if ("analyses" %in% names(meta)) {
-        confront(meta$analyses, cond, ref = list(aliases = aliases))
+        confront(meta$datasets, cond, ref = list(aliases = aliases))
     } else {
         NULL
     }
@@ -485,12 +492,14 @@ get_operation_schema <- function(op) {
 #' fail, it displays the overall result of the validation as first and then it
 #' tests separately against all `oneOf` sub schemas.
 #'
-#' @param payload List or JSON string. The payload to validate against the
-#' schema.
+#' @param payload JSON string or single row of data frame converted to JSON
+#'   representation with `unbox_row` function or a list with all items of length
+#'   1 converted to JSON representation with `unbox_list` function. The payload
+#'   to validate against the schema.
 #' @param schema List. The JSON schema defining the validation rules.
 #'
 #' @return Logical value indicating whether the payload is valid. If invalid,
-#' the result includes an `errors` attribute detailing the validation errors.
+#'   the result includes an `errors` attribute detailing the validation errors.
 #'
 #' @importFrom jsonlite toJSON
 #' @importFrom jsonvalidate json_validator
@@ -513,17 +522,23 @@ get_operation_schema <- function(op) {
 #'
 #' @export
 validate_schema <- function(payload, schema) {
-    # Convert to json
-    json_schema <- toJSON(schema)
+    if (!is.list(schema)) stop("'schema' must be a list.")
+    json_schema <- toJSON(schema) # Convert to json
 
     # Assume it's a json formatted string otherwise
     if (!is.character(payload)) {
+        if (!identical(class(payload), c("scalar", "data.frame"))) {
+            warn_msg <- paste(
+                "Payload was probably not processed with 'unbox_*' function.",
+                "API might reject it."
+            )
+            warning(warn_msg)
+        }
         payload <- toJSON(payload)
     }
 
     # Create validator
     topv <- json_validator(json_schema, engine = "imjv")
-
 
     valid <- topv(payload, verbose = TRUE)
 
@@ -559,7 +574,7 @@ validate_schema <- function(payload, schema) {
 
 #' Convert Validation Results to a Message
 #'
-#' @param v Logical or list. The validation result, which may include an
+#' @param v Logical. The validation result, which may include an
 #' `errors` attribute detailing validation errors.
 #'
 #' @return A character string summarizing the validation results. If validation
@@ -569,31 +584,40 @@ validate_schema <- function(payload, schema) {
 #' @importFrom utils capture.output
 #'
 #' @examples
-#' # Generate a validation message
-#' validation_result <- list(
-#'     errors = data.frame(field = "name", error = "Missing")
+#' validation_result <- FALSE
+#' attr(validation_result, "errors") <- data.frame(
+#'     field = c("name"),
+#'     message = c("Missing")
 #' )
 #' msg <- validation_to_msg(validation_result)
 #' message(msg)
 #'
 #' @export
 validation_to_msg <- function(v) {
-    if (is.logical(v)) v <- attributes(v)
+    if (!is.logical(v)) stop("Validation result must be 'logical'.")
 
-    if (is.null(v)) {
-        val_message <- "No validation errors found."
-    } else {
-        # Convert the data frame to a formatted string
-        val_message <-
-            val_message <- paste0(
-                "Request body raised following validation errors:\n\n",
-                paste0(
-                    capture.output(format(v$errors, row.names = FALSE)),
-                    collapse = "\n"
-                )
-            )
+    if (!v && is.null(attributes(v))) {
+        stop("Validation failed, but not error attributes are present.")
     }
 
-    return(val_message)
-}
+    if (v && "errors" %in% names(attributes(v))) {
+        stop("Validation succeeded, but error attributes are present.")
+    }
 
+    if (is.null(attributes(v))) {
+        val_msg <- "No validation errors found."
+    } else {
+        # Convert the data frame to a formatted string
+        val_msg <- paste0(
+            "Request body raised following validation errors:\n\n",
+            paste0(
+                capture.output(
+                    format(attributes(v)$errors, row.names = FALSE)
+                ),
+                collapse = "\n"
+            )
+        )
+    }
+
+    return(val_msg)
+}

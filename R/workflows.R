@@ -75,8 +75,8 @@
 #'
 #' @export
 new_submission <- function(
-        request_data, client, logfile = NULL, id = NULL,
-        retrieve_if_exists = FALSE, ...
+    request_data, client, logfile = NULL, id = NULL, retrieve_if_exists = FALSE,
+    ...
 ) {
     luts <- list()
     responses <- list()
@@ -91,6 +91,25 @@ new_submission <- function(
         "samples", "runs", "analyses", "datasets"
     )
     sm <- step_msg(length(intersect(all_steps, names(request_data))))
+
+    # 0. Pre-flight checks -----
+    # Samples aliases must be unique per user. Are they already present in EGA?
+    user_samples <- client$get__samples()
+    samples_in_db <- request_data$samples$alias %in% user_samples$alias
+
+    if (any(samples_in_db) && !retrieve_if_exists) {
+      err_msg <- sprintf(
+        paste(
+          "Samples aliases per submitter must be unique. Following sample",
+          "aliases were found in EGA database: %s.",
+        ),
+        paste(
+          request_data$samples$alias[samples_in_db],
+          collapse = ", "
+        )
+      )
+      stop(err_msg)
+    }
 
     # 1. Files -----
     # Get file provisional IDs based on file names/paths
@@ -288,7 +307,7 @@ new_submission <- function(
                 )
             },
             error = workflow_error_handler(
-                "samples",
+                "runs",
                 responses,
                 logfile,
                 client$delete__submissions__provisional_id__runs(submission_id)
@@ -373,7 +392,7 @@ new_submission <- function(
                 }
             },
             error = workflow_error_handler(
-                "samples",
+                "analyses",
                 responses,
                 logfile,
                 client$delete__submissions__provisional_id__analyses(
@@ -408,7 +427,7 @@ new_submission <- function(
                 )
             },
             error = workflow_error_handler(
-                "samples",
+                "datasets",
                 responses,
                 logfile,
                 client$delete__submissions__provisional_id__datasets(
@@ -441,7 +460,7 @@ new_submission <- function(
 #' mock_client <- list(
 #'     "get__submissions__accession_id__datasets" = function(id) {
 #'         list(data = id)
-#'      },
+#'     },
 #'     "delete__submissions__provisional_id__datasets" =
 #'         function(id) list(status = "deleted")
 #' )

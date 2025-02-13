@@ -125,6 +125,37 @@ extract_operation_definitions <- function(api) {
     return(operations)
 }
 
+#' Validate HTTP Method
+#'
+#' Checks whether a given HTTP method is valid based on a predefined list of
+#' accepted methods (matches on lowercase).
+#'
+#' @param m A string representing the HTTP method to validate.
+#'
+#' @return A logical value: \code{TRUE} if \code{m} is a valid HTTP method,
+#'   otherwise \code{FALSE}.
+#'
+#' @examples
+#' is_valid_http_method("GET")    # TRUE
+#' is_valid_http_method("get")    # TRUE
+#' is_valid_http_method("DELETE") # TRUE
+#' is_valid_http_method("foo")    # FALSE
+#' is_valid_http_method(NULL)     # FALSE
+#' @export
+is_valid_http_method = function(m) {
+    valid_methods <- c("post", "patch", "get", "head", "delete", "put")
+
+    if (is.null(m)) {
+        return(FALSE)
+    }
+
+    if (!tolower(m) %in% valid_methods) {
+        return(FALSE)
+    }
+
+    return(TRUE)
+}
+
 #' Convert Operation Parameters to Function Arguments
 #'
 #' This function transforms an operation's parameter definitions into a list of
@@ -154,7 +185,8 @@ extract_operation_definitions <- function(api) {
     args_list <- vector("list", length(parameters))
     names(args_list) <- vapply(
         parameters,
-        \(x) x$name, FUN.VALUE = character(1)
+        \(x) x$name,
+        FUN.VALUE = character(1)
     )
 
     if (!is.null(parameters)) {
@@ -204,6 +236,10 @@ extract_operation_definitions <- function(api) {
 
     if (!is.null(parameters)) {
         for (p in parameters) {
+            if (is.null(p$name)) {
+                stop("Parameter needs a 'name' value.")
+            }
+
             # Categorize parameters
             if (p$`in` %in% c("path", "query", "header")) {
                 params[[p$`in`]] <- c(params[[p$`in`]], p$name)
@@ -222,7 +258,6 @@ extract_operation_definitions <- function(api) {
 #'   in the URL. Each name should correspond to a placeholder in the URL in the
 #'   format `{param}`. Path parameters are created `.get_operation_params`
 #'   function.
-#' @param url Character. The URL containing placeholders to be replaced.
 #'
 #' @return A list of expressions. Each expression replaces a `{param}`
 #'   placeholder in the URL with the value of the corresponding parameter.
@@ -231,10 +266,14 @@ extract_operation_definitions <- function(api) {
 #'
 #' @examples
 #' # Generate replacement expressions for path parameters
-#' Rega:::.add_paths(c("id", "type"), "https://api/{id}/{type}")
+#' Rega:::.add_paths(c("id", "type"))
 #'
 #' @keywords internal
-.add_paths <- function(path_params, url) {
+.add_paths <- function(path_params) {
+    if (!all(vapply(path_params, is.character, logical(1)))) {
+        stop("All 'path_params' must be character")
+    }
+
     if (length(path_params) > 0) {
         rep_urls <- lapply(path_params, function(param_name) {
             bquote(
@@ -362,7 +401,7 @@ extract_operation_definitions <- function(api) {
     has_body <- !is.null(op$requestBody)
     schema <- get_operation_schema(op)
 
-    if (!is.null(schema)) {
+    if (has_body && !is.null(schema)) {
         validate_expr <- expr(
             valid <- validate_schema(body, !!schema)
         )
@@ -395,6 +434,8 @@ extract_operation_definitions <- function(api) {
 #'
 #' @keywords internal
 .add_request_body <- function(has_body) {
+    if (!is.logical(has_body)) stop("'has_body' must be logical.")
+
     if (has_body) {
         return(expr(req <- req_body_json(req, body, auto_unbox = FALSE)))
     } else {
@@ -425,6 +466,7 @@ extract_operation_definitions <- function(api) {
 #' @importFrom rlang pairlist2 expr new_function caller_env !! !!!
 #' @importFrom httr2 req_method request req_body_json req_perform
 #'   resp_check_status
+#'
 #' @examples
 #' api <- extract_api()
 #' opdefs <- extract_operation_definitions(api)
@@ -439,17 +481,26 @@ extract_operation_definitions <- function(api) {
 #'
 #' @export
 api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
+    if(!is_valid_http_method(op$method)) stop("Invalid http method.")
+
+    if (!is.numeric(verbosity) || verbosity < 0 || verbosity > 3) {
+        stop("'verbosity' must be numeric between 0 and 3.")
+    } else {
+        verbosity <- round(verbosity)
+    }
+
+    if (!is.character(op$path) || length(op$path) > 1) {
+        stop("'op$path' value must be a single character string.")
+    }
+
     resp <- NULL # lint
-    func_args <- list() # will contain function arguments
-    body_exprs <- list() # will contain function body
-    # Prepare function arguments
+    func_args <- body_exprs <- list() # will contain function arguments and body
     has_body <- !is.null(op$requestBody)
     params <- .get_operation_params(op)
 
     # Build the function arguments based on api operation -----
     func_args <- c(func_args, .operation_params_to_args(op))
     if (has_body) func_args <- c(func_args, pairlist2(body = ))
-
     # Build function body -----
     body_exprs <- c(body_exprs, .add_json_validation(op))
     url <- paste0(api$host, op$path) # Process API URL
@@ -465,7 +516,6 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
     body_exprs <- c(body_exprs, .add_headers(params$header, op, api, api_key))
     body_exprs <- c(body_exprs, .add_queries(params$query))
     body_exprs <- c(body_exprs, .add_request_body(has_body))
-
     # Perform the request and handle the response -----
     perform_req <- list(
         bquote(resp <- req_perform(req, verbosity = .(verbosity))),
@@ -475,9 +525,8 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
     )
     body_exprs <- c(body_exprs, perform_req)
 
-    # Combine body expressions into one expression
     func_body <- expr({
-        !!!body_exprs
+        !!!body_exprs # Splice the body expression list into single expression
     })
 
     # Create the function based on formals, body and env
@@ -590,6 +639,12 @@ parse_ega_body <- function(resp) {
             # return the value as an one-column tibble
             return(tibble("{resource_name}" := resp))
         }
+    } else {
+        err_msg <- paste(
+            "Unknown content type, only 'application/json'",
+            "and 'text/plain' are allowed."
+        )
+        stop(err_msg)
     }
 
     resp <- resp |>
@@ -598,7 +653,7 @@ parse_ega_body <- function(resp) {
     # in the datasets response, there are 2 columns with status, why?
 
     if (ncol(resp) == 1) {
-        names(resp)[names(resp) == "resp"] <- resource_name
+        names(resp) <- resource_name
     }
 
     # remove anything before slash .*/from column names

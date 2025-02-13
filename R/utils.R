@@ -14,16 +14,22 @@
 #'
 #' @export
 add_required_str <- function(p, r, req_str = "* ") {
+    if (!is.character(req_str) || length(req_str) != 1) {
+        stop("'req_str' must be a scalar character")
+    }
+
     pos_req <- which(p %in% r)
     pos_other <- which(!p %in% r)
     ordering <- c(pos_req, pos_other)
 
-    out <- c(
-        paste0(req_str, p[p %in% r]),
-        p[!p %in% r]
-    )
+    out <- vapply(p, function(x) {
+        if (x %in% r) {
+            paste0(req_str, x)
+        } else {
+            x
+        }
+    }, character(1), USE.NAMES = FALSE)
 
-    out <- out[ordering]
     return(out)
 }
 
@@ -52,6 +58,10 @@ add_required_str <- function(p, r, req_str = "* ") {
 #' @export
 get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
     enum_string <- paste0(enum_prefix, enum_name)
+    if (is.null(client[[enum_string]])) {
+        stop(sprintf("%s not found in client", enum_string))
+    }
+
     return(client[[enum_string]]())
 }
 
@@ -82,6 +92,10 @@ get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
 parse_enum <- function(enum, sep = "--") {
     # If enum is a data frame
     if (is.data.frame(enum)) {
+        # Explicit return of edge cases
+        if (nrow(enum) == 0 || ncol(enum) == 0) {
+            return("")
+        }
         # Create a data frame from nested values
         parsed_str <- apply(
             enum,
@@ -121,6 +135,8 @@ parse_enum <- function(enum, sep = "--") {
 #'
 #' @export
 filter_id_fields <- function(x, pattern = NULL) {
+    if (!is.character(x)) stop("'x' must be a character vector.")
+
     if (is.null(pattern)) pattern <- "(?<!policy_)accession_id|provisional_id"
     return(x[!grepl(pattern, x, perl = TRUE)])
 }
@@ -171,6 +187,14 @@ get_schemas <- function(api) {
 #'
 #' @export
 get_properties <- function(schema, filter_ids = TRUE) {
+    if (!is.list(schema) || is.null(names(schema))) {
+        stop("'schema' must be a named list")
+    }
+
+    if (!"properties" %in% names(schema)) {
+        stop("No 'properties' key in schema.")
+    }
+
     required <- schema$required
     out <- names(schema$properties)
     if (filter_ids) out <- filter_id_fields(out)

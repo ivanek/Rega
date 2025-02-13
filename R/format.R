@@ -60,6 +60,11 @@ first_row_to_colnames <- function(df, to_api = TRUE) {
     names(df) <- make.names(first_row, unique = TRUE)
     # Remove first row
     df <- df[-1, ]
+
+    # if(ncol(df) == 0 || nrow(df) == 0) {
+    #     stop("Resulting data frame must have at least one row and one column")
+    # }
+
     return(df)
 }
 
@@ -82,13 +87,32 @@ first_row_to_colnames <- function(df, to_api = TRUE) {
 #'
 #' @export
 lut_add <- function(df, to, from, lut) {
+    if (!from %in% names(df)) {
+        stop(sprintf("'%s' column in not present in data frame.", from))
+    }
+
+    if (is.null(lut) || length(lut) == 0) {
+        stop("Look-up table is empty.")
+    }
+
+    if (!(is.list(lut) || is.vector(lut)) || is.null(names(lut))) {
+        stop("'lut' must be a named list or vector.")
+    }
+
     new_col <- lapply(df[[from]], function(x) {
-        unname(lut[x])
+        if (any(!x %in% names(lut))) {
+            stop("Some keys not present in look-up table.")
+        }
+        # cast to character to be able to do list lookup
+        x <- as.character(x)
+        unlist(lut[x], recursive = FALSE, use.names = FALSE)
     })
-    # Unlist to if all rows of original column are of length 1
-    if (all(vapply(df[[from]], \(x) length(x) == 1, FUN.VALUE = logical(1)))) {
+
+    # Unlist if original column is a vector
+    if (!is.list(df[[from]])) {
         new_col <- unlist(new_col)
     }
+
     df[[to]] <- new_col
     return(df)
 }
@@ -129,15 +153,10 @@ multi_lut_add <- function(df, ...) {
             !is.character(x[[2]])) {
             stop(stop_msg)
         }
-        if (is.null(names(x[[3]]))) {
-            stop(stop_msg)
-        }
     })
 
     result_df <- Reduce(
-        function(a, x) {
-            lut_add(a, x[[1]], x[[2]], x[[3]])
-        },
+        function(a, x) lut_add(a, x[[1]], x[[2]], x[[3]]),
         dots,
         init = df
     )
@@ -161,6 +180,10 @@ multi_lut_add <- function(df, ...) {
 #'
 #' @export
 aliases_formatter <- function(tab, params) {
+    if (nrow(tab) == 0 || ncol(tab) == 0) {
+        stop("No data is present in the table.")
+    }
+
     tab <- first_row_to_colnames(tab)
     l <- lapply(as.list(tab), \(x) x[!is.na(x)])
     names(l) <- label_to_api_name(names(l))
@@ -190,6 +213,13 @@ aliases_formatter <- function(tab, params) {
 #'
 #' @export
 column_table_formatter <- function(tab, params) {
+    # Allow for NULL valuem cast to emtpy list
+    if (is.null(params)) params = list()
+
+    if (!is.list(params) && !identical(params, FALSE)) {
+        stop("'params' must be a list or FALSE")
+    }
+
     tab <- first_row_to_colnames(tab)
     # Remove completely empty rows
     tab <- tab[!apply(is.na(tab), 1, all), ]
@@ -199,7 +229,7 @@ column_table_formatter <- function(tab, params) {
     if (is.list(params) && length(params$fold > 0)) {
         tab <- Reduce(
             function(m, p) fold_column(m, p, p),
-            params$fold,
+            label_to_api_name(params$fold),
             init = tab
         )
     }
@@ -209,7 +239,7 @@ column_table_formatter <- function(tab, params) {
 
 #' Format a Row Table
 #'
-#' @param tab Data frame. The input table from a sumbission metadata file
+#' @param tab Data frame. The input table from a submission metadata file
 #' @param params List. Additional parameters for formatting. Takes a formatter
 #'   params value from parser parameter yaml file.
 #'
@@ -237,9 +267,10 @@ column_table_formatter <- function(tab, params) {
 #' @export
 row_table_formatter <- function(tab, params) {
     tab <- tab[, colSums(!is.na(tab)) > 0]
-    if (!(ncol(tab) %% 2 == 0)) {
+    if (!(ncol(tab) %% 2 == 0) || ncol(tab) == 0) {
         stop("Incorrect column organization of the table columns.")
     }
+
     split_tab <- lapply(seq(1, ncol(tab), by = 2), function(i) {
         cols <- i:min(i + 1, ncol(tab))
         st <- tab[, cols, drop = FALSE]
@@ -269,50 +300,6 @@ row_table_formatter <- function(tab, params) {
     )
 
     return(as_tibble(tab))
-}
-
-
-# Keep in case multi table will be needed later
-multi_table_formatter <- function(tab, params) {
-    anchor_number <- params$anchor_number
-    # Remove empty rows
-    tab <- tab[rowSums(is.na(tab)) != ncol(tab), ]
-
-    anchor_names <- tab[seq_len(anchor_number), 1][[1]]
-    tab_starts <- which(tab[[1]] == anchor_names[1])
-    if (length(tab_starts) > 1) {
-        tab_ends <- c(tab_starts[2:length(tab_starts)] - 1, nrow(tab))
-    } else {
-        tab_ends <- nrow(tab)
-    }
-
-    # Discard empty tables
-    # +1 for header row (not part of table)
-    has_samples <- (tab_ends - tab_starts) > (anchor_number + 1)
-    tab_starts <- tab_starts[has_samples]
-    tab_ends <- tab_ends[has_samples]
-
-    # If no data in the sheet
-    if (length(tab_starts) == 0 || length(tab_ends) == 0) {
-        tab <- tab[-1, ]
-        tab <- first_row_to_colnames(tab)
-        names(tab) <- label_to_api_name(names(tab))
-        tab <- tab[0, ]
-    } else {
-        tab <- Map(function(i, j) {
-            # Select the anchor values for the table
-            anchor_values <- tab[i:(i + anchor_number - 1), 2][[1]]
-            # Filter rows that contain data for single table
-            tab <- tab[(i + anchor_number):j, ]
-            tab <- first_row_to_colnames(tab)
-            # Add the anchor data to table for linking
-            tab[anchor_names] <- as.list(anchor_values)
-            names(tab) <- label_to_api_name(names(tab))
-            tab
-        }, tab_starts, tab_ends)
-        tab <- do.call(rbind, tab)
-    }
-    return(tab)
 }
 
 #' Format File Table with EGA File Paths
@@ -407,7 +394,7 @@ file_formatter <- function(tab, params) {
 #'
 #' @export
 get_formatter <- function(x, params) {
-    return(get(params$formatter[[x]][["type"]]))
+    return(get(params$formatter[[x]][["type"]], envir = parent.frame()))
 }
 
 #' Retrieve Formatter Parameters by Name
@@ -439,6 +426,16 @@ get_formatter <- function(x, params) {
 #'
 #' @export
 get_formatter_params <- function(x, params) {
+    if (!"formatter" %in% names(params)) {
+        stop("No formatter present in paramters.")
+    }
+
+    if (!x %in% names(params$formatter)) {
+        stop(sprintf("%s is not a valid value for formatter.", x))
+    }
+
+    if (is.null(params$formatter[[x]][["params"]])) stop("Missing 'params' key")
+
     return(params$formatter[[x]][["params"]])
 }
 
@@ -465,6 +462,10 @@ get_formatter_params <- function(x, params) {
 fold_column <- function(tab, column_prefix, new_name) {
     tmp_fold_name <- NULL # nolint
 
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame")
+    if (is.null(new_name)) stop("'new_name' must be provided.")
+    if (nchar(column_prefix) == 0) stop("Must provide a valid column_prefix.")
+
     selected_columns <- tab[grepl(paste0("^", column_prefix), names(tab))]
     iter_columns <- unname(as.list(as.data.frame(t(selected_columns))))
 
@@ -485,7 +486,7 @@ fold_column <- function(tab, column_prefix, new_name) {
     tab$tmp_fold_name <- folded_columns
 
     # Drop columns starting with column_prefix
-    tab <- tab[, !grepl(paste0("^", column_prefix), names(tab))]
+    tab <- tab[, !grepl(paste0("^", column_prefix), names(tab)), drop = FALSE]
     colnames(tab)[colnames(tab) == "tmp_fold_name"] <- new_name
 
     return(tab)
@@ -511,6 +512,12 @@ fold_column <- function(tab, column_prefix, new_name) {
 #'
 #' @export
 has_linked_sheets <- function(metadata, colname) {
+    if (is.data.frame(metadata) && is.list(metadata)) {
+        stop("'metadata' must be a list of data frames.")
+    }
+    if (!is.character(colname) || length(colname) != 1) {
+        stop("colname must be a single string")
+    }
     vapply(
         metadata,
         function(x) {
@@ -547,6 +554,8 @@ has_linked_sheets <- function(metadata, colname) {
 #'
 #' @export
 merge_linked_sheet <- function(target, source, dat, sheet) {
+    if (!is.atomic(target)) stop("'target' must be a vector.")
+
     if (all(is.na(target))) {
         list()
     } else {
@@ -560,6 +569,7 @@ merge_linked_sheet <- function(target, source, dat, sheet) {
 
         # API-specific processing
         if (sheet == "collaborators") {
+            if (!"id" %in% names(merged_df)) stop("Missing 'id' column.")
             merged_df$id <- as.integer(merged_df$id)
         }
 
@@ -670,6 +680,137 @@ process_delimited_column <- function(metadata, column_name, separator) {
     return(metadata)
 }
 
+#' Format Chromosome Metadata
+#'
+#' Formats and processes chromosome-related metadata from an input object by
+#' applying chromosome group lookups or splitting chromosome strings from the
+#' EGA enums.
+#'
+#' @param metadata List. A list of data frames representing metadata sheets,
+#'   containing \code{analyses}. Each row in \code{analyses} can have entry in
+#'   \code{chromosomes} or \code{chromosome_groups} column.
+#'
+#' @return A list of formatted chromosome data extracted or computed from the
+#'   input metadata.
+#'
+#' @importFrom stringr str_split_i
+#'
+#' @examples
+#' # Mock metadata data frame
+#' metadata <- list(
+#'     analyses = data.frame(
+#'         chromosomes = I(list(
+#'             NA,
+#'             list("group1--1--chr1--name1", "group2--3--chr3--name3"),
+#'             "group1--2--chr2--name2"
+#'         )),
+#'         chromosome_groups = c("group1", NA, "group3"),
+#'         stringsAsFactors = FALSE
+#'     ),
+#'     select_input_data = list(
+#'         chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2")
+#'     )
+#' )
+#'
+#' format_chromosomes(metadata)
+#'
+#' @export
+format_chromosomes <- function(metadata) {
+    if (!is.data.frame(metadata$analyses)) {
+        stop("metadata$analyses must be a data frame")
+    }
+
+    chr_col <- apply(metadata$analyses, 1, function(x) {
+        process_chromosomes(x, metadata$select_input_data)
+    })
+
+    return(chr_col)
+}
+
+#' Process a Vector or List of Chromosome Data
+#'
+#' This function processes chromosome data by extracting unique chromosome IDs
+#' and labels or retrieving chromosome group information from a lookup when
+#' applicable.
+#'
+#' @param chr_data A list containing chromosome-related information. Expected to
+#'   have items `chromosomes` (scalar, vector or list) and/or
+#'   `chromosome_groups` (scalar).
+#' @param select_input_data A list containing look-up data for `chromosomes`.
+#'
+#' @return A data frame with chromosome `id` and `label` if chromosomes are
+#'   present. If only chromosome groups exist, returns the result of lookup
+#'   against the `select_input_data` with `get_chr_group()`. If neither are
+#'   present, returns an empty list.
+#'
+#' @examples
+#' select_input_data <- list(
+#'     chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2")
+#' )
+#'
+#' chr_data_1 <- list(
+#'     chromosomes = list("group1--1--chr1--name1", "group2--3--chr3--name3"),
+#'     chromosome_groups = NA_character_
+#' )
+#' process_chromosomes(chr_data_1, select_input_data)
+#'
+#' chr_data_2 <- list(
+#'     chromosomes = NA,
+#'     chromosome_groups = "group1"
+#' )
+#'
+#' process_chromosomes(chr_data_2, select_input_data)
+#'
+#' @export
+process_chromosomes <- function(chr_data, select_input_data) {
+    # Cast to list in case it's a data frame
+    if (identical(class(chr_data), "data.frame")) {
+        chr_data <- as.list(chr_data)
+    }
+
+    # Cast all the columns to list for uniform access
+    chr_data[] <- lapply(chr_data, as.vector)
+
+    # Validation of presence of particular columns/members
+    has_chr <- "chromosomes" %in% names(chr_data) &&
+        !all(is.na(chr_data$chromosomes))
+    has_chr_grps <- "chromosome_groups" %in% names(chr_data) &&
+        !all(is.na(chr_data$chromosome_groups))
+    has_chr_lut <- "chromosomes" %in% names(select_input_data) &&
+        length(select_input_data$chromosomes) > 0
+
+    if (has_chr) {
+        split_chr_str <- str_split(chr_data$chromosomes, "--", simplify = TRUE)
+        if (length(split_chr_str) < 4) {
+            err_msg <- paste(
+                "Malformed chromosome string.",
+                "Needs 4 parts separated by '--'"
+            )
+            stop(err_msg)
+        }
+        data.frame(
+            id = as.integer(unique(str_split_i(chr_data$chromosomes, "--", 2))),
+            label = unique(str_split_i(chr_data$chromosomes, "--", 3))
+        )
+    } else { # Skip groups is chromosomes are present
+        if (has_chr_grps) {
+            if (length(chr_data$chromosome_groups) > 1) {
+                stop("Too many chromosome groups specified, only 1 is allowed.")
+            }
+            if (has_chr_lut) {
+                get_chr_group(
+                    chr_data$chromosome_groups,
+                    select_input_data$chromosomes
+                )
+            } else { # Error if groups are present but no data lookup table
+                stop("No chromosome data present to match the groups.")
+            }
+        } else { # Return empty list if no chromosomes or groups are specified
+            return(list())
+        }
+    }
+}
+
 #' Retrieve Chromosome Belonging to a Group
 #'
 #' @param group_id Character. The group ID to filter by.
@@ -704,59 +845,29 @@ get_chr_group <- function(group_id, chr_enum, sep = "--") {
     return(df)
 }
 
-#' Format Chromosome Metadata
+#' Convert NA Values to Empty Lists
 #'
-#' Formats and processes chromosome-related metadata from an input object by
-#' applying chromosome group lookups or splitting chromosome strings from the
-#' EGA enums.
+#' Replaces \code{NA} values in a list with empty lists, preserving the original
+#' structure of the list.
 #'
-#' @param metadata List. A list of data frames representing metadata sheets,
-#'   containing \code{analyses}. Each row in \code{analyses} can have entry in
-#'   \code{chromosomes} or \code{chromosome_groups} column.
+#' @param l A list containing elements that may include \code{NA} values.
 #'
-#' @return A list of formatted chromosome data extracted or computed from the
-#'   input metadata.
-#'
-#' @importFrom stringr str_split_i
+#' @return A list where any \code{NA} values have been replaced with empty
+#'   lists.
 #'
 #' @examples
-#' # Mock metadata data frame
-#' metadata <- list(
-#'     analyses = data.frame(
-#'         chromosomes = I(list(
-#'             NA,
-#'             list("group1--1--chr1--name1", "group2--3--chr3--name3")
-#'         )),
-#'         chromosome_groups = c("group1", NA),
-#'         stringsAsFactors = FALSE
-#'     ),
-#'     select_input_data = list(
-#'         chromosomes = c("group1--1--chr1--name1", "group1--2--chr2--name2")
-#'     )
-#' )
-#'
-#' format_chromosomes(metadata)
+#' input_list <- list(1, NA, "text", NA)
+#' na_to_empty_list(input_list)
 #'
 #' @export
-format_chromosomes <- function(metadata) {
-    chr_list <- apply(metadata$analyses, 1, function(x) {
-        if (all(is.na(x$chromosomes))) {
-            if ("chromosome_groups" %in% names(x) &&
-                    !is.na(x$chromosome_groups)) {
-                get_chr_group(
-                    x$chromosome_groups,
-                    metadata$select_input_data$chromosomes
-                )
-            } else {
-                return(list())
-            }
+na_to_empty_list <- function(l) {
+    # if (!is.atomic(l) && is.null(l)) stop("Unsupported type in list")
+
+    lapply(l, function(x) {
+        if (is.na(x)) {
+            return(list())
         } else {
-            data.frame(
-                id = as.integer(unique(str_split_i(x$chromosomes, "--", 2))),
-                label = unique(str_split_i(x$chromosomes, "--", 3))
-            )
+            return(x)
         }
     })
-    return(chr_list)
 }
-

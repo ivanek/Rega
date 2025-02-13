@@ -68,6 +68,11 @@ is_accession <- function(x, schema = "submission") {
 #'
 #' @export
 step_msg <- function(steps) {
+    if (steps <= 0) stop("'steps' must be a positive integer.")
+    if (!is.numeric(steps) || length(steps) != 1) {
+        stop("'steps' must be numeric of length 1.")
+    }
+
     cur <- 1
     inner <- function(msg) {
         step_msg <- paste0("Step ", cur, "/", steps, " - ", msg)
@@ -97,6 +102,29 @@ unbox_row <- function(row) {
     unbox(fromJSON(toJSON(row)))
 }
 
+#' Convert a List to an Unboxed JSON-Compatible Data Frame
+#'
+#' Converts a list into a single-row data frame with unboxed elements if all
+#' elements have a length of 1. Otherwise, an error is raised.
+#'
+#' @param l A list where all elements must have a length of 1.
+#'
+#' @return A data frame with unboxed elements, suitable for JSON conversion.
+#'
+#' @examples
+#' input_list <- list(a = 1, b = "text", c = TRUE)
+#' unbox_list(input_list)
+#'
+#' @export
+unbox_list <- function(l) {
+    is_l1 <- all(vapply(l, \(x) length(x) == 1, logical(1)))
+    if (is_l1) {
+        row <- unbox_row(as.data.frame(l))
+    } else {
+        stop("All elements of the list must be of length 1.")
+    }
+    return(row)
+}
 
 #' Submit a Data Frame to an API Endpoint Row by Row
 #'
@@ -118,12 +146,17 @@ unbox_row <- function(row) {
 #'
 #' @export
 submit_table <- function(tab, id, endpoint_func) {
+    if (nrow(tab) == 0) {
+        stop("'tab' has zero rows.")
+    }
+
     row_resp <- vector("list", length = nrow(tab))
     # For seems to work best/least problematic when maintaining structure to be
     # converted to JSON
     for (x in seq_len(nrow(tab))) {
         row_resp[[x]] <- endpoint_func(id, body = unbox_row(tab[x, ]))
     }
+
     row_resp <- do.call(rbind, row_resp)
     return(row_resp)
 }
@@ -144,9 +177,11 @@ submit_table <- function(tab, id, endpoint_func) {
 #' @param data A data frame to be submitted.
 #' @param client An API client object with \code{get} and \code{post} methods.
 #' @param endpoint A string specifying the EGA API endpoint. The endpoint will
-#' be a submission type endpoint identified with provisional ID.
+#'   be a submission type endpoint identified with provisional ID.
+#' @param id_type A string specifying type of EGA id. One of 'provisional' or
+#'   'accession'. Defaults to 'provisional'.
 #' @param retrieve_if_exists A logical flag indicating whether to retrieve data
-#' if it already exists. Defaults to \code{FALSE}.
+#'   if it already exists. Defaults to \code{FALSE}.
 #'
 #' @return A data frame containing the response from the API.
 #'
@@ -177,9 +212,11 @@ submit_table <- function(tab, id, endpoint_func) {
 #' )
 #'
 #' @export
-get_or_post <- function(submission_id, data, client, endpoint,
-                        retrieve_if_exists = FALSE) {
-    built_url <- paste0("__", "submissions__provisional_id", "__", endpoint)
+get_or_post <- function(
+    submission_id, data, client, endpoint, id_type = "provisional",
+    retrieve_if_exists = FALSE
+) {
+    built_url <- paste0("__", "submissions__", id_type, "_id", "__", endpoint)
     resp <- client[[paste0("get", built_url)]](submission_id)
 
     if (is.null(resp) || nrow(resp) == 0) {
@@ -199,8 +236,10 @@ get_or_post <- function(submission_id, data, client, endpoint,
         message("Retrieved IDs from database.")
     } else {
         err_msg <- sprintf(
-            "%s records are already present in the database and
-            'retrive_if_exists' is set to FALSE", nrow(resp)
+            paste(
+                "%s records are already present in the database and",
+                "'retrive_if_exists' is set to FALSE"
+            ), nrow(resp)
         )
         stop(err_msg)
     }
@@ -227,6 +266,7 @@ get_or_post <- function(submission_id, data, client, endpoint,
 #' @export
 save_log <- function(responses, logfile) {
     if (!is.null(logfile)) {
+        if (dir.exists(logfile)) stop("Specified 'logfile' is a direcory.")
         write_yaml(responses, logfile, column.major = FALSE)
     }
     return(invisible(NULL))
@@ -257,9 +297,10 @@ save_log <- function(responses, logfile) {
 #'
 #' tryCatch("Example code without error", error = handler)
 #'
-#'
 #' @export
 workflow_error_handler <- function(step, responses, logfile, ...) {
+    if (!is.character(step)) stop("'step' must be a character.")
+
     captured_exprs <- enquos(...)
 
     em <- paste0("Error while creating ", step, ".")

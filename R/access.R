@@ -128,14 +128,12 @@
 #' @export
 ega_oauth <- function(
     req, username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL
-) {
+    token_url = NULL) {
     if (is.null(token_url)) {
         token_url <- paste0(
             "https://idp.ega-archive.org/",
             "realms/EGA/protocol/openid-connect/token"
         )
-
     }
 
     client <- oauth_client(
@@ -186,8 +184,7 @@ ega_oauth <- function(
 #' @export
 ega_token <- function(
     username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL
-) {
+    token_url = NULL) {
     if (is.null(token_url)) {
         # Use default EGA token URL
         token_url <- paste0(
