@@ -33,5 +33,4 @@ handler <- workflow_error_handler(
 
 tryCatch("Example code without error", error = handler)
 
-
 }

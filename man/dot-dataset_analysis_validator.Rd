@@ -24,15 +24,22 @@ Validates the metadata by checking the following:
 }
 }
 \examples{
-meta <- list(analyses = data.frame(
-   analyses = c("AnalysisA", "AnalysisB", NA)
-))
+meta <- list(
+    datasets = data.frame(
+        analyses = c("AnalysisA", "AnalysisB", NA)
+    ),
+    analyses = data.frame(
+        names = c("A", "B")
+    )
+)
 
-aliases = list(
+aliases <- list(
     analyses = c("AnalysisA", "AnalysisC")
 )
 
-Rega:::.dataset_analysis_validator(meta, aliases)
+validate::summary(
+    Rega:::.dataset_analysis_validator(meta, aliases)
+)
 
 }
 \keyword{internal}

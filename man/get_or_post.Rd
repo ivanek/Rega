@@ -4,7 +4,14 @@
 \alias{get_or_post}
 \title{Retrieve or Submit Data to an EGA API Endpoint}
 \usage{
-get_or_post(submission_id, data, client, endpoint, retrieve_if_exists = FALSE)
+get_or_post(
+  submission_id,
+  data,
+  client,
+  endpoint,
+  id_type = "provisional",
+  retrieve_if_exists = FALSE
+)
 }
 \arguments{
 \item{submission_id}{An integer representing the submission provisional ID.}
@@ -15,6 +22,9 @@ get_or_post(submission_id, data, client, endpoint, retrieve_if_exists = FALSE)
 
 \item{endpoint}{A string specifying the EGA API endpoint. The endpoint will
 be a submission type endpoint identified with provisional ID.}
+
+\item{id_type}{A string specifying type of EGA id. One of 'provisional' or
+'accession'. Defaults to 'provisional'.}
 
 \item{retrieve_if_exists}{A logical flag indicating whether to retrieve data
 if it already exists. Defaults to \code{FALSE}.}

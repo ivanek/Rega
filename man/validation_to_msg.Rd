@@ -7,7 +7,7 @@
 validation_to_msg(v)
 }
 \arguments{
-\item{v}{Logical or list. The validation result, which may include an
+\item{v}{Logical. The validation result, which may include an
 \code{errors} attribute detailing validation errors.}
 }
 \value{
@@ -19,9 +19,10 @@ message is returned.
 Convert Validation Results to a Message
 }
 \examples{
-# Generate a validation message
-validation_result <- list(
-    errors = data.frame(field = "name", error = "Missing")
+validation_result <- FALSE
+attr(validation_result, "errors") <- data.frame(
+    field = c("name"),
+    message = c("Missing")
 )
 msg <- validation_to_msg(validation_result)
 message(msg)

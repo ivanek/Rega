@@ -26,9 +26,10 @@ metadata <- list(
     analyses = data.frame(
         chromosomes = I(list(
             NA,
-            list("group1--1--chr1--name1", "group2--3--chr3--name3")
+            list("group1--1--chr1--name1", "group2--3--chr3--name3"),
+            "group1--2--chr2--name2"
         )),
-        chromosome_groups = c("group1", NA),
+        chromosome_groups = c("group1", NA, "group3"),
         stringsAsFactors = FALSE
     ),
     select_input_data = list(

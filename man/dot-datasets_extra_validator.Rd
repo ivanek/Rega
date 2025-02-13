@@ -29,10 +29,10 @@ Validates the metadata by checking the following:
 meta <- list(datasets = data.frame(
     title = c("TitleA", "TitleB", NA),
     description = c("DescriptionA", "DescriptionB", "DescriptionA"),
-    runs = I(list(c("Run1" , NA), c("Run2", "Run3"), c("Run3")))
+    runs = I(list(c("Run1", NA), c("Run2", "Run3"), c("Run3")))
 ))
 
-aliases = list(
+aliases <- list(
     runs = c("Run1", "Run3", "Run4")
 )
 

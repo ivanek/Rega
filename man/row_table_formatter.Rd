@@ -7,7 +7,7 @@
 row_table_formatter(tab, params)
 }
 \arguments{
-\item{tab}{Data frame. The input table from a sumbission metadata file}
+\item{tab}{Data frame. The input table from a submission metadata file}
 
 \item{params}{List. Additional parameters for formatting. Takes a formatter
 params value from parser parameter yaml file.}

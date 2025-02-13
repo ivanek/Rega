@@ -4,15 +4,13 @@
 \alias{.add_paths}
 \title{Generate URL Parameter Replacement Expressions for an API Request}
 \usage{
-.add_paths(path_params, url)
+.add_paths(path_params)
 }
 \arguments{
 \item{path_params}{A character vector of names of the parameters to replace
 in the URL. Each name should correspond to a placeholder in the URL in the
 format \code{{param}}. Path parameters are created \code{.get_operation_params}
 function.}
-
-\item{url}{Character. The URL containing placeholders to be replaced.}
 }
 \value{
 A list of expressions. Each expression replaces a \code{{param}}
@@ -24,7 +22,7 @@ with corresponding parameter values.
 }
 \examples{
 # Generate replacement expressions for path parameters
-Rega:::.add_paths(c("id", "type"), "https://api/{id}/{type}")
+Rega:::.add_paths(c("id", "type"))
 
 }
 \keyword{internal}

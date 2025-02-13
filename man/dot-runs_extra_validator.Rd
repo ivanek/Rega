@@ -34,7 +34,7 @@ meta <- list(runs = data.frame(
     files = I(list(c("File1", "File2"), c("File3"), NA))
 ))
 
-aliases = list(
+aliases <- list(
     experiments = c("ExperimentA", "ExperimentB", "ExperimentC"),
     samples = c("Sample1", "Sample3")
 )

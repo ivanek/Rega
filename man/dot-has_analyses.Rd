@@ -20,8 +20,8 @@ metadata.
 }
 \examples{
 meta <- list(
-  aliases = list(analyses = c("A1", "A2")),
-  analysis_files = data.frame(name = character(0))
+    aliases = list(analyses = c("A1", "A2")),
+    analysis_files = data.frame(name = character(0))
 )
 Rega:::.has_analyses(meta)
 

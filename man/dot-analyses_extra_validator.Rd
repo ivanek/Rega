@@ -31,13 +31,13 @@ meta <- list(analyses = data.frame(
     title = c("TitleA", "TitleB", NA),
     description = c("DescriptionA", "DescriptionB", "DescriptionA"),
     samples = I(
-        list(c("Sample1" , NA), c("Sample2", "Sample3"), c("Sample3"))
+        list(c("Sample1", NA), c("Sample2", "Sample3"), c("Sample3"))
     ),
     experiments = I(list(NA, c("ExpA", "ExpB"), c("ExpD"))),
     files = I(list(c("File1", "File2"), c("File3"), NA))
 ))
 
-aliases = list(
+aliases <- list(
     samples = c("Sample1", "Sample3"),
     experiments = c("ExpA", "ExpB", "ExpC")
 )

@@ -7,8 +7,10 @@
 validate_schema(payload, schema)
 }
 \arguments{
-\item{payload}{List or JSON string. The payload to validate against the
-schema.}
+\item{payload}{JSON string or single row of data frame converted to JSON
+representation with \code{unbox_row} function or a list with all items of length
+1 converted to JSON representation with \code{unbox_list} function. The payload
+to validate against the schema.}
 
 \item{schema}{List. The JSON schema defining the validation rules.}
 }

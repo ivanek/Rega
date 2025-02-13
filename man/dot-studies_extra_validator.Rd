@@ -28,7 +28,7 @@ meta <- list(studies = data.frame(
     title = c("StudyA", "StudyA", "StudyB"),
     description = c("Desc1", "Desc2", NA)
 ))
-Rega:::.studies_extra_validator (meta, list())
+Rega:::.studies_extra_validator(meta, list())
 
 }
 \keyword{internal}
