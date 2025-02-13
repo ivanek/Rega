@@ -4,11 +4,11 @@ Version: 0.99.1
 Authors@R:
    c(
     person(
-        "Igor", "Cervenka", , "igor.cervenka@unibas.ch", role = c("aut"), 
+        "Igor", "Cervenka", , "igor.cervenka@unibas.ch", role = c("aut", "cre"), 
         comment = c(ORCID = "0000-0002-9438-5161")
     ),
     person(
-        "Robert", "Ivanek", , "robert.ivanek@unibas.ch", role = c("aut", "cre"), 
+        "Robert", "Ivanek", , "robert.ivanek@unibas.ch", role = c("aut"), 
         comment = c(ORCID = "0000-0002-8403-056X")
     )
    )
