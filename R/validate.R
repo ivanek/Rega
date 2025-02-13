@@ -430,15 +430,22 @@ default_validator <- function(meta, aliases = NULL) {
 #' @importFrom validate validator confront
 #'
 #' @examples
-#' meta <- list(analyses = data.frame(
-#'     analyses = c("AnalysisA", "AnalysisB", NA)
-#' ))
+#' meta <- list(
+#'     datasets = data.frame(
+#'         analyses = c("AnalysisA", "AnalysisB", NA)
+#'     ),
+#'     analyses = data.frame(
+#'         names = c("A", "B")
+#'     )
+#' )
 #'
 #' aliases <- list(
 #'     analyses = c("AnalysisA", "AnalysisC")
 #' )
 #'
-#' Rega:::.dataset_analysis_validator(meta, aliases)
+#' validate::summary(
+#'     Rega:::.dataset_analysis_validator(meta, aliases)
+#' )
 #'
 #' @keywords internal
 .dataset_analysis_validator <- function(meta, aliases) {

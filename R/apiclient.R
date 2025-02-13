@@ -142,7 +142,7 @@ extract_operation_definitions <- function(api) {
 #' is_valid_http_method("foo")    # FALSE
 #' is_valid_http_method(NULL)     # FALSE
 #' @export
-is_valid_http_method = function(m) {
+is_valid_http_method <- function(m) {
     valid_methods <- c("post", "patch", "get", "head", "delete", "put")
 
     if (is.null(m)) {

@@ -98,17 +98,17 @@ new_submission <- function(
     samples_in_db <- request_data$samples$alias %in% user_samples$alias
 
     if (any(samples_in_db) && !retrieve_if_exists) {
-      err_msg <- sprintf(
-        paste(
-          "Samples aliases per submitter must be unique. Following sample",
-          "aliases were found in EGA database: %s.",
-        ),
-        paste(
-          request_data$samples$alias[samples_in_db],
-          collapse = ", "
+        err_msg <- sprintf(
+            paste(
+                "Samples aliases per submitter must be unique. Following",
+                "sample aliases were found in EGA database: %s.",
+            ),
+            paste(
+                request_data$samples$alias[samples_in_db],
+                collapse = ", "
+            )
         )
-      )
-      stop(err_msg)
+        stop(err_msg)
     }
 
     # 1. Files -----

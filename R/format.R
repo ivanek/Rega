@@ -214,7 +214,7 @@ aliases_formatter <- function(tab, params) {
 #' @export
 column_table_formatter <- function(tab, params) {
     # Allow for NULL valuem cast to emtpy list
-    if (is.null(params)) params = list()
+    if (is.null(params)) params <- list()
 
     if (!is.list(params) && !identical(params, FALSE)) {
         stop("'params' must be a list or FALSE")
