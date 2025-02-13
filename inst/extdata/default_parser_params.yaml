@@ -32,13 +32,13 @@ formatter:
     params:
       prefix: ""
       crypt_ext: "c4gh"
-      prepend_slash: False
+      prepend_slash: True
   analysis_files:
     type: file_formatter
     params:
       prefix: ""
       crypt_ext: "c4gh"
-      prepend_slash: False
+      prepend_slash: True
   submission:
     type: row_table_formatter
     params:
