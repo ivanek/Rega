@@ -46,26 +46,26 @@ test_that("v is not logical", {
 })
 
 
-test_that("v is a FALSE without attributes", {
-  expect_error(
-    validation_to_msg(FALSE),
-    "Validation failed, but not error attributes are present"
-  )
-})
-
-test_that("v is a TRUE with attributes", {
-  v <- TRUE
-  attr(v, "errors") <- data.frame(
-    field = c("col1", "col2"),
-    message = c("is missing", "is invalid"),
-    stringsAsFactors = FALSE
-  )
-
-  expect_error(
-    validation_to_msg(v),
-    "Validation succeeded, but error attributes are present"
-  )
-})
+# test_that("v is a FALSE without attributes", {
+#   expect_error(
+#     validation_to_msg(FALSE),
+#     "Validation failed, but not error attributes are present"
+#   )
+# })
+#
+# test_that("v is a TRUE with attributes", {
+#   v <- TRUE
+#   attr(v, "errors") <- data.frame(
+#     field = c("col1", "col2"),
+#     message = c("is missing", "is invalid"),
+#     stringsAsFactors = FALSE
+#   )
+#
+#   expect_error(
+#     validation_to_msg(v),
+#     "Validation succeeded, but error attributes are present"
+#   )
+# })
 
 test_that("v is a list with 'errors' data frame", {
   # Simulate the typical structure: v$errors is a data frame

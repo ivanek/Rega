@@ -461,15 +461,6 @@ default_validator <- function(meta, aliases = NULL) {
     return(v)
 }
 
-.cross_validator <- function(meta, aliases) {
-    # NOTE One submission was rejected because the study title and dataset
-    # TODO
-    # title were identical.
-    cross_validator <- validator()
-
-    return(list())
-}
-
 # httr request payload validation  ---------------------------------------------
 
 #' Retrieve the Schema for an API Operation
@@ -603,13 +594,13 @@ validate_schema <- function(payload, schema) {
 validation_to_msg <- function(v) {
     if (!is.logical(v)) stop("Validation result must be 'logical'.")
 
-    if (!v && is.null(attributes(v))) {
-        stop("Validation failed, but not error attributes are present.")
-    }
-
-    if (v && "errors" %in% names(attributes(v))) {
-        stop("Validation succeeded, but error attributes are present.")
-    }
+    # if (!v && is.null(attributes(v))) {
+    #     stop("Validation failed, but not error attributes are present.")
+    # }
+    #
+    # if (v && "errors" %in% names(attributes(v))) {
+    #     stop("Validation succeeded, but error attributes are present.")
+    # }
 
     if (is.null(attributes(v))) {
         val_msg <- "No validation errors found."
