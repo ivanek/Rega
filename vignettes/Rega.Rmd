@@ -34,7 +34,7 @@ editor_options:
 library(knitr)
 opts_chunk$set(
     echo = TRUE,
-    eval = FALSE,
+    eval = TRUE,
     message = FALSE,
     warning = FALSE,
     collapse = FALSE,
@@ -59,6 +59,18 @@ if (out_type == "html") {
 }
 ```
 
+# Load package
+
+```{r load-package}
+library(Rega)
+```
+
+# Fill in the submission template
+
+Download the empty MS Excel template from 
+`inst/extdata/ega_full_template_v2.xlsx` and fill it in according to the 
+instructions in the 'Instructions' tab.
+
 # Setup credentials
 
 `httr2` is built around the notion that the key should live in an environment 
@@ -76,21 +88,17 @@ password in the plain text, instead:
     `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
 - use the resulting value as "REGA_EGA_PASSWORD"
 
-```{r env-credentials, eval=FALSE}
+```{r env-credentials}
 Sys.setenv("REGA_EGA_USERNAME" = "<your-ega-username>")
 Sys.setenv("REGA_EGA_PASSWORD" = "<your-ega-password>")
 ```
-
-# Authentication
-
-`Rega` package supports authentication through OAuth or Bearer token via 
-functions `ega_oauth` (default) and `ega_token` respectively.
 
 # Data submission
 
 ## Submission metadata parsing
 
-The default parser parses the bundled `xlsx` template. Changing the parser 
+The default parser parses the bundled `xlsx` template 
+(`inst/extdata/ega_full_template_v2.xlsx`). Changing the parser 
 behavior, such as whether to append `c4gh` extension to files or which sheets 
 to parse from the metadata files is controlled by YAML config file 
 `inst/extdata/default_parser_params.yaml`. To modify the parameters, 
@@ -98,7 +106,10 @@ create a local copy of the file and pass it as `param_file` argument to
 `default_parser` function.
 
 ```{r parse-metadata}
-metadata_file <- "<path-to-metadata-file>"
+metadata_file <- system.file(
+    "extdata/submission_example.xlsx",
+    package = "Rega"
+)
 
 parsed_metadata <- default_parser(metadata_file)
 parsed_metadata
@@ -136,7 +147,7 @@ ega <- create_client(api, verbosity = 0)
 Specify one of the available workflow function with your parsed metadata and 
 a client as parameters.
 
-```{r run-workflow}
+```{r run-workflow, eval=FALSE}
 responses <- new_submission(parsed_metadata, ega, "log.yaml")
 ```
 
@@ -145,35 +156,27 @@ responses <- new_submission(parsed_metadata, ega, "log.yaml")
 You can get the entire contents of current submission metadata via 
 `get_submission` workflow.
 
-```{r get-submission-contents}
+```{r get-submission-contents, eval=FALSE}
 resp <- get_submission(00001, ega, logfile = "log.yaml")
 resp <- get_submission(00001, ega)
 ```
 
 Or delete the entire contents of current submission metadata via 
-`delete_submission_contents` workflow.
+`delete_submission_contents` workflow or delete the entire submission by using 
+the `delete_submission` workflow.
 
-```{r delete-submission-contents}
+```{r delete-submission-contents, eval=FALSE}
 resp <- delete_submission_contents(00001, ega)
-```
-
-Or delete the entire submission by using the `delete_submission` workflow.
-
-```{r delete-submission}
 resp <- delete_submission(00001, ega)
-```
-
-If you submission has an accession ID and you wish to roll back changes you 
-made to since last time, you can use `rollback_submission` workflow. Apart from 
-`accession_id` and API client, you need to specify which tables/endpoints 
-you want to roll back.
-
-```{r rollback-submission}
-resp <- rollback_submission("EGA00000000001", ega, c("datasets", "runs"))
 ```
 
 **Workflow for updating the submission metadata by `PUT`
 method is under development.**
+
+# Authentication
+
+`Rega` package supports authentication through OAuth or Bearer token via 
+functions `ega_oauth` (default) and `ega_token` respectively.
 
 # Utilities
 
@@ -183,36 +186,8 @@ files. We will use the API and the client created above.
 
 Relevant functions include:
 
--   `get_schemas`
--   `get_properties`
--   `get_enum`
--   `parse_enum`
-
-## Retrieve properties
-
-```{r retrieve-properties}
-properties_out <- "properties.txt"
-
-schemas <- get_schemas(api)
-
-for (x in names(schemas)) {
-    p <- get_properties(schemas[[x]], filter_ids = FALSE)
-    lines <- c(paste0("[", x, "]"), p, "")
-    writeLines(lines, con = properties_out, sep = "\n", useBytes = TRUE)
-}
-```
-
-## Retrieve enums
-
-```{r retrieve-enums}
-enums_out <- "enums.txt"
-
-for (x in ega$get__enums()$enums) {
-    e <- parse_enum(get_enum(ega, x))
-    lines <- c(paste0("[", x, "]"), e, "")
-    writeLines(lines, con = enums_out, sep = "\n", useBytes = TRUE)
-}
-```
+-   `get_schemas()`
+-   `get_properties()`
 
 # Notes
 
@@ -229,24 +204,6 @@ ega <- create_client(api, bt$access_token)
 
 ega$get__enums()
 ```
-
-## Creating the YAML specification for API client generation
-
-The [EGA API yaml](https://submission.ega-archive.org/api/spec/#/) was download 
-from EGA Submitter API website and references were resolved using 
-[Swagger Editor](https://editor.swagger.io/). The resolved API YAML 
-specification is bundled with the package.
-
-Following changes were made in the YAML specification for the package to work 
-correctly.
-
-- `servers/url` needs to be changed to: 
-`https://submission.ega-archive.org/api>`
-- The schemas for Datasets are not completely correct. There is a possibility 
-to submit a dataset without Runs and Analyses, but this is not reflected in the 
-API. The requirement for `run_provisional_ids` and `analysis_provisional_ids`
-was commented out in the resolved YAML file to allow for this case. It was 
-added to the unresolved YAML (corresponds to lines `13322` and `13323`). 
 
 # Issues
 

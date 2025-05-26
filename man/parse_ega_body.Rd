@@ -23,7 +23,7 @@ further processing.
 # Example with JSON response
 json_resp <- httr2::response(
     method = "GET",
-    url = "/api/files",
+    url = "https://www.example.com/api/files",
     status = 200,
     headers = list("content-type" = "application/json"),
     body = charToRaw('[{"id": 1, "name": "test"}]')
@@ -33,7 +33,7 @@ parse_ega_body(json_resp)
 # Example with plain text response
 text_resp <- httr2::response(
     method = "POST",
-    url = "/api/submissions",
+    url = "https://www.example.com/api/submissions",
     status = 200,
     headers = list("content-type" = "text/plain"),
     body = charToRaw("Sample response text")

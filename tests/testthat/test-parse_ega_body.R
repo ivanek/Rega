@@ -223,11 +223,10 @@ test_that("URL path extraction fails, unexpected tibble column name", {
     class = "httr2_response"
   )
 
-  result <- parse_ega_body(resp)
-
-  expect_s3_class(result, "tbl_df")
-  expect_false(names(result) == c("format"))
-  expect_true(names(result) == c("some/unexpected/format"))
+  expect_error(
+    parse_ega_body(resp),
+    "Failed to parse URL"
+  )
 })
 
 test_that("api/ string not in URL path", {
