@@ -15,7 +15,8 @@
 #' @param request_data List of data frames. Parsed submission metadata
 #'   containing correctly formatted and linked information for submission
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema.
+#'   function from EGA API schema. If `NULL`, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to `NULL`.
 #' @param logfile Character. Path of log file to log the `httr2` responses from
 #'   individual operations or `NULL`. Defaults to `NULL`.
 #' @param id Integer.
@@ -75,11 +76,15 @@
 #'
 #' @export
 new_submission <- function(
-    request_data, client, logfile = NULL, id = NULL, retrieve_if_exists = FALSE,
-    ...
+    request_data, client = NULL, logfile = NULL, id = NULL,
+    retrieve_if_exists = FALSE, ...
 ) {
     luts <- list()
     responses <- list()
+
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
 
     if (!is.logical(retrieve_if_exists)) {
         message("'retrieve_if_exists' needs to be logical. Setting to FALSE.")
@@ -101,7 +106,7 @@ new_submission <- function(
         err_msg <- sprintf(
             paste(
                 "Samples aliases per submitter must be unique. Following",
-                "sample aliases were found in EGA database: %s.",
+                "sample aliases were found in EGA database: %s."
             ),
             paste(
                 request_data$samples$alias[samples_in_db],
@@ -449,7 +454,10 @@ new_submission <- function(
 #'
 #' @param id Character or numeric. Represents the submission identifier. Can be
 #'   either an accession or provisional ID.
-#' @param client An API client object with \code{get} and \code{delete} methods.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema with \code{get} and \code{delete} methods.
+#'   If `NULL`, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to `NULL`.
 #' @param method A string specifying the operation to perform. Valid options are
 #'   "get" or "delete".
 #'
@@ -467,7 +475,11 @@ new_submission <- function(
 #' use_submission("EGAB12345678901", mock_client, "get")
 #'
 #' @export
-use_submission <- function(id, client, method) {
+use_submission <- function(id, method, client = NULL) {
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
+
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
     } else {
@@ -504,7 +516,10 @@ use_submission <- function(id, client, method) {
 #'
 #' @param id A string representing the submission identifier. Can be either an
 #' accession or provisional ID.
-#' @param client An API client object with \code{get} methods.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema with \code{get} methods. If `NULL`, default
+#'   client will be created by \code{create_client(extract_api())}.
+#'   Defaults to `NULL`.
 #' @param logfile A string specifying the path to a log file. If \code{NULL},
 #'   no log is written.
 #' @param ... Additional arguments for future extensions (currently unused).
@@ -521,11 +536,15 @@ use_submission <- function(id, client, method) {
 #' get_submission("EGAB12345678901", mock_client)
 #'
 #' @export
-get_submission <- function(id, client, logfile = NULL, ...) {
+get_submission <- function(id, client = NULL, logfile = NULL, ...) {
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
     } else {
         base_url <- "submissions__provisional_id"
+    }
+
+    if(is.null(client)) {
+        client = create_client(extract_api())
     }
 
     responses <- c(
@@ -546,7 +565,10 @@ get_submission <- function(id, client, logfile = NULL, ...) {
 #'
 #' @param id A string representing the submission identifier. Can be either an
 #' accession or provisional ID.
-#' @param client An API client object with \code{delete} methods.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema with \code{delete} methods. If `NULL`, default
+#'   client will be created by \code{create_client(extract_api())}.
+#'   Defaults to `NULL`.
 #' @param logfile A string specifying the path to a log file. If \code{NULL},
 #' no log is written.
 #' @param ... Additional arguments for future extensions (currently unused).
@@ -562,7 +584,11 @@ get_submission <- function(id, client, logfile = NULL, ...) {
 #' delete_submission_contents(5678901, mock_client)
 #'
 #' @export
-delete_submission_contents <- function(id, client, logfile = NULL, ...) {
+delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
+
     responses <- use_submission(id, client, "delete")
     save_log(responses, logfile)
     return(responses)
@@ -574,6 +600,10 @@ delete_submission_contents <- function(id, client, logfile = NULL, ...) {
 #' response if a logfile is specified.
 #'
 #' @param id A string representing the submission identifier (provisional ID).
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema with \code{delete} method for submissions.
+#'   If `NULL`, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to `NULL`.
 #' @param client An API client object with a \code{delete} method for
 #' submissions.
 #' @param logfile A string specifying the path to a log file. If \code{NULL},
@@ -590,7 +620,11 @@ delete_submission_contents <- function(id, client, logfile = NULL, ...) {
 #' delete_submission("5678901", mock_client)
 #'
 #' @export
-delete_submission <- function(id, client, logfile = NULL, ...) {
+delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
+
     responses <- list(
         submission = client$delete__submissions__provisional_id(id)
     )
@@ -605,8 +639,10 @@ delete_submission <- function(id, client, logfile = NULL, ...) {
 #'
 #' @param id A string representing the submission identifier. Must be an
 #'   accession ID.
-#' @param client An API client object with \code{put} methods and rollback
-#'   operations.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema with \code{put} methods and rollback
+#'   operations. If `NULL`, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to `NULL`.
 #' @param endpoints A character vector of endpoint names to rollback.
 #' @param logfile A string specifying the path to a log file. If \code{NULL}, no
 #'   log is written.
@@ -622,7 +658,13 @@ delete_submission <- function(id, client, logfile = NULL, ...) {
 #' rollback_submission("provisional123", mock_client, c("datasets"))
 #'
 #' @export
-rollback_submission <- function(id, client, endpoints, logfile = NULL, ...) {
+rollback_submission <- function(
+    id, endpoints, client = NULL, logfile = NULL, ...
+) {
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
+
     if (is_accession(id)) {
         stop(
             "Incorrect format of accesssion ID.
