@@ -4,13 +4,16 @@
 \alias{get_submission}
 \title{Retrieve Submission Data and Log Responses}
 \usage{
-get_submission(id, client, logfile = NULL, ...)
+get_submission(id, client = NULL, logfile = NULL, ...)
 }
 \arguments{
 \item{id}{A string representing the submission identifier. Can be either an
 accession or provisional ID.}
 
-\item{client}{An API client object with \code{get} methods.}
+\item{client}{List of functions. EGA API client created by \code{create_client}
+function from EGA API schema with \code{get} methods. If \code{NULL}, default
+client will be created by \code{create_client(extract_api())}.
+Defaults to \code{NULL}.}
 
 \item{logfile}{A string specifying the path to a log file. If \code{NULL},
 no log is written.}

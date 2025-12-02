@@ -4,16 +4,19 @@
 \alias{use_submission}
 \title{Retrieve or Delete Submission Data}
 \usage{
-use_submission(id, client, method)
+use_submission(id, method, client = NULL)
 }
 \arguments{
 \item{id}{Character or numeric. Represents the submission identifier. Can be
 either an accession or provisional ID.}
 
-\item{client}{An API client object with \code{get} and \code{delete} methods.}
-
 \item{method}{A string specifying the operation to perform. Valid options are
 "get" or "delete".}
+
+\item{client}{List of functions. EGA API client created by \code{create_client}
+function from EGA API schema with \code{get} and \code{delete} methods.
+If \code{NULL}, default client will be created by
+\code{create_client(extract_api())}. Defaults to \code{NULL}.}
 }
 \value{
 A named list containing responses for datasets, analyses, runs,

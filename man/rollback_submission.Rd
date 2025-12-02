@@ -4,16 +4,18 @@
 \alias{rollback_submission}
 \title{Rollback Submission Endpoints and Log Responses}
 \usage{
-rollback_submission(id, client, endpoints, logfile = NULL, ...)
+rollback_submission(id, endpoints, client = NULL, logfile = NULL, ...)
 }
 \arguments{
 \item{id}{A string representing the submission identifier. Must be an
 accession ID.}
 
-\item{client}{An API client object with \code{put} methods and rollback
-operations.}
-
 \item{endpoints}{A character vector of endpoint names to rollback.}
+
+\item{client}{List of functions. EGA API client created by \code{create_client}
+function from EGA API schema with \code{put} methods and rollback
+operations. If \code{NULL}, default client will be created by
+\code{create_client(extract_api())}. Defaults to \code{NULL}.}
 
 \item{logfile}{A string specifying the path to a log file. If \code{NULL}, no
 log is written.}

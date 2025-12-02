@@ -4,7 +4,7 @@
 \alias{delete_submission}
 \title{Delete a Submission and Log Responses}
 \usage{
-delete_submission(id, client, logfile = NULL, ...)
+delete_submission(id, client = NULL, logfile = NULL, ...)
 }
 \arguments{
 \item{id}{A string representing the submission identifier (provisional ID).}

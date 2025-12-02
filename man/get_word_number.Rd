@@ -2,16 +2,22 @@
 % Please edit documentation in R/utils.R
 \name{get_word_number}
 \alias{get_word_number}
-\title{Get number of words in the text}
+\title{Count the number of words in text}
 \usage{
 get_word_number(text)
 }
 \arguments{
-\item{text}{}
+\item{text}{A length-one character vector.}
 }
 \value{
-Integer, number of words in the text
+An integer vector giving the number of words per element of
+\code{text}.
 }
 \description{
-Get number of words in the text
+Compute the number of words in each element of a character vector using
+non-word separators.
+}
+\examples{
+get_word_number(c("one two", "three four five"))
+
 }

@@ -2,16 +2,22 @@
 % Please edit documentation in R/utils.R
 \name{get_sentence_number}
 \alias{get_sentence_number}
-\title{Get number of sentences in the text}
+\title{Count the number of sentences in text}
 \usage{
 get_sentence_number(text)
 }
 \arguments{
-\item{text}{}
+\item{text}{A length-one character vector.}
 }
 \value{
-Integer, number of sentences in the text
+An integer scalar giving the number of sentences in \code{text}.
 }
 \description{
-Get number of sentences in the text
+Count how many sentences are in a character string, based on terminal
+punctuation marks \code{.}, \code{!}, or \code{?} following an
+alphanumeric character.
+}
+\examples{
+get_sentence_number("First sentence. Second sentence? Third!")
+
 }
