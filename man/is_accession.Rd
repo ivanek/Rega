@@ -4,7 +4,7 @@
 \alias{is_accession}
 \title{Check if a String is a Valid Accession Identifier}
 \usage{
-is_accession(x, schema = "submission")
+is_accession(x, schema = NULL)
 }
 \arguments{
 \item{x}{A character vector to be tested for validity as an accession.}
@@ -12,7 +12,8 @@ is_accession(x, schema = "submission")
 \item{schema}{A character string specifying the schema. Valid options
 include "study", "studies", "sample", "samples", "experiment",
 "experiments", "analysis", "analyses", "run", "runs", "policy",
-"DAC", "dataset", "datasets", and "submission". Defaults to "submission".}
+"DAC", "dataset", "datasets", "submission" and \code{NULL}. \code{NULL} will check
+against any of the schemas. Defaults to \code{NULL}.}
 }
 \value{
 A logical vector indicating whether each element of \code{x} is a

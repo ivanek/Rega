@@ -7,7 +7,8 @@
 #' @param schema A character string specifying the schema. Valid options
 #' include "study", "studies", "sample", "samples", "experiment",
 #' "experiments", "analysis", "analyses", "run", "runs", "policy",
-#' "DAC", "dataset", "datasets", and "submission". Defaults to "submission".
+#' "DAC", "dataset", "datasets", "submission" and `NULL`. `NULL` will check
+#' against any of the schemas. Defaults to `NULL`.
 #'
 #' @return A logical vector indicating whether each element of \code{x} is a
 #' valid accession identifier for the specified schema.
@@ -17,7 +18,7 @@
 #' is_accession("EGA12345678901", "sample") # FALSE
 #'
 #' @export
-is_accession <- function(x, schema = "submission") {
+is_accession <- function(x, schema = NULL) {
     letter_lut <- c(
         "study" = "S",
         "studies" = "S",
@@ -36,7 +37,11 @@ is_accession <- function(x, schema = "submission") {
         "submission" = "B"
     )
 
-    if (!schema %in% names(letter_lut)) {
+    if (is.null(schema)) {
+        letter = paste0("[", paste(unique(letter_lut), collapse = "|"), "]")
+    } else if (schema %in% names(letter_lut)) {
+        letter <- letter_lut[schema]
+    } else {
         err_msg <- sprintf(
             "Unknown schema %s, please select one of the valid EGA schemas.",
             schema
@@ -44,10 +49,35 @@ is_accession <- function(x, schema = "submission") {
         stop(err_msg)
     }
 
-    letter <- letter_lut[schema]
     grepl(paste0("^EGA", letter, "\\d{11}$"), x)
 }
 
+#' Check whether IDs are provisional
+#'
+#' Determine if input values match the format of provisional IDs, either as
+#' whole-number numerics or as character strings of at least two digits
+#' without leading zeros.
+#'
+#' @param x A numeric or character vector of candidate provisional IDs.
+#'
+#' @return A logical vector indicating which values are provisional IDs.
+#'
+#' @examples
+#' is_provisional(c(10, 11, 3.5, 9))
+#'
+#' @export
+is_provisional <- function(x) {
+    if (is.numeric(x)) {
+        as.numeric(x) == as.integer(x)
+    } else if (is.character(x)) {
+        grepl("^[1-9][0-9]+$", x)
+    } else {
+        stop(
+            "Unknown type of provisional ID.
+            Can be either numeric or character."
+        )
+    }
+}
 
 #' Generate a Step-by-Step Message Function
 #'
@@ -317,4 +347,46 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
     }
 
     return(ef)
+}
+
+#' Check whether all expected files are in the inbox
+#'
+#' Query the remote client for each requested file prefix and test whether a
+#' file is found for every element of \code{file_list}.
+#'
+#' @param file_list A character vector or list of file prefixes to check.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema. If `NULL`, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'
+#' @return A logical scalar, \code{TRUE} if all files are present, otherwise
+#'   \code{FALSE}.
+#'
+#' @examples
+#' files_in_inbox(list("file_a", "file_b"), client)
+#'
+#' @export
+files_in_inbox = function(file_list, client = NULL) {
+    if(is.null(client)) {
+        client = create_client(extract_api())
+    }
+
+    if (!is.vector(file_list, mode = "character")) {
+        stop("`file_list` must be a character vector.")
+    }
+
+    if (!length(file_list)) {
+        stop("`file_list` must contain at least one element.")
+    }
+
+    responses$raw_files <- do.call(
+        rbind,
+        lapply(
+            unlist(file_list),
+            \(x) client$get__files(prefix = x)
+        )
+    )
+
+    all_files = nrow(responses$raw_files) == length(unlist(file_list))
+    all_files
 }
