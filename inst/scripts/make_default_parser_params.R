@@ -65,5 +65,5 @@ default_params <- list(submission_sheets = c(
 
 yaml::write_yaml(
   default_params,
-  file = file.path("..", "extdata", "default_parser_params.yaml")
+  file = file.path("inst", "extdata", "default_parser_params.yaml")
 )

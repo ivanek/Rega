@@ -28,7 +28,7 @@ extract_api <- function(spec_file = NULL, host = NULL) {
     # if specification file is NULL, use the default bundled with the package
     if (is.null(spec_file)) {
         spec_file <- system.file(
-            "extdata/ega_api_resolved.yaml",
+            "extdata/ega_api_deref.yaml",
             package = "Rega"
         )
     }
