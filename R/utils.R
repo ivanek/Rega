@@ -202,3 +202,48 @@ get_properties <- function(schema, filter_ids = TRUE) {
     out <- api_name_to_label(out)
     return(out)
 }
+
+#' Count the number of words in text
+#'
+#' Compute the number of words in each element of a character vector using
+#' non-word separators.
+#'
+#' @param text A length-one character vector.
+#'
+#' @return An integer vector giving the number of words per element of
+#'   \code{text}.
+#'
+#' @examples
+#' get_word_number(c("one two", "three four five"))
+#'
+#' @export
+get_word_number = function(text) {
+    if (!is.character(text)) {
+        stop("`text` must be a character vector.")
+    }
+
+    lengths(gregexpr("\\W+", text)) + 1
+}
+
+#' Count the number of sentences in text
+#'
+#' Count how many sentences are in a character string, based on terminal
+#' punctuation marks \code{.}, \code{!}, or \code{?} following an
+#' alphanumeric character.
+#'
+#' @param text A length-one character vector.
+#'
+#' @return An integer scalar giving the number of sentences in \code{text}.
+#'
+#' @examples
+#' get_sentence_number("First sentence. Second sentence? Third!")
+#'
+#' @export
+get_sentence_number = function(text) {
+    if (!is.character(text)) {
+        stop("`text` must be a character vector.")
+    }
+
+    length(gregexpr('[[:alnum:]][.!?]', text)[[1]])
+}
+

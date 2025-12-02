@@ -261,7 +261,11 @@ default_validator <- function(meta, aliases = NULL) {
     title <- description <- NULL # nolint
     cond <- validate::validator(
         studies_title_is_unique = is_unique(title),
-        studies_description_is_unique = is_unique(description)
+        studies_description_is_unique = is_unique(description),
+        studies_title_length =  get_word_number(title) >= 3 &
+            get_word_number(title) <= 20,
+        studies_description_length = get_sentence_number(description) >= 3 &
+            get_sentence_number(description) <= 5
     )
     v <- confront(meta$studies, cond, ref = list(aliases = aliases))
     return(v)
@@ -409,7 +413,11 @@ default_validator <- function(meta, aliases = NULL) {
         dataset_title_is_unique = is_unique(title),
         dataset_description_is_unique = is_unique(description),
         dataset_run_in_aliases = unlist(runs) %in% aliases$runs,
-        dataset_all_aliases_in_run = aliases$runs %in% unlist(runs)
+        dataset_all_aliases_in_run = aliases$runs %in% unlist(runs),
+        dataset_title_length =  get_word_number(title) >= 3 &
+            get_word_number(title) <= 20,
+        dataset_description_length = get_sentence_number(description) >= 3 &
+            get_sentence_number(description) <= 5
     )
     v <- confront(meta$datasets, cond, ref = list(aliases = aliases))
 }
