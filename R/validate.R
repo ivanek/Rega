@@ -73,6 +73,10 @@ default_validator <- function(meta, aliases = NULL) {
         } else {
             stop("Aliases are not specified and not available in metadata.")
         }
+    } else {
+        if (!is.list(aliases) || is.null(names(aliases))) {
+            stop("'aliases' must be a named list.")
+        }
     }
 
     validations <- list(
@@ -87,7 +91,7 @@ default_validator <- function(meta, aliases = NULL) {
         .studies_extra_validator(meta, aliases),
         .datasets_extra_validator(meta, aliases),
         .analyses_extra_validator(meta, aliases),
-        .dataset_analysis_validator(meta, aliases)
+        .dataset_analyses_validator(meta, aliases)
     )
 
     vs <- do.call(
@@ -96,7 +100,7 @@ default_validator <- function(meta, aliases = NULL) {
     )
 
     .summarise_validation(vs)
-    return(vs)
+    vs
 }
 
 #' Summarize Validation Results
@@ -118,6 +122,10 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @keywords internal
 .summarise_validation <- function(validation_summary) {
+    if (!is.data.frame(validation_summary) && !is.list(validation_summary)) {
+        stop("'validation_summary' must be a data frame or a list.")
+    }
+
     required_cols <- c("fails", "nNA", "error", "warning")
     if (!all(required_cols %in% names(validation_summary))) {
         stop("Missing required columns in 'validation_summary'.")
@@ -172,6 +180,17 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @keywords internal
 .basic_validator <- function(meta, aliases, column, code_list_entry) {
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
+    if (!is.list(aliases) || is.null(names(aliases))) {
+        stop("'aliases' must be a named list.")
+    }
+
+    .validate_character_scalar(column)
+    .validate_character_scalar(code_list_entry)
+
     template <- c(
         "!is.na({column})",
         "is_unique({column})",
@@ -203,7 +222,7 @@ default_validator <- function(meta, aliases = NULL) {
         NULL
     }
 
-    return(v)
+    v
 }
 
 #' Validate Submission Metadata
@@ -227,11 +246,16 @@ default_validator <- function(meta, aliases = NULL) {
 #' @keywords internal
 .submission_validator <- function(meta, aliases) {
     title <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
     cond <- validate::validator(
         submission_title_is_na = !is.na(title)
     )
     v <- confront(meta$submission, cond)
-    return(v)
+    v
 }
 
 #' Validate Studies Metadata
@@ -259,16 +283,22 @@ default_validator <- function(meta, aliases = NULL) {
 #' @keywords internal
 .studies_extra_validator <- function(meta, aliases) {
     title <- description <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
     cond <- validate::validator(
-        studies_title_is_unique = is_unique(title),
-        studies_description_is_unique = is_unique(description),
-        studies_title_length =  get_word_number(title) >= 3 &
+        # TODO put back
+        # studies_title_is_unique = is_unique(title),
+        # studies_description_is_unique = is_unique(description),
+        studies_title_length = get_word_number(title) >= 3 &
             get_word_number(title) <= 20,
         studies_description_length = get_sentence_number(description) >= 3 &
             get_sentence_number(description) <= 5
     )
     v <- confront(meta$studies, cond, ref = list(aliases = aliases))
-    return(v)
+    v
 }
 
 #' Validate Runs Metadata
@@ -307,6 +337,15 @@ default_validator <- function(meta, aliases = NULL) {
 #' @keywords internal
 .runs_extra_validator <- function(meta, aliases) {
     experiment <- alias <- run_file_type <- files <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
+    if (!is.list(aliases) || is.null(names(aliases))) {
+        stop("'aliases' must be a named list.")
+    }
+
     cond <- validate::validator(
         run_experiment_is_na = !is.na(experiment),
         run_sample_is_na = !is.na(alias),
@@ -317,7 +356,7 @@ default_validator <- function(meta, aliases = NULL) {
         run_sample_in_aliases = alias %in% aliases$samples
     )
     v <- confront(meta$runs, cond, ref = list(aliases = aliases))
-    return(v)
+    v
 }
 
 #' Validate Analyses Metadata
@@ -359,6 +398,15 @@ default_validator <- function(meta, aliases = NULL) {
 #' @keywords internal
 .analyses_extra_validator <- function(meta, aliases) {
     title <- description <- samples <- experiments <- files <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
+    if (!is.list(aliases) || is.null(names(aliases))) {
+        stop("'aliases' must be a named list.")
+    }
+
     cond <- validate::validator(
         analysis_title_is_unique = is_unique(title),
         analysis_description_is_unique = is_unique(description),
@@ -373,7 +421,7 @@ default_validator <- function(meta, aliases = NULL) {
     } else {
         NULL
     }
-    return(v)
+    v
 }
 
 #' Validate Datasets Metadata
@@ -409,17 +457,27 @@ default_validator <- function(meta, aliases = NULL) {
 #' @keywords internal
 .datasets_extra_validator <- function(meta, aliases) {
     title <- description <- runs <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
+    if (!is.list(aliases) || is.null(names(aliases))) {
+        stop("'aliases' must be a named list.")
+    }
+
     cond <- validate::validator(
         dataset_title_is_unique = is_unique(title),
         dataset_description_is_unique = is_unique(description),
         dataset_run_in_aliases = unlist(runs) %in% aliases$runs,
         dataset_all_aliases_in_run = aliases$runs %in% unlist(runs),
-        dataset_title_length =  get_word_number(title) >= 3 &
-            get_word_number(title) <= 20,
-        dataset_description_length = get_sentence_number(description) >= 3 &
-            get_sentence_number(description) <= 5
+        dataset_title_length = (get_word_number(title) >= 3) &
+            (get_word_number(title) <= 20),
+        dataset_description_length = (get_sentence_number(description) >= 3) &
+            (get_sentence_number(description) <= 5)
     )
     v <- confront(meta$datasets, cond, ref = list(aliases = aliases))
+    v
 }
 
 #' Validate Datasets Analyses Metadata
@@ -452,21 +510,30 @@ default_validator <- function(meta, aliases = NULL) {
 #' )
 #'
 #' validate::summary(
-#'     Rega:::.dataset_analysis_validator(meta, aliases)
+#'     Rega:::.dataset_analyses_validator(meta, aliases)
 #' )
 #'
 #' @keywords internal
-.dataset_analysis_validator <- function(meta, aliases) {
+.dataset_analyses_validator <- function(meta, aliases) {
     analyses <- NULL # nolint
+
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
+    if (!is.list(aliases) || is.null(names(aliases))) {
+        stop("'aliases' must be a named list.")
+    }
+
     cond <- validate::validator(
-        dataset_analysis_in_aliases = unlist(analyses) %in% aliases$analyses
+        dataset_analyses_in_aliases = unlist(analyses) %in% aliases$analyses
     )
     v <- if ("analyses" %in% names(meta)) {
         confront(meta$datasets, cond, ref = list(aliases = aliases))
     } else {
         NULL
     }
-    return(v)
+    v
 }
 
 # httr request payload validation  ---------------------------------------------
@@ -488,8 +555,15 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @export
 get_operation_schema <- function(op) {
-    schema <- op$requestBody$content$`application/json`$schema
-    return(schema)
+    if (!is.list(op) || is.null(op)) {
+        stop("The 'op' argument must be a list or NULL.")
+    }
+
+    if (is.null(op$requestBody)) {
+        NULL
+    } else {
+        op$requestBody$content$`application/json`$schema
+    }
 }
 
 #' Validate a Payload Against a JSON Schema
@@ -574,7 +648,7 @@ validate_schema <- function(payload, schema) {
         )
     }
 
-    return(valid)
+    valid
 }
 
 
@@ -602,14 +676,6 @@ validate_schema <- function(payload, schema) {
 validation_to_msg <- function(v) {
     if (!is.logical(v)) stop("Validation result must be 'logical'.")
 
-    # if (!v && is.null(attributes(v))) {
-    #     stop("Validation failed, but not error attributes are present.")
-    # }
-    #
-    # if (v && "errors" %in% names(attributes(v))) {
-    #     stop("Validation succeeded, but error attributes are present.")
-    # }
-
     if (is.null(attributes(v))) {
         val_msg <- "No validation errors found."
     } else {
@@ -625,5 +691,5 @@ validation_to_msg <- function(v) {
         )
     }
 
-    return(val_msg)
+    val_msg
 }

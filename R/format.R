@@ -14,6 +14,12 @@
 #'
 #' @export
 api_name_to_label <- function(x) {
+    if (is.vector(x) || is.list(x) || length(x) > 0) {
+        lapply(x, .validate_character_scalar, "All elements of x")
+    } else {
+        .validate_character_scalar(x)
+    }
+
     toTitleCase(gsub("_", " ", x))
 }
 
@@ -31,6 +37,16 @@ api_name_to_label <- function(x) {
 #'
 #' @export
 label_to_api_name <- function(x, req_str = "* ") {
+    if (is.list(x)) {
+        x = as.character(x)
+    }
+
+    if (!is.character(x)) {
+        stop("'x' must be a character vector.")
+    }
+
+    .validate_character_scalar(req_str)
+
     req_str <- paste0("^\\", req_str)
     tolower(gsub(" ", "_", gsub(req_str, "", x)))
 }
@@ -52,20 +68,24 @@ label_to_api_name <- function(x, req_str = "* ") {
 #'
 #' @export
 first_row_to_colnames <- function(df, to_api = TRUE) {
-    first_row <- as.character(df[1, ])
+    if (!is.data.frame(df)) stop("'df' must be a data frame.")
+
+    .validate_logical_scalar(to_api, "to_api")
+
+    first_row <- as.character(df[1, , drop = FALSE])
     if (to_api) {
         first_row <- label_to_api_name(first_row)
     }
     # Set first row as names
     names(df) <- make.names(first_row, unique = TRUE)
     # Remove first row
-    df <- df[-1, ]
+    df <- df[-1, , drop = FALSE]
 
-    # if(ncol(df) == 0 || nrow(df) == 0) {
+    # if(ncol(df) < 0 || nrow(df) < 0) {
     #     stop("Resulting data frame must have at least one row and one column")
     # }
 
-    return(df)
+    df
 }
 
 #' Add a Column to a Data Frame Based on Lookup Table
@@ -87,6 +107,11 @@ first_row_to_colnames <- function(df, to_api = TRUE) {
 #'
 #' @export
 lut_add <- function(df, to, from, lut) {
+    if (!is.data.frame(df)) stop("'df' must be a data frame.")
+
+    .validate_character_scalar(to)
+    .validate_character_scalar(from)
+
     if (!from %in% names(df)) {
         stop(sprintf("'%s' column in not present in data frame.", from))
     }
@@ -114,7 +139,7 @@ lut_add <- function(df, to, from, lut) {
     }
 
     df[[to]] <- new_col
-    return(df)
+    df
 }
 
 #' Add Multiple Lookup-Based Columns to a Data Frame
@@ -140,6 +165,8 @@ lut_add <- function(df, to, from, lut) {
 #'
 #' @export
 multi_lut_add <- function(df, ...) {
+    if (!is.data.frame(df)) stop("'df' must be a data frame.")
+
     args <- enquos(...)
     dots <- lapply(args, eval_tidy)
 
@@ -148,9 +175,7 @@ multi_lut_add <- function(df, ...) {
         details.")
 
     lapply(dots, function(x) {
-        if (length(x) != 3 ||
-            !is.character(x[[1]]) ||
-            !is.character(x[[2]])) {
+        if (length(x) != 3 || !is.character(x[[1]]) || !is.character(x[[2]])) {
             stop(stop_msg)
         }
     })
@@ -161,7 +186,7 @@ multi_lut_add <- function(df, ...) {
         init = df
     )
 
-    return(result_df)
+    result_df
 }
 
 #' Format Aliases from a Table
@@ -180,6 +205,15 @@ multi_lut_add <- function(df, ...) {
 #'
 #' @export
 aliases_formatter <- function(tab, params) {
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+
+    # Allow for NULL values cast to empty list
+    if (is.null(params)) params <- list()
+
+    if (!is.list(params) && !identical(params, FALSE)) {
+        stop("'params' must be a list, FALSE or NULL.")
+    }
+
     if (nrow(tab) == 0 || ncol(tab) == 0) {
         stop("No data is present in the table.")
     }
@@ -187,7 +221,7 @@ aliases_formatter <- function(tab, params) {
     tab <- first_row_to_colnames(tab)
     l <- lapply(as.list(tab), \(x) x[!is.na(x)])
     names(l) <- label_to_api_name(names(l))
-    return(l)
+    l
 }
 
 #' Format a Column Table
@@ -213,11 +247,13 @@ aliases_formatter <- function(tab, params) {
 #'
 #' @export
 column_table_formatter <- function(tab, params) {
-    # Allow for NULL valuem cast to emtpy list
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+
+    # Allow for NULL values cast to empty list
     if (is.null(params)) params <- list()
 
     if (!is.list(params) && !identical(params, FALSE)) {
-        stop("'params' must be a list or FALSE")
+        stop("'params' must be a list, FALSE or NULL.")
     }
 
     tab <- first_row_to_colnames(tab)
@@ -234,7 +270,7 @@ column_table_formatter <- function(tab, params) {
         )
     }
 
-    return(tab)
+    tab
 }
 
 #' Format a Row Table
@@ -266,6 +302,15 @@ column_table_formatter <- function(tab, params) {
 #'
 #' @export
 row_table_formatter <- function(tab, params) {
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+
+    # Allow for NULL values cast to empty list
+    if (is.null(params)) params <- list()
+
+    if (!is.list(params) && !identical(params, FALSE)) {
+        stop("'params' must be a list, FALSE or NULL.")
+    }
+
     tab <- tab[, colSums(!is.na(tab)) > 0]
     if (!(ncol(tab) %% 2 == 0) || ncol(tab) == 0) {
         stop("Incorrect column organization of the table columns.")
@@ -299,7 +344,7 @@ row_table_formatter <- function(tab, params) {
         })
     )
 
-    return(as_tibble(tab))
+    as_tibble(tab)
 }
 
 #' Format File Table with EGA File Paths
@@ -328,8 +373,17 @@ row_table_formatter <- function(tab, params) {
 #'
 #' @export
 file_formatter <- function(tab, params) {
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+
+    # Allow for NULL values cast to empty list
+    if (is.null(params)) params <- list()
+
+    if (!is.list(params) && !identical(params, FALSE)) {
+        stop("'params' must be a list, FALSE or NULL.")
+    }
+
     tab <- first_row_to_colnames(tab)
-    names(tab) <- label_to_api_name(names(tab))
+    # names(tab) <- label_to_api_name(names(tab))
     # Strip white space
     tab[] <- lapply(tab, \(x) str_trim(as.character(x)))
     # Keep the original names and modify the ega paths
@@ -348,7 +402,7 @@ file_formatter <- function(tab, params) {
         ep <- tab$ega_inbox_relative_path[i]
 
         # Strip the initial slash if it exists
-        ep <- sub("\\^\\/", "", ep)
+        ep <- sub("^/", "", ep)
 
         # Construct the new path if ega relative path is specified
         if (!is.na(ep) && is.character(ep) && nchar(ep) > 0) {
@@ -356,14 +410,14 @@ file_formatter <- function(tab, params) {
         }
 
         # Prepend a slash if specified
-        if (params$prepend_slash) {
+        if (!is.null(params$prepend_slash) && params$prepend_slash) {
             ef <- file.path("", ef)
         }
 
         tab$ega_file[i] <- ef
     }
 
-    return(tab)
+    tab
 }
 
 #' Retrieve a Formatter Function by Type of Submission Metadata Table
@@ -394,7 +448,29 @@ file_formatter <- function(tab, params) {
 #'
 #' @export
 get_formatter <- function(x, params) {
-    return(get(params$formatter[[x]][["type"]], envir = parent.frame()))
+    .validate_character_scalar(x)
+
+    if (is.null(params$formatter) || !is.list(params$formatter)) {
+        stop("'params$formatter' must be a non-NULL list.")
+    }
+
+    if (is.null(params$formatter[[x]])) {
+        stop(sprintf("No formatter entry found for '%s'.", x))
+    }
+
+    fmt <- params$formatter[[x]]
+
+    if (is.null(fmt[["type"]])) {
+        stop(sprintf("Formatter entry '%s' must contain a 'type' field.", x))
+    }
+
+    .validate_character_scalar(fmt[["type"]], "type")
+
+    if (!exists(fmt[["type"]], envir = parent.frame())) {
+        stop(sprintf("Formatter function '%s' not found.", fmt[["type"]]))
+    }
+
+    get(fmt[["type"]], envir = parent.frame())
 }
 
 #' Retrieve Formatter Parameters by Name
@@ -426,17 +502,32 @@ get_formatter <- function(x, params) {
 #'
 #' @export
 get_formatter_params <- function(x, params) {
+    .validate_character_scalar(x)
+
+    # Allow for NULL values cast to empty list
+    # if (is.null(params)) params <- list()
+
+    if (!is.list(params) && !identical(params, FALSE)) {
+        stop("'params' must be a list, FALSE or NULL.")
+    }
+
     if (!"formatter" %in% names(params)) {
-        stop("No formatter present in paramters.")
+        stop("No formatter present in parameters.")
+    }
+
+    if (is.null(params$formatter) || !is.list(params$formatter)) {
+        stop("'params$formatter' must be a non-NULL list.")
     }
 
     if (!x %in% names(params$formatter)) {
         stop(sprintf("%s is not a valid value for formatter.", x))
     }
 
-    if (is.null(params$formatter[[x]][["params"]])) stop("Missing 'params' key")
+    if (is.null(params$formatter[[x]][["params"]])) {
+        stop("Missing 'params' key.")
+    }
 
-    return(params$formatter[[x]][["params"]])
+    params$formatter[[x]][["params"]]
 }
 
 #' Fold Columns with a Common Prefix into a Single Column Nested as List
@@ -462,9 +553,9 @@ get_formatter_params <- function(x, params) {
 fold_column <- function(tab, column_prefix, new_name) {
     tmp_fold_name <- NULL # nolint
 
-    if (!is.data.frame(tab)) stop("'tab' must be a data frame")
-    if (is.null(new_name)) stop("'new_name' must be provided.")
-    if (nchar(column_prefix) == 0) stop("Must provide a valid column_prefix.")
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+    .validate_character_scalar(new_name)
+    .validate_character_scalar(column_prefix)
 
     selected_columns <- tab[grepl(paste0("^", column_prefix), names(tab))]
     iter_columns <- unname(as.list(as.data.frame(t(selected_columns))))
@@ -489,7 +580,7 @@ fold_column <- function(tab, column_prefix, new_name) {
     tab <- tab[, !grepl(paste0("^", column_prefix), names(tab)), drop = FALSE]
     colnames(tab)[colnames(tab) == "tmp_fold_name"] <- new_name
 
-    return(tab)
+    tab
 }
 
 #' Check for Linked Sheets in Metadata
@@ -515,9 +606,8 @@ has_linked_sheets <- function(metadata, colname) {
     if (is.data.frame(metadata) && is.list(metadata)) {
         stop("'metadata' must be a list of data frames.")
     }
-    if (!is.character(colname) || length(colname) != 1) {
-        stop("colname must be a single string")
-    }
+    .validate_character_scalar(colname)
+
     vapply(
         metadata,
         function(x) {
@@ -555,6 +645,21 @@ has_linked_sheets <- function(metadata, colname) {
 #' @export
 merge_linked_sheet <- function(target, source, dat, sheet) {
     if (!is.atomic(target)) stop("'target' must be a vector.")
+    .validate_character_scalar(source)
+
+    if (is.list(dat)) {
+        dat = as.data.frame(dat)
+    }
+
+    if (!is.data.frame(dat))  {
+        stop("'dat' must be a data frame or a list.")
+    }
+
+    .validate_character_scalar(sheet)
+
+    if (!source %in% names(dat)) {
+        stop(sprintf("Column '%s' not present in 'dat'.", source))
+    }
 
     if (all(is.na(target))) {
         list()
@@ -600,7 +705,31 @@ merge_linked_sheet <- function(target, source, dat, sheet) {
 #'
 #' @export
 link_sheet <- function(metadata, sheet_name) {
+    if (!is.list(metadata) || length(metadata) == 0L) {
+        stop("'metadata' must be a not be empty list.")
+    }
+
+    .validate_character_scalar(sheet_name)
+
+    if (!sheet_name %in% names(metadata)) {
+        stop(sprintf("'sheet_name' '%s' not found in 'metadata'.", sheet_name))
+    }
+
     source_data <- metadata[[sheet_name]]
+
+    if (!is.data.frame(source_data)) {
+        stop(sprintf(
+            "'metadata[[\"%s\"]]' must be a data frame.", sheet_name
+        ))
+    }
+
+    # TODO check
+    # if (ncol(source_data) == 0L) {
+    #     stop(sprintf(
+    #         "`metadata[[\"%s\"]]` must have at least one column.", sheet_name
+    #     ))
+    # }
+
     are_linked <- has_linked_sheets(metadata, sheet_name)
     linked_sheets <- names(metadata)[are_linked]
 
@@ -628,7 +757,7 @@ link_sheet <- function(metadata, sheet_name) {
         )
         metadata[[x]][[sheet_name]] <- merged_data
     }
-    return(metadata)
+    metadata
 }
 
 #' Process Delimited Columns in Metadata
@@ -654,6 +783,13 @@ link_sheet <- function(metadata, sheet_name) {
 #'
 #' @export
 process_delimited_column <- function(metadata, column_name, separator) {
+    if (!is.list(metadata)) {
+        stop("The 'metadata' argument must be a list.")
+    }
+
+    .validate_character_scalar(column_name)
+    .validate_character_scalar(separator)
+
     # use for loop to change values in place
     for (sheet in names(metadata)) {
         if (column_name %in% names(metadata[[sheet]])) {
@@ -677,7 +813,7 @@ process_delimited_column <- function(metadata, column_name, separator) {
         }
     }
 
-    return(metadata)
+    metadata
 }
 
 #' Format Chromosome Metadata
@@ -717,14 +853,14 @@ process_delimited_column <- function(metadata, column_name, separator) {
 #' @export
 format_chromosomes <- function(metadata) {
     if (!is.data.frame(metadata$analyses)) {
-        stop("metadata$analyses must be a data frame")
+        stop("metadata$analyses must be a data frame.")
     }
 
     chr_col <- apply(metadata$analyses, 1, function(x) {
         process_chromosomes(x, metadata$select_input_data)
     })
 
-    return(chr_col)
+    chr_col
 }
 
 #' Process a Vector or List of Chromosome Data
@@ -763,6 +899,14 @@ format_chromosomes <- function(metadata) {
 #'
 #' @export
 process_chromosomes <- function(chr_data, select_input_data) {
+    if (!is.list(select_input_data)) {
+        stop("select_input_data must be a list.")
+    }
+
+    if (is.null(select_input_data$chromosomes)) {
+        stop("select_input_data$chromosomes must exist.")
+    }
+
     # Cast to list in case it's a data frame
     if (identical(class(chr_data), "data.frame")) {
         chr_data <- as.list(chr_data)
@@ -806,7 +950,7 @@ process_chromosomes <- function(chr_data, select_input_data) {
                 stop("No chromosome data present to match the groups.")
             }
         } else { # Return empty list if no chromosomes or groups are specified
-            return(list())
+            list()
         }
     }
 }
@@ -833,6 +977,11 @@ process_chromosomes <- function(chr_data, select_input_data) {
 #'
 #' @export
 get_chr_group <- function(group_id, chr_enum, sep = "--") {
+    .validate_character_scalar(group_id)
+    .validate_character_scalar(sep)
+    lapply(chr_enum, \(x) .validate_character_scalar(x))
+
+
     chr_enum_split <- str_split(chr_enum, sep)
     df <- setNames(
         data.frame(t(data.frame(chr_enum_split))),
@@ -842,32 +991,5 @@ get_chr_group <- function(group_id, chr_enum, sep = "--") {
 
     df <- df[df$group_id == group_id, c("id", "label")]
     df[["id"]] <- as.integer(df[["id"]])
-    return(df)
-}
-
-#' Convert NA Values to Empty Lists
-#'
-#' Replaces \code{NA} values in a list with empty lists, preserving the original
-#' structure of the list.
-#'
-#' @param l A list containing elements that may include \code{NA} values.
-#'
-#' @return A list where any \code{NA} values have been replaced with empty
-#'   lists.
-#'
-#' @examples
-#' input_list <- list(1, NA, "text", NA)
-#' na_to_empty_list(input_list)
-#'
-#' @export
-na_to_empty_list <- function(l) {
-    # if (!is.atomic(l) && is.null(l)) stop("Unsupported type in list")
-
-    lapply(l, function(x) {
-        if (is.na(x)) {
-            return(list())
-        } else {
-            return(x)
-        }
-    })
+    df
 }

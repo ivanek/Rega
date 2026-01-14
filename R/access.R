@@ -19,15 +19,17 @@
 #'
 #' @keywords internal
 .get_rega_key <- function(envvar = "REGA_KEY") {
+    .validate_character_scalar(envvar)
+
     rega_key <- Sys.getenv(envvar)
     if (identical(rega_key, "")) {
         warn_msg <- paste(
             sprintf("No %s environmental variable found.", envvar),
-            "Attempting to conect via unecrypted password."
+            "Attempting to connect via unecrypted password."
         )
         warning(warn_msg)
     }
-    return(rega_key)
+    rega_key
 }
 
 #' Get EGA User Name
@@ -48,11 +50,13 @@
 #'
 #' @keywords internal
 .get_ega_username <- function(envvar = "REGA_EGA_USERNAME") {
+    .validate_character_scalar(envvar)
+
     ega_username <- Sys.getenv(envvar)
     if (identical(ega_username, "")) {
         ega_username <- askpass(prompt = "Please enter your EGA username:")
     }
-    return(ega_username)
+    ega_username
 }
 
 #' Get EGA User Password
@@ -75,6 +79,8 @@
 #'
 #' @keywords internal
 .get_ega_password <- function(envvar = "REGA_EGA_PASSWORD", ...) {
+    .validate_character_scalar(envvar)
+
     rega_key <- .get_rega_key(...)
     ega_password <- Sys.getenv(envvar)
 
@@ -92,7 +98,7 @@
         ega_password <- secret_decrypt(Sys.getenv(envvar), I(rega_key))
     }
 
-    return(ega_password)
+    ega_password
 }
 
 #' Set The OAUTH With EGA Username And Password
@@ -128,12 +134,19 @@
 #' @export
 ega_oauth <- function(
     req, username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL) {
+    token_url = NULL
+) {
+    if (!is.list(req) && !inherits(req, "httr2_request")) {
+        stop("'req' must be an 'httr2_request' or compatible request object.")
+    }
+
     if (is.null(token_url)) {
         token_url <- paste0(
             "https://idp.ega-archive.org/",
             "realms/EGA/protocol/openid-connect/token"
         )
+    } else {
+        .validate_character_scalar(token_url)
     }
 
     client <- oauth_client(
@@ -151,7 +164,7 @@ ega_oauth <- function(
         cache_key = username
     )
 
-    return(request)
+    request
 }
 
 #' Retrieve EGA API Bearer Token
@@ -184,13 +197,16 @@ ega_oauth <- function(
 #' @export
 ega_token <- function(
     username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL) {
+    token_url = NULL
+) {
     if (is.null(token_url)) {
         # Use default EGA token URL
         token_url <- paste0(
             "https://idp.ega-archive.org/",
             "realms/EGA/protocol/openid-connect/token"
         )
+    } else {
+        .validate_character_scalar(token_url)
     }
 
     response <- request(token_url) |>
@@ -209,5 +225,5 @@ ega_token <- function(
         message("Failed to obtain token: ", response$status_code)
     }
 
-    return(content)
+    content
 }

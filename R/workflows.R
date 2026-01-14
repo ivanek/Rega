@@ -79,11 +79,20 @@ new_submission <- function(
     request_data, client = NULL, logfile = NULL, id = NULL,
     retrieve_if_exists = FALSE, ...
 ) {
+    # The rest of arguments are validated in the respective functions
+    if (!is.list(request_data) || is.null(names(request_data))) {
+        stop("'request_data' must be a named list.")
+    }
+
+    # TODO id validation?
+
     luts <- list()
     responses <- list()
 
-    if(is.null(client)) {
-        client = create_client(extract_api())
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     if (!is.logical(retrieve_if_exists)) {
@@ -330,7 +339,7 @@ new_submission <- function(
             {
                 # If no analyses are present, return NULL
                 if ("analyses" %in% names(request_data) &&
-                    "analysis_files" %in% names(request_data)
+                        "analysis_files" %in% names(request_data)
                 ) {
                     sm("Retrieving Analysis Files")
                     responses$analysis_files <- do.call(
@@ -444,7 +453,7 @@ new_submission <- function(
 
     save_log(responses, logfile)
 
-    return(responses)
+    responses
 }
 
 #' Retrieve or Delete Submission Data
@@ -464,6 +473,8 @@ new_submission <- function(
 #' @return A named list containing responses for datasets, analyses, runs,
 #'   experiments, samples, and studies.
 #'
+#' @importFrom rlang is_empty
+#'
 #' @examples
 #' mock_client <- list(
 #'     "get__submissions__accession_id__datasets" = function(id) {
@@ -476,14 +487,20 @@ new_submission <- function(
 #'
 #' @export
 use_submission <- function(id, method, client = NULL) {
-    if(is.null(client)) {
-        client = create_client(extract_api())
-    }
+    .validate_character_scalar(method)
 
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
-    } else {
+    } else if (is_provisional(id)) {
         base_url <- "submissions__provisional_id"
+    } else {
+        stop("Unknown ID type, must be valid accession of provisional ID.")
+    }
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     # List endpoints from the last since the earlier ones depend on them and
@@ -506,7 +523,7 @@ use_submission <- function(id, method, client = NULL) {
     })
 
     resp <- setNames(resp, all_ops)
-    return(resp)
+    resp
 }
 
 #' Retrieve Submission Data and Log Responses
@@ -539,23 +556,27 @@ use_submission <- function(id, method, client = NULL) {
 get_submission <- function(id, client = NULL, logfile = NULL, ...) {
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
-    } else {
+    } else if (is_provisional(id)) {
         base_url <- "submissions__provisional_id"
+    } else {
+        stop("Unknown ID type, must be valid accession of provisional ID.")
     }
 
-    if(is.null(client)) {
-        client = create_client(extract_api())
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     responses <- c(
         # Include submission endpoint for GET method
         list(submission = client[[paste0("get", "__", base_url)]](id)),
-        use_submission(id, client, "get")
+        use_submission(id, "get", client)
     )
 
     save_log(responses, logfile)
 
-    return(responses)
+    responses
 }
 
 #' Delete Submission Contents and Log Responses
@@ -585,13 +606,19 @@ get_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @export
 delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
-    if(is.null(client)) {
-        client = create_client(extract_api())
+    if (!is_provisional(id)) {
+        stop("ID must be provisional ID.")
+    }
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     responses <- use_submission(id, client, "delete")
     save_log(responses, logfile)
-    return(responses)
+    responses
 }
 
 #' Delete a Submission and Log Responses
@@ -621,15 +648,21 @@ delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @export
 delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
-    if(is.null(client)) {
-        client = create_client(extract_api())
+    if (!is_provisional(id)) {
+        stop("ID must be provisional ID.")
+    }
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     responses <- list(
         submission = client$delete__submissions__provisional_id(id)
     )
     save_log(responses, logfile)
-    return(responses)
+    responses
 }
 
 #' Rollback Submission Endpoints and Log Responses
@@ -661,15 +694,23 @@ delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
 rollback_submission <- function(
     id, endpoints, client = NULL, logfile = NULL, ...
 ) {
-    if(is.null(client)) {
-        client = create_client(extract_api())
-    }
-
-    if (is_accession(id)) {
+    if (!is_accession(id)) {
         stop(
             "Incorrect format of accesssion ID.
             Following format is required: ^EGA\\d{11}$"
         )
+    }
+
+    if (!is.list(endpoints)) {
+        stop("'endpoints' must be a list.")
+    }
+
+    lapply(endpoints, .validate_character_scalar, "All elements in endpoints")
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     responses <- lapply(endpoints, function(x) {
@@ -682,5 +723,5 @@ rollback_submission <- function(
     })
 
     save_log(responses, logfile)
-    return(responses)
+    responses
 }

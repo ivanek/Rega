@@ -1,6 +1,6 @@
 #' Parser for a Default EGA Excel Template
 #'
-#' This function parses the `extdata/template.xlsx` using the bundled parser
+#' This function parses the `extdata/ega_full_template_v3.xlsx` using the bundled parser
 #' parameter file in `extdata/default_parser_params.yaml` to extract
 #' information for EGA submission into format that can be easily passed
 #' into EGA API endpoints.
@@ -18,15 +18,14 @@
 #' @importFrom stringr str_split_i
 #'
 #' @examples
-#' # Template file is empty, trying to parse it as is will fail
-#' try(
-#'     default_parser(
-#'         system.file("extdata/ega_full_template_v2.xlsx", package = "Rega")
-#'     )
+#' default_parser(
+#'     system.file("extdata/submission_example.xlsx", package = "Rega")
 #' )
 #'
 #' @export
 default_parser <- function(metadata_file, param_file = NULL) {
+    .validate_character_scalar(metadata_file)
+
     # Run metadata parsing -----------------------------------------------------
     # If not specified, load the default parameter yaml file
     if (is.null(param_file)) {
@@ -34,6 +33,8 @@ default_parser <- function(metadata_file, param_file = NULL) {
             "extdata/default_parser_params.yaml",
             package = "Rega"
         )
+    } else {
+        .validate_character_scalar(param_file)
     }
     p <- read_yaml(param_file)
     sheets <- c(p$submission_sheets, p$linked_sheets, "Select Input Data")
@@ -113,7 +114,7 @@ default_parser <- function(metadata_file, param_file = NULL) {
         }
     }
 
-    return(pm)
+    pm
 }
 
 #' Check for Presence of Analyses Sheet in Metadata
@@ -136,18 +137,32 @@ default_parser <- function(metadata_file, param_file = NULL) {
 #'
 #' @keywords internal
 .has_analyses <- function(meta) {
+    if (!is.list(meta)) {
+        stop("'meta' must be a list.")
+    }
+
     if (!"aliases" %in% names(meta)) {
-        stop("'meta' arguments must have 'aliases' as a list")
+        stop("'meta' must have a top-level element 'aliases'.")
+    }
+
+    if (!is.list(meta$aliases)) {
+        stop("The 'aliases' element within 'meta' must be a list.")
+    }
+
+    if (!"analysis_files" %in% names(meta)) {
+        stop(
+            "The 'meta' argument must contain a top-level element named
+            'analysis_files'."
+        )
     }
 
     # Checks if the Aliases have an analysis entry or if there are Analysis
     # Files specified, if not, deletes both Analyses and Analyses Files sheet
     if (is.null(meta$aliases$analyses) ||
-        length(meta$aliases$analyses) == 0 ||
-        dim(meta$analysis_files)[1] == 0) {
-        return(FALSE)
+            length(meta$aliases$analyses) == 0 ||
+            dim(meta$analysis_files)[1] == 0) {
+        FALSE
     } else {
-        return(TRUE)
+        TRUE
     }
 }
-
