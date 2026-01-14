@@ -81,10 +81,6 @@ first_row_to_colnames <- function(df, to_api = TRUE) {
     # Remove first row
     df <- df[-1, , drop = FALSE]
 
-    # if(ncol(df) < 0 || nrow(df) < 0) {
-    #     stop("Resulting data frame must have at least one row and one column")
-    # }
-
     df
 }
 
@@ -383,7 +379,6 @@ file_formatter <- function(tab, params) {
     }
 
     tab <- first_row_to_colnames(tab)
-    # names(tab) <- label_to_api_name(names(tab))
     # Strip white space
     tab[] <- lapply(tab, \(x) str_trim(as.character(x)))
     # Keep the original names and modify the ega paths
@@ -504,11 +499,8 @@ get_formatter <- function(x, params) {
 get_formatter_params <- function(x, params) {
     .validate_character_scalar(x)
 
-    # Allow for NULL values cast to empty list
-    # if (is.null(params)) params <- list()
-
     if (!is.list(params) && !identical(params, FALSE)) {
-        stop("'params' must be a list, FALSE or NULL.")
+        stop("'params' must be a list or FALSE.")
     }
 
     if (!"formatter" %in% names(params)) {

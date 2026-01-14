@@ -1,8 +1,8 @@
 #' Parser for a Default EGA Excel Template
 #'
-#' This function parses the `extdata/ega_full_template_v3.xlsx` using the bundled parser
-#' parameter file in `extdata/default_parser_params.yaml` to extract
-#' information for EGA submission into format that can be easily passed
+#' This function parses the `extdata/ega_full_template_v3.xlsx` using the
+#' bundled parser parameter file in `extdata/default_parser_params.yaml` to
+#' extract information for EGA submission into format that can be easily passed
 #' into EGA API endpoints.
 #'
 #' @param metadata_file Character. Path to a default template xlsx file
@@ -10,7 +10,7 @@
 #' @param param_file Character. Path to a yaml file with parameters for parser.
 #'
 #' @return List of data frames or lists. Submission information parsed from the
-#' xlsx file.
+#'   xlsx file.
 #'
 #' @importFrom yaml read_yaml
 #' @importFrom readxl read_xlsx

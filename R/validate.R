@@ -290,8 +290,8 @@ default_validator <- function(meta, aliases = NULL) {
 
     cond <- validate::validator(
         # TODO put back
-        # studies_title_is_unique = is_unique(title),
-        # studies_description_is_unique = is_unique(description),
+        studies_title_is_unique = is_unique(title),
+        studies_description_is_unique = is_unique(description),
         studies_title_length = get_word_number(title) >= 3 &
             get_word_number(title) <= 20,
         studies_description_length = get_sentence_number(description) >= 3 &
