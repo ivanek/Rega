@@ -31,7 +31,10 @@ extract_api <- function(spec_file = NULL, host = NULL) {
             "extdata/ega_api_deref.yaml",
             package = "Rega"
         )
+    } else {
+        .validate_character_scalar(spec_file)
     }
+
     ext <- tolower(file_ext(spec_file))
     parse_fun <- switch(ext,
         yml = ,
@@ -50,6 +53,7 @@ extract_api <- function(spec_file = NULL, host = NULL) {
         }
         api$host <- server_urls[1]
     } else {
+        .validate_character_scalar(host)
         api$host <- host
     }
 
@@ -65,7 +69,7 @@ extract_api <- function(spec_file = NULL, host = NULL) {
         warning("There is no paths element in the API specification")
     }
 
-    return(api)
+    api
 }
 
 #' Extract API Operation Definitions
@@ -93,6 +97,10 @@ extract_api <- function(spec_file = NULL, host = NULL) {
 #'
 #' @export
 extract_operation_definitions <- function(api) {
+    if (!is.list(api) || is.null(names(api))) {
+        stop("'api' must be a named list.")
+    }
+
     valid_methods <- c("post", "patch", "get", "head", "delete", "put")
 
     operations <- list()
@@ -122,7 +130,7 @@ extract_operation_definitions <- function(api) {
             )
         }
     }
-    return(operations)
+    operations
 }
 
 #' Validate HTTP Method
@@ -136,11 +144,11 @@ extract_operation_definitions <- function(api) {
 #'   otherwise \code{FALSE}.
 #'
 #' @examples
-#' is_valid_http_method("GET")    # TRUE
-#' is_valid_http_method("get")    # TRUE
+#' is_valid_http_method("GET") # TRUE
+#' is_valid_http_method("get") # TRUE
 #' is_valid_http_method("DELETE") # TRUE
-#' is_valid_http_method("foo")    # FALSE
-#' is_valid_http_method(NULL)     # FALSE
+#' is_valid_http_method("foo") # FALSE
+#' is_valid_http_method(NULL) # FALSE
 #' @export
 is_valid_http_method <- function(m) {
     valid_methods <- c("post", "patch", "get", "head", "delete", "put")
@@ -153,7 +161,7 @@ is_valid_http_method <- function(m) {
         return(FALSE)
     }
 
-    return(TRUE)
+    TRUE
 }
 
 #' Convert Operation Parameters to Function Arguments
@@ -179,6 +187,10 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .operation_params_to_args <- function(op) {
+    if (!is.list(op)) {
+        stop("The 'op' argument must be a list.")
+    }
+
     parameters <- op$parameters
     # create a list of NULLs of the same length as parameters and initialize
     # the names
@@ -199,7 +211,7 @@ is_valid_http_method <- function(m) {
             }
         }
     }
-    return(args_list)
+    args_list
 }
 
 #' Extract Operation Parameters by Location
@@ -225,6 +237,10 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .get_operation_params <- function(op) {
+    if (!is.list(op)) {
+        stop("The 'op' argument must be a list.")
+    }
+
     # Setup the output list
     params <- list(
         path = character(),
@@ -232,10 +248,15 @@ is_valid_http_method <- function(m) {
         header = character()
     )
 
+    # op$paramters can be NULL
     parameters <- op$parameters
 
     if (!is.null(parameters)) {
         for (p in parameters) {
+            if (!is.list(p)) {
+                stop("Each element in 'op$parameters' must be a list.")
+            }
+
             if (is.null(p$name)) {
                 stop("Parameter needs a 'name' value.")
             }
@@ -246,7 +267,7 @@ is_valid_http_method <- function(m) {
             }
         }
     }
-    return(params)
+    params
 }
 
 #' Generate URL Parameter Replacement Expressions for an API Request
@@ -270,9 +291,11 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .add_paths <- function(path_params) {
-    if (!all(vapply(path_params, is.character, logical(1)))) {
-        stop("All 'path_params' must be character")
-    }
+    lapply(
+        path_params,
+        .validate_character_scalar,
+        "All 'path_params' elements"
+    )
 
     if (length(path_params) > 0) {
         rep_urls <- lapply(path_params, function(param_name) {
@@ -285,9 +308,9 @@ is_valid_http_method <- function(m) {
                 )
             )
         })
-        return(rep_urls)
+        rep_urls
     } else {
-        return(list())
+        list()
     }
 }
 
@@ -320,24 +343,38 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .add_headers <- function(header_params, operation, api, token = NULL) {
+    if (!is.character(header_params)) {
+        stop("The 'header_params' argument must be a character vector.")
+    }
+
+    if (!is.list(operation) || is.null(names(operation))) {
+        stop("'operation' must be a named list.")
+    }
+
+    if (!is.list(api) || is.null(names(api))) {
+        stop("'api' must be a named list.")
+    }
+
     # token variable is only used to check whether api key is being passed into
     # the function
-    api_key <- NULL # for linting
+    bearer_token <- NULL # for linting
     # Add headers
     headers_list <- list(
         `Content-Type` = "application/json"
     )
-    if ((!is.null(operation$security) || !is.null(api$security)) &&
-        !is.null(token)) {
+    if (
+        (!is.null(operation$security) || !is.null(api$security)) &&
+            !is.null(token)
+    ) {
         # Assuming API key authentication in header
-        headers_list[["Authorization"]] <- expr(paste("Bearer", api_key))
+        headers_list[["Authorization"]] <- expr(paste("Bearer", bearer_token))
     }
     if (length(header_params) > 0) {
         header_syms <- setNames(syms(header_params), header_params)
         headers_list <- c(headers_list, header_syms)
     }
 
-    return(expr(req <- req_headers(req, !!!headers_list)))
+    expr(req <- req_headers(req, !!!headers_list))
 }
 
 #' Generate Query Expressions for an API Request
@@ -365,14 +402,18 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .add_queries <- function(query_params) {
+    if (!is.character(query_params)) {
+        stop("The 'query_params' argument must be a character vector.")
+    }
+
     if (length(query_params) > 0) {
         query_syms <- setNames(syms(query_params), query_params)
         query_expr <- expr(
             req <- req_url_query(req, !!!query_syms)
         )
-        return(query_expr)
+        query_expr
     } else {
-        return(list())
+        list()
     }
 }
 
@@ -398,6 +439,10 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .add_json_validation <- function(op) {
+    if (!is.list(op) || is.null(names(op))) {
+        stop("'op' must be a named list.")
+    }
+
     has_body <- !is.null(op$requestBody)
     schema <- get_operation_schema(op)
 
@@ -408,9 +453,9 @@ is_valid_http_method <- function(m) {
         stop_expr <- expr(if (!valid) {
             stop(validation_to_msg(valid), call. = FALSE)
         })
-        return(list(validate_expr, stop_expr))
+        list(validate_expr, stop_expr)
     } else {
-        return(list())
+        list()
     }
 }
 
@@ -434,12 +479,12 @@ is_valid_http_method <- function(m) {
 #'
 #' @keywords internal
 .add_request_body <- function(has_body) {
-    if (!is.logical(has_body)) stop("'has_body' must be logical.")
+    .validate_logical_scalar(has_body, "has_body")
 
     if (has_body) {
-        return(expr(req <- req_body_json(req, body, auto_unbox = FALSE)))
+        expr(req <- req_body_json(req, body, auto_unbox = FALSE))
     } else {
-        return(list())
+        list()
     }
 }
 
@@ -456,14 +501,20 @@ is_valid_http_method <- function(m) {
 #' @param verbosity Integer, optional, values 0-3. Indicates with which
 #'   verbosity level should the requests \code{httr2::req_perform} be performed.
 #'   Default: 0.
-#' @param api_key Character, optional. The API key for authentication, will be
-#'   included in the headers of the request.
+#' @param bearer_token Character, optional. The API bearer token for
+#'   authentication, will be included in the headers of the request. Defaults
+#'   to `NULL`
+#' @param token_url Character, optional. Token endpoint URL from which to obtain
+#'   the access token. If \code{bearer_token} is specified, it will take
+#'   precedence. If `NULL`, URL
+#'   `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`
+#'   will be used. Defaults to `NULL`.
 #'
 #' @return A dynamically generated function that performs the specified API
 #'   operation. The function accepts arguments corresponding to operation
 #'   parameters and executes the request using `httr2`.
 #'
-#' @importFrom rlang pairlist2 expr new_function caller_env !! !!!
+#' @importFrom rlang pairlist2 expr new_function caller_env sym !! !!!
 #' @importFrom httr2 req_method request req_body_json req_perform
 #'   resp_check_status
 #'
@@ -472,7 +523,10 @@ is_valid_http_method <- function(m) {
 #' opdefs <- extract_operation_definitions(api)
 #'
 #' # Generate an API function for a specific operation
-#' f <- api_function_factory(opdefs[["get__files"]], api, api_key = "my_key")
+#' f <- api_function_factory(
+#'     opdefs[["get__files"]], api,
+#'     bearer_token = "my_key"
+#' )
 #'
 #' # Call the generated function with parameters (requires credentials)
 #' try(
@@ -480,8 +534,15 @@ is_valid_http_method <- function(m) {
 #' )
 #'
 #' @export
-api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
-    if(!is_valid_http_method(op$method)) stop("Invalid http method.")
+api_function_factory <- function(
+    op, api, verbosity = 0, bearer_token = NULL, token_url = NULL
+) {
+    if (!is_valid_http_method(op$method)) stop("Invalid http method.")
+    .validate_character_scalar(op$path)
+
+    if (!is.list(api) || is.null(names(api))) {
+        stop("'api' must be a named list.")
+    }
 
     if (!is.numeric(verbosity) || verbosity < 0 || verbosity > 3) {
         stop("'verbosity' must be numeric between 0 and 3.")
@@ -489,8 +550,12 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
         verbosity <- round(verbosity)
     }
 
-    if (!is.character(op$path) || length(op$path) > 1) {
-        stop("'op$path' value must be a single character string.")
+    if (!is.null(bearer_token)) {
+        .validate_character_scalar(bearer_token)
+    }
+
+    if (!is.null(token_url)) {
+        .validate_character_scalar(token_url)
     }
 
     resp <- NULL # lint
@@ -508,12 +573,18 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
     req_expr <- bquote(req <- req_method(request(url), .(op$method)))
     body_exprs <- c(body_exprs, req_expr)
 
-    if (is.null(api_key)) { # Add OAuth if API key not specified
-        body_exprs <- c(body_exprs, expr(req <- ega_oauth(req)))
+    if (is.null(bearer_token)) { # Add OAuth if API key not specified
+        body_exprs <- c(
+            body_exprs,
+            expr(req <- ega_oauth(req, token_url = !!token_url))
+        )
     } else { # otherwise modify function args
-        func_args <- c(func_args, pairlist2(api_key = api_key))
+        func_args <- c(func_args, pairlist2(bearer_token = bearer_token))
     }
-    body_exprs <- c(body_exprs, .add_headers(params$header, op, api, api_key))
+    body_exprs <- c(
+        body_exprs,
+        .add_headers(params$header, op, api, bearer_token)
+    )
     body_exprs <- c(body_exprs, .add_queries(params$query))
     body_exprs <- c(body_exprs, .add_request_body(has_body))
     # Perform the request and handle the response -----
@@ -535,7 +606,7 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
         body = func_body,
         env = caller_env()
     )
-    return(func)
+    func
 }
 
 #' Generate API Client Functions
@@ -555,7 +626,10 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
 #' @importFrom stats setNames
 #'
 #' @examples
-#' client <- create_client(extract_api(), api_key = "my_key", verbosity = 1)
+#' client <- create_client(
+#'     extract_api(),
+#'     bearer_token = "my_key", verbosity = 1
+#' )
 #'
 #' # Call an operation using the client (requires credentials)
 #' try(
@@ -564,6 +638,10 @@ api_function_factory <- function(op, api, verbosity = 0, api_key = NULL) {
 #'
 #' @export
 create_client <- function(api, ...) {
+    if (!is.list(api) || is.null(names(api))) {
+        stop("'api' must be a named list.")
+    }
+
     opdefs <- extract_operation_definitions(api)
     setNames(
         lapply(opdefs, \(x) api_function_factory(x, api, ...)),
@@ -583,12 +661,8 @@ create_client <- function(api, ...) {
 #'   response is plain text without a JSON-like structure, a one-column tibble
 #'   is returned with the raw content.
 #'
-#' @importFrom httr2 resp_url_path resp_body_json resp_body_string
-#'   resp_content_type
-#' @importFrom jsonlite fromJSON
-#' @importFrom rlang :=
-#' @importFrom stringr str_replace
-#' @importFrom tibble tibble
+#' @importFrom httr2 resp_content_type
+#' @importFrom tibble is_tibble tibble
 #' @importFrom tidyr unnest_wider
 #'
 #' @examples
@@ -614,50 +688,142 @@ create_client <- function(api, ...) {
 #'
 #' @export
 parse_ega_body <- function(resp) {
-    resource_name <- resp |>
-        resp_url_path() |>
-        str_replace("\\/api\\/(\\w+)\\/?.*", "\\1")
+    row_data <- NULL # linter
 
-    if (resp_content_type(resp) == "application/json") {
-        # check if the content is JSON
-        resp <- resp_body_json(resp)
+    if (!inherits(resp, "httr2_response")) {
+        stop("Argument 'resp' must be an 'httr2_response' object.")
+    }
 
-        # special treatment for short list (e.g. user info)
-        if (!is.null(names(resp))) resp <- list(resp)
-    } else if (resp_content_type(resp) == "text/plain") {
-        # if plain text, convert to JSON list
-        resp <- resp_body_string(resp)
+    content_type <- resp_content_type(resp)
 
-        if (grepl("^\\{.*\\}$", resp)) {
-            # if there is JSON like structure
-            resp <- resp |>
-                fromJSON() |>
-                lapply(function(x) if (is.null(x)) list() else x) |>
-                list()
-        } else {
-            # in case there is no JSON like structure
-            # return the value as an one-column tibble
-            return(tibble("{resource_name}" := resp))
-        }
+    if (content_type == "application/json") {
+        parsed_data <- parse_json_body(resp)
+    } else if (content_type == "text/plain") {
+        parsed_data <- parse_text_body(resp)
     } else {
-        err_msg <- paste(
-            "Unknown content type, only 'application/json'",
-            "and 'text/plain' are allowed."
+        stop(
+            sprintf(
+                "Unknown content type '%s'. Only 'application/json' and
+                'text/plain' are allowed.",
+                content_type
+            )
         )
-        stop(err_msg)
     }
 
-    resp <- resp |>
-        tibble() |>
-        unnest_wider(resp, names_sep = "/", names_repair = "unique")
-    # in the datasets response, there are 2 columns with status, why?
+    # If only single json object is parsed, it needs to be wrapped in the list
+    if (!is.null(names(parsed_data))) parsed_data <- list(parsed_data)
 
-    if (ncol(resp) == 1) {
-        names(resp) <- resource_name
+    fmt_table <- tibble(row_data = parsed_data) |>
+        unnest_wider(row_data, names_sep = "/", names_repair = "unique")
+
+    # Remove prefixes (everything before the last slash)
+    names(fmt_table) <- sub(".*/", "", names(fmt_table))
+
+    # If we ended up with a single column, set name to resource
+    if (ncol(fmt_table) == 1) names(fmt_table) <- extract_resource_name(resp)
+
+    fmt_table
+}
+
+#' Extract Resource Name from API Response URL
+#'
+#' Extracts the specific resource identifier (e.g., "users", "datasets") from
+#' the path of an `httr2` response object by parsing the segment immediately
+#' following `/api/`.
+#'
+#' @param resp An `httr2_response` object.
+#'
+#' @return A character string containing the resource name.
+#'
+#' @importFrom httr2 resp_url_path
+#' @importFrom stringr str_replace
+#'
+#' @examples
+#' resp <- httr2::response(
+#'     method = "GET",
+#'     url = "https://www.example.com/api/files"
+#' )
+#' extract_resource_name(resp)
+#'
+#' @export
+extract_resource_name <- function(resp) {
+    url_path <- resp_url_path(resp)
+    .validate_character_scalar(url_path)
+    str_replace(url_path, "\\/api\\/(\\w+)\\/?.*", "\\1")
+}
+
+#' Parse and Standardize JSON Response Body
+#'
+#' Extracts the JSON body from a response and ensures the output is
+#' structured as a list of objects. Named lists (single records) are
+#' wrapped in a parent list to maintain consistency for downstream
+#' unnesting.
+#'
+#' @param resp An `httr2_response` object containing JSON content.
+#'
+#' @return A list of lists, where each inner list represents a record.
+#'
+#' @importFrom httr2 resp_body_json
+#'
+#' @examples
+#' json_resp <- httr2::response(
+#'     method = "GET",
+#'     url = "https://www.example.com/api/files",
+#'     status = 200,
+#'     headers = list("content-type" = "application/json"),
+#'     body = charToRaw('[{"id": 1, "name": "test"}]')
+#' )
+#' parse_json_body(json_resp)
+#'
+#' @export
+parse_json_body <- function(resp) {
+    json_data <- resp_body_json(resp)
+
+    # special treatment for single value responses (e.g. user info)
+    if (!is.list(json_data)) {
+        return(list(json_data))
     }
 
-    # remove anything before slash .*/from column names
-    colnames(resp) <- sub(".*\\/", "", colnames(resp))
+    json_data
+}
 
-    return(resp)
+#' Parse Plain Text or JSON-like Response Body
+#'
+#' Processes a text response by either parsing it as JSON (if structured
+#' with curly braces) or returning it as a single-column tibble. Null
+#' JSON elements are converted to empty lists to facilitate unnesting.
+#'
+#' @param resp An `httr2_response` object with "text/plain" content.
+#' @param resource_name String used as the column name for raw text output.
+#'
+#' @return A list of parsed data or a tibble if the content is raw text.
+#'
+#' @importFrom httr2 resp_body_string
+#' @importFrom jsonlite fromJSON
+#' @importFrom rlang := !!
+#' @importFrom tibble tibble
+#'
+#' @examples
+#' text_resp <- httr2::response(
+#'     method = "POST",
+#'     url = "https://www.example.com/api/submissions",
+#'     status = 200,
+#'     headers = list("content-type" = "text/plain"),
+#'     body = charToRaw("Sample response text")
+#' )
+#' parse_text_body(text_resp, "files")
+#'
+#' @export
+parse_text_body <- function(resp) {
+    text_content <- resp_body_string(resp)
+
+    is_json_like <- grepl("^\\{.*\\}$", text_content) ||
+        grepl("^\\[.*\\]$", text_content)
+
+    if (is_json_like) {
+        parsed <- fromJSON(text_content, simplifyVector = FALSE)
+        return(parsed)
+    }
+
+    text_content
 }
