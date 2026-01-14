@@ -18,9 +18,9 @@ Checks whether a given HTTP method is valid based on a predefined list of
 accepted methods (matches on lowercase).
 }
 \examples{
-is_valid_http_method("GET")    # TRUE
-is_valid_http_method("get")    # TRUE
+is_valid_http_method("GET") # TRUE
+is_valid_http_method("get") # TRUE
 is_valid_http_method("DELETE") # TRUE
-is_valid_http_method("foo")    # FALSE
-is_valid_http_method(NULL)     # FALSE
+is_valid_http_method("foo") # FALSE
+is_valid_http_method(NULL) # FALSE
 }

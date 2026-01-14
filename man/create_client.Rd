@@ -23,7 +23,10 @@ This function creates a named list of functions for interacting with an API,
 based on its specification and operation definitions.
 }
 \examples{
-client <- create_client(extract_api(), api_key = "my_key", verbosity = 1)
+client <- create_client(
+    extract_api(),
+    bearer_token = "my_key", verbosity = 1
+)
 
 # Call an operation using the client (requires credentials)
 try(

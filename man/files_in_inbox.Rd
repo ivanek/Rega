@@ -22,6 +22,9 @@ Query the remote client for each requested file prefix and test whether a
 file is found for every element of \code{file_list}.
 }
 \examples{
-files_in_inbox(list("file_a", "file_b"), client)
+mock_client <- list(
+    get__files = function(prefix = NULL) list(prefix)
+)
+files_in_inbox(c("file_a", "file_b"), mock_client)
 
 }

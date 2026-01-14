@@ -4,7 +4,13 @@
 \alias{api_function_factory}
 \title{Generate an API Function from Operation and Specification}
 \usage{
-api_function_factory(op, api, verbosity = 0, api_key = NULL)
+api_function_factory(
+  op,
+  api,
+  verbosity = 0,
+  bearer_token = NULL,
+  token_url = NULL
+)
 }
 \arguments{
 \item{op}{List. The API operation definition, including method, path,
@@ -17,8 +23,15 @@ definitions.}
 verbosity level should the requests \code{httr2::req_perform} be performed.
 Default: 0.}
 
-\item{api_key}{Character, optional. The API key for authentication, will be
-included in the headers of the request.}
+\item{bearer_token}{Character, optional. The API bearer token for
+authentication, will be included in the headers of the request. Defaults
+to \code{NULL}}
+
+\item{token_url}{Character, optional. Token endpoint URL from which to obtain
+the access token. If \code{bearer_token} is specified, it will take
+precedence. If \code{NULL}, URL
+\code{"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"}
+will be used. Defaults to \code{NULL}.}
 }
 \value{
 A dynamically generated function that performs the specified API
@@ -35,7 +48,10 @@ api <- extract_api()
 opdefs <- extract_operation_definitions(api)
 
 # Generate an API function for a specific operation
-f <- api_function_factory(opdefs[["get__files"]], api, api_key = "my_key")
+f <- api_function_factory(
+    opdefs[["get__files"]], api,
+    bearer_token = "my_key"
+)
 
 # Call the generated function with parameters (requires credentials)
 try(

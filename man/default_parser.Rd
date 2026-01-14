@@ -17,17 +17,14 @@ List of data frames or lists. Submission information parsed from the
 xlsx file.
 }
 \description{
-This function parses the \code{extdata/template.xlsx} using the bundled parser
-parameter file in \code{extdata/default_parser_params.yaml} to extract
-information for EGA submission into format that can be easily passed
+This function parses the \code{extdata/ega_full_template_v3.xlsx} using the
+bundled parser parameter file in \code{extdata/default_parser_params.yaml} to
+extract information for EGA submission into format that can be easily passed
 into EGA API endpoints.
 }
 \examples{
-# Template file is empty, trying to parse it as is will fail
-try(
-    default_parser(
-        system.file("extdata/ega_full_template_v2.xlsx", package = "Rega")
-    )
+default_parser(
+    system.file("extdata/submission_example.xlsx", package = "Rega")
 )
 
 }
