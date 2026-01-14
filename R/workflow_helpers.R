@@ -13,6 +13,8 @@
 #' @return A logical vector indicating whether each element of \code{x} is a
 #' valid accession identifier for the specified schema.
 #'
+#' @importFrom rlang is_empty
+#'
 #' @examples
 #' is_accession("EGAB00000000001", "submission") # TRUE
 #' is_accession("EGA12345678901", "sample") # FALSE
@@ -37,8 +39,10 @@ is_accession <- function(x, schema = NULL) {
         "submission" = "B"
     )
 
+    if (is_empty(x)) return(FALSE)
+
     if (is.null(schema)) {
-        letter = paste0("[", paste(unique(letter_lut), collapse = "|"), "]")
+        letter <- paste0("[", paste(unique(letter_lut), collapse = "|"), "]")
     } else if (schema %in% names(letter_lut)) {
         letter <- letter_lut[schema]
     } else {
@@ -62,15 +66,19 @@ is_accession <- function(x, schema = NULL) {
 #'
 #' @return A logical vector indicating which values are provisional IDs.
 #'
+#' @importFrom rlang is_empty
+#'
 #' @examples
 #' is_provisional(c(10, 11, 3.5, 9))
 #'
 #' @export
 is_provisional <- function(x) {
+    if (is_empty(x)) return(FALSE)
+
     if (is.numeric(x)) {
         as.numeric(x) == as.integer(x)
     } else if (is.character(x)) {
-        grepl("^[1-9][0-9]+$", x)
+        grepl("^[1-9][0-9]*$", x)
     } else {
         stop(
             "Unknown type of provisional ID.
@@ -109,7 +117,7 @@ step_msg <- function(steps) {
         message(step_msg)
         assign("cur", cur + 1, envir = parent.env(environment()))
     }
-    return(inner)
+    inner
 }
 
 #' Convert a Data Frame Row to an Unboxed JSON Object
@@ -129,6 +137,12 @@ step_msg <- function(steps) {
 #'
 #' @export
 unbox_row <- function(row) {
+    if (!is.vector(row) && !is.list(row)) {
+        stop(
+            "The 'row' argument must be a vector or a list
+            (e.g., a data frame row)."
+        )
+    }
     unbox(fromJSON(toJSON(row)))
 }
 
@@ -147,13 +161,17 @@ unbox_row <- function(row) {
 #'
 #' @export
 unbox_list <- function(l) {
+    if (!is.list(l)) {
+        stop("'l' must be a list.")
+    }
+
     is_l1 <- all(vapply(l, \(x) length(x) == 1, logical(1)))
     if (is_l1) {
         row <- unbox_row(as.data.frame(l))
     } else {
         stop("All elements of the list must be of length 1.")
     }
-    return(row)
+    row
 }
 
 #' Submit a Data Frame to an API Endpoint Row by Row
@@ -176,8 +194,16 @@ unbox_list <- function(l) {
 #'
 #' @export
 submit_table <- function(tab, id, endpoint_func) {
+    if (!is.data.frame(tab)) stop("'tab' must be a data frame.")
+
     if (nrow(tab) == 0) {
         stop("'tab' has zero rows.")
+    }
+
+    .validate_character_scalar(id)
+
+    if (!is.function(endpoint_func)) {
+        stop("The 'endpoint_func' must be a function.")
     }
 
     row_resp <- vector("list", length = nrow(tab))
@@ -188,7 +214,7 @@ submit_table <- function(tab, id, endpoint_func) {
     }
 
     row_resp <- do.call(rbind, row_resp)
-    return(row_resp)
+    row_resp
 }
 
 #' Retrieve or Submit Data to an EGA API Endpoint
@@ -246,6 +272,13 @@ get_or_post <- function(
     submission_id, data, client, endpoint, id_type = "provisional",
     retrieve_if_exists = FALSE
 ) {
+    .validate_character_scalar(submission_id)
+    if (!is.data.frame(data)) stop("'data' must be a data frame.")
+    .is_client(client)
+    .validate_character_scalar(endpoint)
+    .validate_character_scalar(id_type)
+    .validate_logical_scalar(retrieve_if_exists, "retrieve_if_exists")
+
     built_url <- paste0("__", "submissions__", id_type, "_id", "__", endpoint)
     resp <- client[[paste0("get", built_url)]](submission_id)
 
@@ -273,7 +306,7 @@ get_or_post <- function(
         )
         stop(err_msg)
     }
-    return(resp)
+    resp
 }
 
 #' Save API Responses to a Log File
@@ -295,11 +328,20 @@ get_or_post <- function(
 #'
 #' @export
 save_log <- function(responses, logfile) {
+    if (!is.list(responses) && !is.vector(responses)) {
+        stop(
+            "The 'responses' argument must be a list (or vector coercible
+             to a list)."
+        )
+    }
+
     if (!is.null(logfile)) {
+        .validate_character_scalar(logfile)
         if (dir.exists(logfile)) stop("Specified 'logfile' is a direcory.")
         write_yaml(responses, logfile, column.major = FALSE)
     }
-    return(invisible(NULL))
+
+    invisible(NULL)
 }
 
 #' Workflow Error Handler
@@ -329,7 +371,8 @@ save_log <- function(responses, logfile) {
 #'
 #' @export
 workflow_error_handler <- function(step, responses, logfile, ...) {
-    if (!is.character(step)) stop("'step' must be a character.")
+    # Responses and logfile checks are in save_log function
+    .validate_character_scalar(step)
 
     captured_exprs <- enquos(...)
 
@@ -346,7 +389,7 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
         abort(e$message, trace = trace_back())
     }
 
-    return(ef)
+    ef
 }
 
 #' Check whether all expected files are in the inbox
@@ -363,23 +406,24 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
 #'   \code{FALSE}.
 #'
 #' @examples
-#' files_in_inbox(list("file_a", "file_b"), client)
+#' mock_client <- list(
+#'     get__files = function(prefix = NULL) list(prefix)
+#' )
+#' files_in_inbox(c("file_a", "file_b"), mock_client)
 #'
 #' @export
-files_in_inbox = function(file_list, client = NULL) {
-    if(is.null(client)) {
-        client = create_client(extract_api())
-    }
-
-    if (!is.vector(file_list, mode = "character")) {
-        stop("`file_list` must be a character vector.")
+files_in_inbox <- function(file_list, client = NULL) {
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
     }
 
     if (!length(file_list)) {
-        stop("`file_list` must contain at least one element.")
+        stop("'file_list' must contain at least one element.")
     }
 
-    responses$raw_files <- do.call(
+    raw_files <- do.call(
         rbind,
         lapply(
             unlist(file_list),
@@ -387,6 +431,6 @@ files_in_inbox = function(file_list, client = NULL) {
         )
     )
 
-    all_files = nrow(responses$raw_files) == length(unlist(file_list))
+    all_files <- nrow(raw_files) == length(unlist(file_list))
     all_files
 }
