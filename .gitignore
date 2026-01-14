@@ -5,3 +5,5 @@ Rega.Rproj
 .httr-oauth
 .DS_Store
 .quarto
+.lintr
+~$*

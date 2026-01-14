@@ -1,3 +1,5 @@
 ^Rega\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^tests/testthat/\.lintr$
+^\.lintr$
