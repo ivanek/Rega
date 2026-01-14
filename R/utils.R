@@ -14,13 +14,11 @@
 #'
 #' @export
 add_required_str <- function(p, r, req_str = "* ") {
-    if (!is.character(req_str) || length(req_str) != 1) {
-        stop("'req_str' must be a scalar character")
+    if (!is.character(p)) {
+        stop("The 'p' argument must be a character vector.")
     }
 
-    pos_req <- which(p %in% r)
-    pos_other <- which(!p %in% r)
-    ordering <- c(pos_req, pos_other)
+    .validate_character_scalar(req_str)
 
     out <- vapply(p, function(x) {
         if (x %in% r) {
@@ -30,7 +28,7 @@ add_required_str <- function(p, r, req_str = "* ") {
         }
     }, character(1), USE.NAMES = FALSE)
 
-    return(out)
+    out
 }
 
 #' Retrieve Enum Values from an API
@@ -57,12 +55,16 @@ add_required_str <- function(p, r, req_str = "* ") {
 #'
 #' @export
 get_enum <- function(client, enum_name, enum_prefix = "get__enums_") {
+    .is_client(client)
+    .validate_character_scalar(enum_name)
+    .validate_character_scalar(enum_prefix)
+
     enum_string <- paste0(enum_prefix, enum_name)
     if (is.null(client[[enum_string]])) {
-        stop(sprintf("%s not found in client", enum_string))
+        stop(sprintf("%s not found in client.", enum_string))
     }
 
-    return(client[[enum_string]]())
+    client[[enum_string]]()
 }
 
 #' Parse Enum into a Formatted String
@@ -109,7 +111,7 @@ parse_enum <- function(enum, sep = "--") {
     } else {
         stop("Unknown type of enum returned for parsing.")
     }
-    return(parsed_str)
+    parsed_str
 }
 
 #' Filter Out ID Fields from a Character Vector
@@ -136,9 +138,10 @@ parse_enum <- function(enum, sep = "--") {
 #' @export
 filter_id_fields <- function(x, pattern = NULL) {
     if (!is.character(x)) stop("'x' must be a character vector.")
+    if (!is.null(pattern)) .validate_character_scalar(pattern)
 
     if (is.null(pattern)) pattern <- "(?<!policy_)accession_id|provisional_id"
-    return(x[!grepl(pattern, x, perl = TRUE)])
+    x[!grepl(pattern, x, perl = TRUE)]
 }
 
 #' Retrieve Request Schemas from an API Specification
@@ -158,9 +161,27 @@ filter_id_fields <- function(x, pattern = NULL) {
 #'
 #' @export
 get_schemas <- function(api) {
+    if (!is.list(api)) {
+        stop("The 'api' argument must be a list.")
+    }
+
+    if (!"components" %in% names(api)) {
+        stop("The 'api' list must contain an element named 'components'.")
+    }
+
+    if (!is.list(api$components)) {
+        stop("The 'components' element within 'api' must be a list.")
+    }
+
+    if (!"schemas" %in% names(api$components)) {
+        stop(
+            "The 'api$components' list must contain an element named 'schemas'."
+        )
+    }
+
     schemas <- Filter(Negate(is.null), api$components$schemas)
     schemas <- schemas[grepl("Request", names(schemas))]
-    return(schemas)
+    schemas
 }
 
 #' Extract and Format Properties from a Schema
@@ -188,19 +209,21 @@ get_schemas <- function(api) {
 #' @export
 get_properties <- function(schema, filter_ids = TRUE) {
     if (!is.list(schema) || is.null(names(schema))) {
-        stop("'schema' must be a named list")
+        stop("'schema' must be a named list.")
     }
 
     if (!"properties" %in% names(schema)) {
         stop("No 'properties' key in schema.")
     }
 
+    .validate_logical_scalar(filter_ids, "filter_ids")
+
     required <- schema$required
     out <- names(schema$properties)
     if (filter_ids) out <- filter_id_fields(out)
     out <- add_required_str(out, required)
     out <- api_name_to_label(out)
-    return(out)
+    out
 }
 
 #' Count the number of words in text
@@ -217,12 +240,20 @@ get_properties <- function(schema, filter_ids = TRUE) {
 #' get_word_number(c("one two", "three four five"))
 #'
 #' @export
-get_word_number = function(text) {
+get_word_number <- function(text) {
     if (!is.character(text)) {
-        stop("`text` must be a character vector.")
+        stop("'text' must be a character vector.")
     }
 
-    lengths(gregexpr("\\W+", text)) + 1
+    no_ws <- gsub("\\s+", "", text)
+    single_word_str <- nchar(text) == nchar(no_ws)
+    empty_str <- nchar(no_ws) == 0
+
+    result <- lengths(gregexpr("\\W+", text)) + 1L
+    result[single_word_str] <- 1L
+    result[empty_str] <- 0L
+
+    result
 }
 
 #' Count the number of sentences in text
@@ -239,11 +270,200 @@ get_word_number = function(text) {
 #' get_sentence_number("First sentence. Second sentence? Third!")
 #'
 #' @export
-get_sentence_number = function(text) {
-    if (!is.character(text)) {
-        stop("`text` must be a character vector.")
+get_sentence_number <- function(text) {
+    if (!is.character(text) || length(text) < 1)  {
+        stop("'text' must be a character vector.")
     }
 
-    length(gregexpr('[[:alnum:]][.!?]', text)[[1]])
+    matches <- gregexpr("[[:alnum:]][.!?]", text)
+    match_counts <- lengths(lapply(matches, function(x) x[x != -1]))
+
+    no_ws <- gsub("\\s+", "", text)
+    has_content <- nchar(no_ws) > 0
+
+    needs_extra <- has_content & !grepl("[.!?]$", text)
+    result <- match_counts + as.integer(needs_extra)
+
+    as.integer(result)
 }
 
+#' Convert NA Values to Empty Lists
+#'
+#' Replaces \code{NA} values in a list with empty lists, preserving the original
+#' structure of the list.
+#'
+#' @param l A list containing elements that may include \code{NA} values.
+#'
+#' @return A list where any \code{NA} values have been replaced with empty
+#'   lists.
+#'
+#' @examples
+#' input_list <- list(1, NA, "text", NA)
+#' na_to_empty_list(input_list)
+#'
+#' @export
+na_to_empty_list <- function(l) {
+    if (!is.list(l) && !is.null(l) && !is.vector(l)) {
+        stop("The argument 'l' must be a list, vector or NULL.")
+    }
+
+    lapply(l, function(x) {
+        if (is.na(x)) {
+            list()
+        } else {
+            x
+        }
+    })
+}
+
+#' Check if an object is a non-complex atomic scalar.
+#'
+#' An atomic scalar is defined as an atomic vector of length exactly
+#' one, excluding complex numbers.
+#'
+#' @param x An object to be tested.
+#'
+#' @return A logical value: \code{TRUE} if \code{x} is a non-complex
+#'   atomic scalar, \code{FALSE} otherwise.
+#'
+#' @examples
+#' # Returns TRUE for simple, single values
+#' .is_scalar(5L)
+#' .is_scalar("hello")
+#' .is_scalar(TRUE)
+#' # Returns FALSE for vectors, lists, or complex numbers
+#' .is_scalar(c(1, 2))
+#' .is_scalar(list(1))
+#' .is_scalar(1 + 1i)
+#'
+#' @keywords internal
+.is_scalar <- function(x) {
+    is.atomic(x) && length(x) == 1L && !is.complex(x)
+}
+
+#' Validate that an object is a non-empty character scalar.
+#'
+#' This internal function checks if \code{x} is a character vector with
+#' a length of exactly one, is not \code{NA}, and contains at least
+#' one character (i.e., not an empty string, \code{""}). If the check
+#' fails, the function stops execution and reports an error using the
+#' provided variable name.
+#'
+#' @param x An object to be tested.
+#' @param varname A character string specifying the name of the
+#'   variable being checked, used in the error message.
+#'
+#' @return Returns \code{TRUE} invisibly if the validation succeeds,
+#'   otherwise stops execution with an error.
+#'
+#' @examples
+#' # Returns TRUE silently
+#' .validate_character_scalar("valid_string", "input_arg")
+#'
+#' # Throws an error for an empty string
+#' tryCatch(
+#'     .validate_character_scalar("", "empty_arg"),
+#'     error = function(e) message(e$message)
+#' )
+#'
+#' @keywords internal
+.validate_character_scalar <- function(x, varname = NULL) {
+    if (is.null(varname)) {
+        varname_expr <- substitute(x)
+        varname <- deparse(varname_expr)
+        val <- x
+    } else {
+        val <- x
+    }
+    if (!is.character(val) || !.is_scalar(val) || !nzchar(val) || is.na(val)) {
+        stop(
+            sprintf("%s must be a non-empty character scalar.", varname)
+        )
+    }
+    TRUE
+}
+
+#' Validate that an object is a non-missing logical scalar.
+#'
+#' This internal function checks if \code{x} is a logical vector with
+#' a length of exactly one and is not \code{NA}. If the check fails,
+#' the function stops execution and reports an error using the
+#' provided variable name.
+#'
+#' @param x An object to be tested.
+#' @param varname A character string specifying the name of the
+#'   variable being checked, used in the error message.
+#'
+#' @return Returns \code{TRUE} invisibly if the validation succeeds,
+#'   otherwise stops execution with an error.
+#'
+#' @examples
+#' # Returns TRUE silently
+#' .validate_logical_scalar(TRUE, "input_check")
+#'
+#' # Throws an error for a logical NA
+#' tryCatch(
+#'     .validate_logical_scalar(NA, "na_arg"),
+#'     error = function(e) message(e$message)
+#' )
+#'
+#' @keywords internal
+.validate_logical_scalar <- function(x, varname = NULL) {
+    if (is.null(varname)) {
+        varname_expr <- substitute(x)
+        varname <- deparse(varname_expr)
+        val <- x
+    } else {
+        val <- x
+    }
+
+    if (!is.logical(val) || !.is_scalar(val) || is.na(val)) {
+        stop(
+            sprintf("%s must be a non-empty logical scalar or NULL.", varname)
+        )
+    }
+    TRUE
+}
+
+#' Validate that an object is a client list of functions.
+#'
+#' Checks that \code{client} is a list where every element is a function.
+#' Additionally, it verifies that the name of each function starts with a valid
+#' HTTP method (e.g., \code{get_}, \code{post_}, etc.). It stops execution with
+#' an error if any of the checks fail.
+#'
+#' @param client An object to be tested, expected to be a list of functions.
+#'
+#' @return Returns \code{TRUE} invisibly if the validation succeeds, otherwise
+#'   stops execution with an error.
+#'
+#' @importFrom stringr str_split_fixed
+#'
+#' @examples
+#' # Returns TRUE silently for a valid client structure
+#' valid_client <- list(
+#'     get_resource = function(...) "GET",
+#'     post_data = function(...) "POST"
+#' )
+#' .is_client(valid_client)
+#'
+#' @keywords internal
+.is_client <- function(client) {
+    if (!is.list(client) || length(client) < 1) {
+        stop("'client' must be a non-empty list.")
+    }
+
+    if (!all(vapply(client, is.function, FUN.VALUE = logical(1)))) {
+        stop("'client' must be a list of functions.")
+    }
+
+    http_methods <- as.character(
+        str_split_fixed(names(client), pattern = "_", n = 2)[, 1]
+    )
+
+    if (!all(vapply(http_methods, is_valid_http_method, logical(1)))) {
+        stop("'client' function names must start with valid http method name.")
+    }
+
+    TRUE
+}
