@@ -34,7 +34,7 @@ test_that("'query_params' is not a character vector", {
   params <- 123
   expect_error(
     Rega:::.add_queries(params),
-    "Can't convert.*to a symbol"
+    "Can't convert.*to a symbol|must be a character vector"
   )
 })
 
@@ -42,6 +42,6 @@ test_that("One element of 'query_params' is non-character => fails in syms()", {
   params <- list("validParam", 99)
   expect_error(
     Rega:::.add_queries(params),
-    "Can't convert.*to a symbol"
+    "Can't convert.*to a symbol|argument must be a character vector"
   )
 })

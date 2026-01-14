@@ -65,7 +65,7 @@ test_that("'tab' is not a data frame", {
 
   expect_error(
     submit_table(not_a_df, id = "test", endpoint_func = mock_endpoint_func),
-    "argument is of length zero"
+    "must be a data frame"
   )
 })
 

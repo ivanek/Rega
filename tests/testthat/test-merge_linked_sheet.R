@@ -41,7 +41,7 @@ test_that("'dat' is list", {
   # no extra information will get merged into target
   target <- c("A", "B")
   source <- "Key"
-  dat_list <- list(Key = c("A", "B", "C"))
+  dat_list <- data.frame(Key = c("A", "B", "C"))
   sheet <- "any_sheet"
   result <- merge_linked_sheet(target, source, dat_list, sheet)
 
@@ -65,9 +65,32 @@ test_that("No common values, empty merge result", {
   expect_true(names(result) == c("Key"))
 })
 
+test_that("all 'target' is NA", {
+  target <- c(NA, NA)
+  source <- "Key"
+  sheet <- "any_sheet"
+  dat <- data.frame("Key" = c(1, 2, 3))
+  result <- merge_linked_sheet(target, source, dat, sheet)
+
+  expect_equal(result, list())
+})
+
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
+
+test_that("'dat' must be a data.frame", {
+  target <- c("A", "B", "C")
+  source <- "Key"
+  dat <- c(
+    Key = c("A", "B", "C", "D"),
+    Value = 1:4
+  )
+  expect_error(merge_linked_sheet(target, source, dat, "extra"), "'dat' must be a data frame")
+  expect_error(merge_linked_sheet(target, source, NULL, "extra"), "'dat' must be a data frame")
+  expect_error(merge_linked_sheet(target, source, matrix(), "extra"), "'dat' must be a data frame")
+})
+
 test_that("'source' column does not exist in 'dat'", {
   target <- c("A", "B")
   source <- "MissingKey"

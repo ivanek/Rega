@@ -53,13 +53,16 @@ test_that("'meta' is not a list", {
   not_a_list <- "invalid_input"
   expect_error(
     Rega:::.has_analyses(not_a_list),
-    "'meta' arguments must have 'aliases' as a list"
+    "must be a list"
   )
 })
 
 test_that("'meta$aliases' is missing or not a list", {
   meta <- list()
-  expect_error(Rega:::.has_analyses(meta), "must have 'aliases' as a list")
+  expect_error(
+    Rega:::.has_analyses(meta),
+    "must have a top-level element 'aliases'"
+  )
 })
 
 # test_that("'meta$aliases$analyses' is not a vector/list", {
@@ -77,5 +80,5 @@ test_that("'meta$analysis_files' is missing or not a data frame", {
   meta <- list(
     aliases = list(analyses = c("analysis1", "analysis2"))
   )
-  expect_error(Rega:::.has_analyses(meta), "missing value where TRUE/FALSE needed")
+  expect_error(Rega:::.has_analyses(meta), "must contain a top-level element named.*'analysis_files'")
 })

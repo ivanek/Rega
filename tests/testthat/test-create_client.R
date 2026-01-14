@@ -58,7 +58,7 @@ test_that("'api' is not a list", {
   api <- "invalid"
   expect_error(
     create_client(api),
-    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable"
+    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|'api' must be a named list"
   )
 })
 

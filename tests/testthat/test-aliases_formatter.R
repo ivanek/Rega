@@ -61,3 +61,20 @@ test_that("Data frame with 0 columns", {
   no_col_df <- data.frame(row.names = c("r1", "r2"))
   expect_error(aliases_formatter(no_col_df, params = NULL))
 })
+
+test_that("'params' is not a list or false", {
+  expect_error(
+    aliases_formatter(data.frame(a = 1), params = "invalid"),
+    "'params' must be a list, FALSE or NULL"
+  )
+
+  expect_error(
+    aliases_formatter(data.frame(a = 1), params = c(1)),
+    "'params' must be a list, FALSE or NULL"
+  )
+
+  expect_error(
+    aliases_formatter(data.frame(a = 1), params = factor(TRUE)),
+    "'params' must be a list, FALSE or NULL"
+  )
+})

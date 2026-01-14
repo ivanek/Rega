@@ -116,7 +116,7 @@ test_that("'aliases' is empty", {
   meta <- list(
     codes = data.frame(code = c("X", "Y", "Z"))
   )
-  aliases <- list()
+  aliases <- list(a = list())
 
   result <- Rega:::.basic_validator(
     meta, aliases,
@@ -134,7 +134,6 @@ test_that("'aliases' is empty", {
   expect_equal(result_summary$passes, c(3, 3, 0, 0))
   expect_equal(result_summary$fails, c(0, 0, 3, 0))
 })
-
 
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
@@ -155,3 +154,63 @@ test_that("Meta[[code_list_entry]] is not a data frame => confront() fails", {
     "unable to find an inherited method for function"
   )
 })
+
+test_that("meta must be a list", {
+  expect_error(
+    Rega:::.basic_validator(
+      c("ccc"), list(colors = "test"),
+      column = "color", code_list_entry = "colors"
+    ),
+    "must be a list"
+  )
+
+  expect_error(
+    Rega:::.basic_validator(
+      matrix(1), list(colors = "test"),
+      column = "color", code_list_entry = "colors"
+    ),
+    "must be a list"
+  )
+
+  expect_error(
+    Rega:::.basic_validator(
+      factor(""), list(colors = "test"),
+      column = "color", code_list_entry = "colors"
+    ),
+    "must be a list"
+  )
+})
+
+test_that("aliases must be a named list", {
+  meta <- list(
+    shape = data.frame(
+      color = c("circle", "triangle"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    Rega:::.basic_validator(
+      meta, list(),
+      column = "shape", code_list_entry = "shapes"
+    ),
+    "must be a named list"
+  )
+
+  expect_error(
+    Rega:::.basic_validator(
+      meta, "aaa",
+      column = "shape", code_list_entry = "shapes"
+    ),
+    "must be a named list"
+  )
+
+  expect_error(
+    Rega:::.basic_validator(
+      meta, factor(1),
+      column = "shape", code_list_entry = "shapes"
+    ),
+    "must be a named list"
+  )
+})
+

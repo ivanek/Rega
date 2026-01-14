@@ -6,7 +6,7 @@ test_that("Chromosomes specified, input lookup not used", {
     chromosomes = c("group1--1--chrA", "group1--2--chrB"),
     chromosome_groups = NA
   )
-  select_input_data <- list()
+  select_input_data <- list(chromosomes = list())
 
   result <- process_chromosomes(chr_data, select_input_data)
 
@@ -41,7 +41,7 @@ test_that("No chromosomes and no chromosome groups present", {
     chromosomes = NA,
     chromosome_groups = NA
   )
-  select_input_data <- list(chromosomes = c())
+  select_input_data <- list(chromosomes = list())
 
   result <- process_chromosomes(chr_data, select_input_data)
   expect_equal(result, list())
@@ -51,7 +51,7 @@ test_that("'chr_data' is data frame", {
   chr_data <- data.frame(
     chromosomes = c("sample--1--chrA--name2", "sample--2--chrB--name3")
   )
-  result <- process_chromosomes(chr_data, list())
+  result <- process_chromosomes(chr_data, list(chromosomes = list()))
 
   expect_s3_class(result, "data.frame")
   expect_equal(ncol(result), 2)
@@ -65,10 +65,33 @@ test_that("'chr_data' is data frame", {
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
 
-test_that("Malformed chromosome string", {
+test_that("Missing select_input_data", {
   chr_data <- data.frame(chromosomes = c("sample--1"))
   expect_error(
     process_chromosomes(chr_data, NULL),
+    "select_input_data must be a list"
+  )
+  expect_error(
+    process_chromosomes(chr_data, c()),
+    "select_input_data must be a list"
+  )
+})
+
+test_that("select_input_data doesn't have chromosome entry", {
+  chr_data <- data.frame(chromosomes = c("sample--1"))
+  expect_error(
+    process_chromosomes(chr_data, list(foo = list())),
+    "select_input_data\\$chromosomes must exist"
+  )
+})
+
+test_that("Malformed chromosome string", {
+  chr_data <- data.frame(
+    chromosomes = c("sample--1")
+  )
+
+  expect_error(
+    process_chromosomes(chr_data, list(chromosomes = list())),
     "Malformed chromosome string."
   )
 })
@@ -76,20 +99,20 @@ test_that("Malformed chromosome string", {
 test_that("Chromosome groups present but no lookup data", {
   chr_data <- data.frame(chromosome_groups = c("group1"))
   expect_error(
-    process_chromosomes(chr_data, list()),
+    process_chromosomes(chr_data, list(chromosomes = list())),
     "No chromosome data present to match the groups."
   )
 })
 
 test_that("Incorrect column types", {
   chr_data <- data.frame(chromosomes = list(c("sample--1--chrA--name1")))
-  expect_equal(process_chromosomes(chr_data, list()), list())
+  expect_equal(process_chromosomes(chr_data, list(chromosomes = list())), list())
 })
 
 test_that("Empty chromosome strings", {
   chr_data <- list(chromosomes = c(NA, "", " "))
   expect_error(
-    process_chromosomes(chr_data, list()),
+    process_chromosomes(chr_data, list(chromosomes = list())),
     "Malformed chromosome string."
   )
 })

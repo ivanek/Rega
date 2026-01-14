@@ -91,20 +91,21 @@ test_that("Complex example api", {
   expect_equal(length(ops[[opid1]]$requestBody), 3)
 })
 
-test_that("'api$paths' is missing or not a list", {
-  api <- list()
-  expect_equal(extract_operation_definitions(api), list())
-})
-
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
+
+test_that("'api$paths' is missing or not a list", {
+  api <- list()
+  expect_error(extract_operation_definitions(api), "must be a named list")
+})
+
 
 test_that("'api' is not a list => subscript fails", {
   api <- "invalid"
   expect_error(
     extract_operation_definitions(api),
-    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable"
+    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|must be a named list"
   )
 })
 

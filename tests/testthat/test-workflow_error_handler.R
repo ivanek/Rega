@@ -54,7 +54,7 @@ test_that("Handler includes extra message for non-'submission' step, logs data",
 test_that("Error path: 'step' is not a character string", {
   expect_error(
     workflow_error_handler(123, responses = list(), logfile = NULL),
-    "'step' must be a character"
+    "must be a non-empty character scalar"
   )
 })
 

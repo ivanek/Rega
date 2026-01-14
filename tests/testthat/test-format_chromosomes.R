@@ -11,7 +11,8 @@ test_that("Row has non-NA chromosomes => returns a data.frame with id & label", 
       )),
       chromosome_groups = NA,
       stringsAsFactors = FALSE
-    )
+    ),
+    select_input_data = list(chromosomes = list())
   )
 
   result <- format_chromosomes(metadata)
@@ -124,7 +125,7 @@ test_that("'select_input_data$chromosomes' missing or NULL", {
     select_input_data = list()
   )
 
-  expect_error(format_chromosomes(metadata), "No chromosome data present")
+  expect_error(format_chromosomes(metadata), "select_input_data\\$chromosomes must exist")
 })
 
 test_that("malformed 'chromosomes' string that doesn't contain enough '--' parts", {

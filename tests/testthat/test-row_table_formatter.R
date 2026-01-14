@@ -67,7 +67,7 @@ test_that("Non-data frame input", {
   tab <- list(A = c("Header1", "A1"), B = c("Value1", "B1"))
   expect_error(
     row_table_formatter(tab, NULL),
-    "must be an array of at least two dimensions"
+    "must be a data frame"
   )
 })
 
@@ -79,5 +79,22 @@ test_that("Mismatched column names in split tables", {
   expect_error(
     row_table_formatter(tab, NULL),
     "undefined columns selected"
+  )
+})
+
+test_that("'params' is not a list or false", {
+  expect_error(
+    row_table_formatter(data.frame(a = 1), params = "invalid"),
+    "'params' must be a list, FALSE or NULL"
+  )
+
+  expect_error(
+    row_table_formatter(data.frame(a = 1), params = c(1)),
+    "'params' must be a list, FALSE or NULL"
+  )
+
+  expect_error(
+    row_table_formatter(data.frame(a = 1), params = factor(TRUE)),
+    "'params' must be a list, FALSE or NULL"
   )
 })

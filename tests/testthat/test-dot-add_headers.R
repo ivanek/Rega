@@ -27,7 +27,7 @@ test_that("Security present + token => includes Authorization header", {
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
   expect_true(any(grepl("Content-Type.*application/json", result_str)))
-  expect_true(any(grepl("Authorization.*paste\\(\"Bearer\", api_key\\)", result_str)))
+  expect_true(any(grepl("Authorization.*paste\\(\"Bearer\", bearer_token\\)", result_str)))
 })
 
 test_that("Token is not NULL", {
@@ -39,7 +39,7 @@ test_that("Token is not NULL", {
   result_str <- deparse(result_expr)
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
-  expect_true(any(grepl("Authorization.*paste\\(\"Bearer\", api_key\\)", result_str)))
+  expect_true(any(grepl("Authorization.*paste\\(\"Bearer\", bearer_token\\)", result_str)))
 })
 
 test_that("User-specified header params => include them as symbols", {
@@ -64,7 +64,7 @@ test_that("'header_params' is not a character vector", {
   header_params <- 123
   expect_error(
     Rega:::.add_headers(header_params, list(), list()),
-    "Can't convert.*to a symbol|argument is not a character vector"
+    "Can't convert.*to a symbol|argument must be a character vector"
   )
 })
 
@@ -72,6 +72,26 @@ test_that("'operation' or 'api' missing fields => can't check 'security'", {
   l <- "invalid value"
   expect_error(
     Rega:::.add_headers(character(0), l, list()),
-    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable"
+    "\\$ operator is invalid for atomic vectors|'operation' must be a named list|'api' must be a named list."
+  )
+})
+
+test_that("'api' must be a named list", {
+  header_params <- character(0)
+  operation <- list(security = NULL)
+
+  expect_error(
+    .add_headers(header_params, operation, list("aaa", 123), token = NULL),
+    "must be a named list"
+  )
+
+  expect_error(
+    .add_headers(header_params, operation, c(), token = NULL),
+    "must be a named list"
+  )
+
+  expect_error(
+    .add_headers(header_params, operation, NULL, token = NULL),
+    "must be a named list"
   )
 })

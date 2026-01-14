@@ -13,10 +13,10 @@ test_that("Retrieves an enumeration from client with default prefix", {
 
 test_that("Retrieves an enumeration with a custom enum_prefix", {
   mock_client <- list(
-    my_customprefix_shapes = function() c("circle", "square", "triangle")
+    get__customprefix_shapes = function() c("circle", "square", "triangle")
   )
 
-  result <- get_enum(mock_client, "shapes", enum_prefix = "my_customprefix_")
+  result <- get_enum(mock_client, "shapes", enum_prefix = "get__customprefix_")
   expect_equal(result, c("circle", "square", "triangle"))
 })
 
@@ -38,7 +38,7 @@ test_that("'client' is not a list => subscript or object extraction fails", {
   client <- 123
   expect_error(
     get_enum(client, "colors"),
-    "subscript out of bounds|attempt to apply subscript"
+    "subscript out of bounds|attempt to apply subscript|must be a non-empty list"
   )
 })
 

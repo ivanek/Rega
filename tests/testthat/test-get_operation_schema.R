@@ -85,6 +85,6 @@ test_that("'op' is not a list", {
 
   expect_error(
     get_operation_schema(op),
-    "\\$ operator is invalid|object of type 'character' is not subsettable"
+    "\\$ operator is invalid|object of type 'character' is not subsettable|argument must be a list or NULL"
   )
 })

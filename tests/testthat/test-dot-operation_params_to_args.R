@@ -44,7 +44,7 @@ test_that("'op' is not a list or lacks 'parameters'", {
   op <- "invalid"
   expect_error(
     Rega:::.operation_params_to_args(op),
-    "\\$ operator is invalid for atomic vectors"
+    "\\$ operator is invalid for atomic vectors|argument must be a list"
   )
 })
 
@@ -52,7 +52,7 @@ test_that("'op$parameters' is not a list => vector(...) calls fail or vapply fai
   op <- list(parameters = 1:3)
   expect_error(
     Rega:::.operation_params_to_args(op),
-    "\\$ operator is invalid for atomic vectors"
+    "operator is invalid for atomic vectors"
   )
 })
 

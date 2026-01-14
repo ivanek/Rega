@@ -51,9 +51,10 @@ test_that("Entries in chr_enum do not split into exactly 4 parts", {
   )
 })
 
-test_that("Invalid 'sep' leads to empty result", {
+test_that("Invalid 'sep' leads to error", {
   input <- "GRP1--10--Label--Name"
-  result <- get_chr_group("GRP1", input, sep = "")
-  expect_equal(names(result), c("id", "label"))
-  expect_equal(nrow(result), 0)
+  expect_error(
+    get_chr_group("GRP1", input, sep = ""),
+    "sep must be a non-empty character scalar"
+  )
 })

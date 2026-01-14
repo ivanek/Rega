@@ -14,8 +14,8 @@ test_that("Single path param", {
     bquote(url <- sub("{id}", as.character(id), url, fixed = TRUE))
   )
 
-  id = 15
-  url = "www.example.com/{id}"
+  id <- 15
+  url <- "www.example.com/{id}"
   eval(result[[1]])
   expect_equal("www.example.com/15", url)
 })
@@ -37,13 +37,12 @@ test_that("Multiple path params => a list of multiple expressions", {
     bquote(url <- sub("{repo}", as.character(repo), url, fixed = TRUE))
   )
 
-  user = "Alice"
-  repo = "github"
-  url = "www.example.com/{user}/{repo}"
+  user <- "Alice"
+  repo <- "github"
+  url <- "www.example.com/{user}/{repo}"
   eval(result[[1]])
   eval(result[[2]])
   expect_equal("www.example.com/Alice/github", url)
-
 })
 
 test_that("No path params", {
@@ -84,6 +83,6 @@ test_that("Element of 'path_params' is malformed, 'path_params' is a list", {
   params <- list("id", 123)
   expect_error(
     Rega:::.add_paths(params),
-    "All 'path_params' must be character"
+    "elements must be a non-empty character scalar"
   )
 })

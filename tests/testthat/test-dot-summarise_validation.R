@@ -4,9 +4,9 @@
 
 test_that("No issues => prints 'Validation passed!'", {
   val_sum <- data.frame(
-    fails   = c(0, 0),
-    nNA     = c(0, 0),
-    error   = c(0, 0),
+    fails = c(0, 0),
+    nNA = c(0, 0),
+    error = c(0, 0),
     warning = c(0, 0)
   )
 
@@ -18,9 +18,9 @@ test_that("No issues => prints 'Validation passed!'", {
 
 test_that("Some fails => prints 'Validation failed!' message with correct counts", {
   val_sum <- data.frame(
-    fails   = c(1, 0, 2),
-    nNA     = c(1, 0, 1),
-    error   = c(0, 0, 0),
+    fails = c(1, 0, 2),
+    nNA = c(1, 0, 1),
+    error = c(0, 0, 0),
     warning = c(0, 0, 0)
   )
 
@@ -36,9 +36,9 @@ test_that("Some fails => prints 'Validation failed!' message with correct counts
 
 test_that("Multiple fails, nas, errors, warnings => combined 'Validation failed!'", {
   val_sum <- data.frame(
-    fails   = c(1, 2, 0),
-    nNA     = c(0, 1, 1),
-    error   = c(1, 0, 1),
+    fails = c(1, 2, 0),
+    nNA = c(0, 1, 1),
+    error = c(1, 0, 1),
     warning = c(0, 0, 1)
   )
 
@@ -72,8 +72,8 @@ test_that("'validation_summary' is a list", {
 test_that("'validation_summary' lacks required columns", {
   val_sum <- data.frame(
     # 'fails' column missing
-    nNA     = c(1, 0),
-    error   = c(0, 1),
+    nNA = c(1, 0),
+    error = c(0, 1),
     warning = c(0, 0)
   )
 
@@ -96,4 +96,10 @@ test_that("Columns are not numeric => sum(...) might fail or misbehave", {
     Rega:::.summarise_validation(val_sum),
     "invalid 'type' \\(character\\) of argument"
   )
+})
+
+test_that("validation summary must be a date.frame or list.", {
+  expect_error(.summarise_validation(c(1)), "must be a data frame or a list")
+  expect_error(.summarise_validation(matrix(1)), "must be a data frame or a list")
+  expect_error(.summarise_validation(new.env()), "must be a data frame or a list")
 })

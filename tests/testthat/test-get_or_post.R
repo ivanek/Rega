@@ -7,7 +7,7 @@ test_that("No existing records => calls submit_table => returns posted data", {
     `get__submissions__provisional_id__endpointA` = function(id) NULL,
     `post__submissions__provisional_id__endpointA` = function(id, body) {
       # Pretend we "post" and return a data frame with the same rows
-      return(as.data.frame(body))
+      as.data.frame(body)
     }
   )
 
@@ -58,7 +58,7 @@ test_that("Get returns a 0-row data frame => calls submit_table => success", {
       data.frame(x = numeric(0), y = character(0))
     },
     `post__submissions__provisional_id__endpointB` = function(sub_id, body) {
-      return(as.data.frame(body))
+      as.data.frame(body)
     }
   )
 
@@ -129,11 +129,12 @@ test_that("Client is not a function", {
 
   expect_error(
     get_or_post(
+      submission_id = "SUB_SAME_ROWS",
       data = data.frame(),
       client = mock_client,
       endpoint = "endpointA"
     ),
-    "attempt to apply non-function"
+    "attempt to apply non-function|must be a non-empty list"
   )
 })
 
@@ -155,24 +156,20 @@ test_that("'client' does not have the needed get/post method => error", {
   )
 })
 
-test_that("Submit_table fails (simulated by throwing an error in post method)", {
+test_that("data is not data frame", {
   mock_client <- list(
-    `get__submissions__provisional_id__endpointX` = function(sub_id) NULL,
-    `post__submissions__provisional_id__endpointX` = function(sub_id, body) {
-      stop("Simulated post error")
-    }
+    `get__submissions__provisional_id__endpointX` = function(sub_id) NULL
   )
 
-  my_data <- data.frame(z = 1)
+  my_data <- list(z = 1)
 
-  # We expect the error from the post method to bubble up
   expect_error(
     get_or_post(
-      submission_id = "SHOULD_FAIL",
+      submission_id = "ABC",
       data = my_data,
       client = mock_client,
       endpoint = "endpointX"
     ),
-    "Simulated post error"
+    "must be a data frame"
   )
 })

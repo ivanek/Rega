@@ -7,7 +7,7 @@ test_that("A non-empty list with single element of length 1", {
   result <- unbox_list(my_list)
 
   expect_s3_class(result, "data.frame")
-  expect_equal(dim(result), c(1,1))
+  expect_equal(dim(result), c(1, 1))
   expect_equal(result$a, 10)
 })
 
@@ -16,7 +16,7 @@ test_that("multiple single-length elements => returns data frame with matching c
   result <- unbox_list(my_list)
 
   expect_s3_class(result, "data.frame")
-  expect_equal(dim(result), c(1,3))
+  expect_equal(dim(result), c(1, 3))
   expect_equal(result$x, 1L)
   expect_equal(result$y, "test")
   expect_equal(result$z, "A")
@@ -53,7 +53,7 @@ test_that("A vector type passed => creates multi-row data frame", {
   my_vec <- c("not", "a", "list")
   expect_error(
     unbox_list(my_vec),
-    "Tried to unbox dataframe with 3 rows"
+    "must be a list"
   )
 })
 

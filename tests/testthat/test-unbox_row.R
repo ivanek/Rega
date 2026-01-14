@@ -67,15 +67,15 @@ test_that("Unbox a list", {
 })
 
 test_that("Row is NULL", {
-  expect_error(unbox_row(NULL), "Only atomic vectors of length 1")
+  expect_error(unbox_row(NULL), "argument must be a vector or a list")
 })
 
 test_that("Row is an environment", {
   input <- new.env()
-  expect_error(unbox_row(input), "No method asJSON S3")
+  expect_error(unbox_row(input), "argument must be a vector or a list")
 })
 
 test_that("Row is a function", {
   input <- function(x) x
-  expect_error(unbox_row(input), "Tried to unbox a vector of length")
+  expect_error(unbox_row(input), "argument must be a vector or a list")
 })

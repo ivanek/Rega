@@ -104,6 +104,12 @@ test_that("Referencing sheet has no 'sheet_name' column to merge", {
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
 
+test_that("'metadata' is empty list or not a list", {
+  expect_error(link_sheet(list(), "sheet1"), "must be a not be empty list")
+  expect_error(link_sheet(c(), "sheet1"), "must be a not be empty list")
+  expect_error(link_sheet(NULL, "sheet1"), "must be a not be empty list")
+})
+
 test_that("'sheet_name' does not exist in metadata", {
   metadata <- list(
     sheetA = data.frame(x = 1:3),
@@ -131,4 +137,24 @@ test_that("'source_data' has 0 rows but at least one linked sheet => triggers st
     "no entries were found",
     fixed = TRUE
   )
+})
+
+test_that("'metadata' elements are not data.frames", {
+  metadata <- list(
+    sheet1 = list(id = 1:3, val = letters[1:3])
+  )
+
+  expect_error(link_sheet(metadata, "sheet1"), "must be a data frame")
+
+  metadata <- list(
+    sheet1 = c(id = 1:3, val = letters[1:3])
+  )
+
+  expect_error(link_sheet(metadata, "sheet1"), "must be a data frame")
+
+  metadata <- list(
+    sheet1 = NULL
+  )
+
+  expect_error(link_sheet(metadata, "sheet1"), "must be a data frame")
 })

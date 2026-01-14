@@ -18,6 +18,11 @@ test_that("String not matching pattern", {
   expect_false(result)
 })
 
+test_that("NULL schema, tests all", {
+  x <- c("EGAZ12345678901", "EGAB00000000001")
+  expect_true(all(is_accession(x)))
+})
+
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------

@@ -140,5 +140,5 @@ test_that("'params' is wrong format", {
   expect_error(column_table_formatter(df, params = TRUE))
   expect_error(column_table_formatter(df, params = 123))
   expect_error(column_table_formatter(df, params = 0))
-  expect_error(column_table_formatter(df, params = c(1,2,3)))
+  expect_error(column_table_formatter(df, params = c(1, 2, 3)))
 })

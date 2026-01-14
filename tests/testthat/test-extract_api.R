@@ -10,11 +10,11 @@ test_that("Extract default EGA API", {
   expect_type(result, "list")
   expect_length(result, 10)
   expect_equal(
-    names(result),
-    c(
+    sort(names(result)),
+    sort(c(
       "openapi", "info", "servers", "externalDocs", "security", "tags", "paths",
       "components", "host", "basePath"
-    )
+    ))
   )
   expect_length(result$info, 5)
   expect_length(result$paths, 79)
@@ -37,12 +37,14 @@ test_that("Extract example API", {
   expect_equal(length(result$paths), 13)
   expect_named(
     result$paths,
-    c("/pet", "/pet/findByStatus", "/pet/findByTags", "/pet/{petId}",
+    c(
+      "/pet", "/pet/findByStatus", "/pet/findByTags", "/pet/{petId}",
       "/pet/{petId}/uploadImage", "/store/inventory", "/store/order",
       "/store/order/{orderId}", "/user", "/user/createWithList", "/user/login",
-      "/user/logout", "/user/{username}")
+      "/user/logout", "/user/{username}"
+    )
   )
-  expect_false(grepl("/$",result$basePath))
+  expect_false(grepl("/$", result$basePath))
 })
 
 test_that("Extract example API with custom host", {
@@ -58,7 +60,7 @@ test_that("Extract example API with custom host", {
     )
   )
   expect_equal(result$host, "www.example.com")
-  expect_false(grepl("/$",result$basePath))
+  expect_false(grepl("/$", result$basePath))
 })
 
 # ------------------------------------------------------------------------------
@@ -73,7 +75,7 @@ test_that("Spec file is not yaml/json", {
 })
 
 test_that("No path elements in the API", {
-  api <-"../resources/malformed_api_1.yaml"
+  api <- "../resources/malformed_api_1.yaml"
   expect_warning(
     extract_api(api),
     "There is no paths element in the API specification"
@@ -81,10 +83,9 @@ test_that("No path elements in the API", {
 })
 
 test_that("No servers url entry in yaml and no host specified as argument", {
-  api <-"../resources/malformed_api_2.yaml"
+  api <- "../resources/malformed_api_2.yaml"
   expect_error(
     extract_api(api),
     "Host URL not supplied and not found in specification file"
   )
 })
-

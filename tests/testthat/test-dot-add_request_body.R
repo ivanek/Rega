@@ -21,20 +21,20 @@ test_that("'has_body' is FALSE", {
 test_that("'has_body' is not logical", {
   expect_error(
     Rega:::.add_request_body("yes"),
-    "'has_body' must be logical|argument is not interpretable as logical"
+    "must be a non-empty logical scalar|argument is not interpretable as logical"
   )
 })
 
 test_that("'has_body' is a vector of length > 1", {
   expect_error(
     Rega:::.add_request_body(c(TRUE, FALSE)),
-    "the condition has length > 1"
+    "must be a non-empty logical scalar"
   )
 })
 
 test_that("'has_body' is NA", {
   expect_error(
     Rega:::.add_request_body(NA),
-    "missing value where TRUE/FALSE needed"
+    "must be a non-empty logical scalar"
   )
 })

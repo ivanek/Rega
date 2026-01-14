@@ -10,6 +10,38 @@ test_that("Some items in r, some not", {
   expect_equal(result, c("a", "* b", "* c", "d"))
 })
 
+test_that("Longer strings", {
+  p <- c("aaabbb", "bbbcc", "cCcC", "dEfGh")
+  r <- c("aaabbb", "cCcC")
+  result <- add_required_str(p, r, req_str = "* ")
+
+  expect_equal(result, c("* aaabbb", "bbbcc", "* cCcC", "dEfGh"))
+})
+
+test_that("Reordered required", {
+  p <- c("a", "bB", "c", "d", "xy", "Z")
+  r <- c("xy", "a", "c", "bB")
+  result <- add_required_str(p, r, req_str = "* ")
+
+  expect_equal(result, c("* a", "* bB", "* c", "d", "* xy", "Z"))
+})
+
+test_that("Empty strings", {
+  p <- c("a", "", "b", "", "c", "", "d")
+  r <- c("")
+  result <- add_required_str(p, r, req_str = "* ")
+
+  expect_equal(result, c("a", "* ", "b", "* ", "c", "* ", "d"))
+})
+
+test_that("Punctuation characters", {
+  p <- c("a", "$", "#", "d", "?")
+  r <- c("$", "#")
+  result <- add_required_str(p, r, req_str = "* ")
+
+  expect_equal(result, c("a", "* $", "* #", "d", "?"))
+})
+
 test_that("All items in p are in r", {
   p <- c("x", "y", "z")
   r <- c("x", "y", "z")
@@ -53,7 +85,7 @@ test_that("'p' is not a character vector (e.g., numeric)", {
   r <- c("1", "2")
   expect_error(
     add_required_str(p, r),
-    "result is type 'double'"
+    "must be a character vector"
   )
 })
 
@@ -64,6 +96,6 @@ test_that("'req_str' is invalid (e.g., numeric or multiple values)", {
 
   expect_error(
     add_required_str(p, r, req_str = invalid_req_str),
-    "'req_str' must be a scalar character"
+    "req_str must be a non-empty character scalar"
   )
 })

@@ -40,3 +40,20 @@ test_that("'logfile' path is invalid or unwritable", {
     "cannot open the connection"
   )
 })
+
+test_that("responses is not a list", {
+  responses <- data.frame(a = 1)
+  bad_path <- file.path("/", "root", "some_protected_place", "output.yaml")
+
+  expect_error(
+    suppressWarnings(save_log(responses, logfile = bad_path)),
+    "cannot open the connection"
+  )
+})
+
+test_that("responses is not a list or vector", {
+  expect_error(save_log(NULL, logfile = NULL), "must be a list")
+  expect_error(save_log(new.env(), logfile = NULL), "must be a list")
+  expect_error(save_log(function() {}, logfile = NULL), "must be a list")
+  expect_error(save_log(matrix(1), logfile = NULL), "must be a list")
+})

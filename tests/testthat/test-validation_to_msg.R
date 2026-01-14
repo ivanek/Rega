@@ -82,4 +82,3 @@ test_that("v is a list with 'errors' data frame", {
     "Validation result must be 'logical'"
   )
 })
-

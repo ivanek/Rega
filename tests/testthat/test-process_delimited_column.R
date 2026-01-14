@@ -41,8 +41,15 @@ test_that("'pubmed_ids' column is converted to integer", {
   expect_equal(pmids[[3]], 1001L)
 })
 
-test_that("'metadata' is not a list", {
-  # If metadata is not a list of data frame, column will not be found and
+test_that("'metadata' is an empty data.frame", {
+  expect_equal(
+    process_delimited_column(data.frame(), "column_name", separator = ","),
+    data.frame()
+  )
+})
+
+test_that("'metadata' is a data.frame", {
+  # If metadata is not a list or data frame, column will not be found and
   # evaluation will be skipped
   not_a_list <- data.frame(column_name = c("A,B"))
 
@@ -51,7 +58,6 @@ test_that("'metadata' is not a list", {
     not_a_list
   )
 })
-
 
 test_that("'column_name' not found in any sheet", {
   # Silently skipped
@@ -87,6 +93,13 @@ test_that("Invalid separator (e.g., NULL)", {
 
   expect_error(
     process_delimited_column(metadata, "my_col", separator = NULL),
-    "`pattern` must be a string"
+    "must be a non-empty character scalar"
   )
+})
+
+test_that("'metadata' is not a list", {
+  expect_error(process_delimited_column(c(), "", ""), "argument must be a list")
+  expect_error(process_delimited_column(NULL, "", ""), "argument must be a list")
+  expect_error(process_delimited_column(12345, "", ""), "argument must be a list")
+  expect_error(process_delimited_column("abcd", "", ""), "argument must be a list")
 })

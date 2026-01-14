@@ -132,7 +132,7 @@ test_that("'op$schema' is not a list", {
 })
 
 test_that("'op' has no requestBody", {
-  op <- list()
+  op <- list(foo = "bar")
   result <- Rega:::.add_json_validation(op)
   expect_equal(result, list())
 })
@@ -158,6 +158,6 @@ test_that("'op' is not a list", {
   op <- "invalid value"
   expect_error(
     Rega:::.add_json_validation(op),
-    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable"
+    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|must be a named list"
   )
 })

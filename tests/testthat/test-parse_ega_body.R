@@ -3,64 +3,52 @@
 # ------------------------------------------------------------------------------
 
 test_that("Text/plain content", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/abc",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw("This is a plain-text response.")
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/abc",
+    headers = list("content-type" = "text/plain"),
+    body = charToRaw("This is a plain-text response.")
   )
 
   result <- parse_ega_body(resp)
   expect_s3_class(result, "tbl_df")
-  expect_equal(dim(result), c(1,1))
+  expect_equal(dim(result), c(1, 1))
   expect_true(grepl("This is a plain-text response", result$abc))
 })
 
 test_that("Text/plain that looks like a single entry json", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/user",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('{"user":"alice","age":30}'),
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/user",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('{"user":"alice","age":30}')
   )
 
   result <- parse_ega_body(resp)
+
   expect_s3_class(result, "tbl_df")
   expect_equal(dim(result), c(1, 2))
   expect_equal(result$user, c("alice"))
   expect_equal(result$age, c(30))
 })
 
+test_that("Text/plain content that looks like a single entry json inside array", {
+  resp <- httr2::response(
+    url = "https://api.example.com/api/user",
+    headers = list("content-type" = "text/plain"),
+    body = charToRaw('[{"user":"alice","age":30}]')
+  )
+
+  result <- parse_ega_body(resp)
+
+  expect_equal(dim(result), c(1, 2))
+  expect_equal(result$user, c("alice"))
+  expect_equal(result$age, c(30))
+})
 
 test_that("Application/json content => multi row data frame", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "application/json; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('[{"user":"alice","age":30},{"user":"bob","age":20}]'),
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/user",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('[{"user":"alice","age":30},{"user":"bob","age":20}]'),
   )
 
   result <- parse_ega_body(resp)
@@ -72,19 +60,10 @@ test_that("Application/json content => multi row data frame", {
 })
 
 test_that("Application/json content => simple entry", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "application/json; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('"alice"'),
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/name",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('"alice"'),
   )
 
   result <- parse_ega_body(resp)
@@ -96,19 +75,10 @@ test_that("Application/json content => simple entry", {
 
 test_that("Application/json content => single column", {
   # gets column name from resource
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "application/json; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('[{"user":"alice"},{"user":"bob"}]'),
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/name",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('[{"user":"alice"},{"user":"bob"}]'),
   )
 
   result <- parse_ega_body(resp)
@@ -122,19 +92,18 @@ test_that("Application/json content => single column", {
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
 
+test_that("Is not httr2_response object", {
+  resp <- list(charToRaw("This is a plain-text response."))
+  expect_error(parse_ega_body(resp), "must be an 'httr2_response' object")
+  expect_error(parse_ega_body(data.frame()), "must be an 'httr2_response' object")
+  expect_error(parse_ega_body(c("foo", "bar")), "must be an 'httr2_response' object")
+})
+
 test_that("Unknown resp_content_type", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/images",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "image/png",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw("This is a plain-text response.")
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/images",
+    headers = list("content-type" = "image/png"),
+    body = charToRaw("This is a plain-text response.")
   )
 
   expect_error(
@@ -144,19 +113,10 @@ test_that("Unknown resp_content_type", {
 })
 
 test_that("JSON parse fails => fromJSON throws error", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "application/json; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('[{"user":"alice"},{"user":"bob"'), # error
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/name",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('[{"user":"alice"},{"user":"bob"') # error
   )
 
   expect_error(
@@ -166,19 +126,10 @@ test_that("JSON parse fails => fromJSON throws error", {
 })
 
 test_that("Text/plain JSON parse fails => fromJSON throws error", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('{"user":"alice","age"30}'), # error
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/name",
+    headers = list("content-type" = "application/json"),
+    body = charToRaw('{"user":"alice","age"30}') # error
   )
 
   expect_error(
@@ -188,39 +139,22 @@ test_that("Text/plain JSON parse fails => fromJSON throws error", {
 })
 
 test_that("Text/plain JSON like missing brace", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/api/name",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw('{"user":"alice","age:"30'), # missing brace regex FALSE
-      cache = new.env()
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/api/name",
+    headers = list("content-type" = "text/plain"),
+    body = charToRaw('{"user":"alice","age:"30') # missing brace regex FALSE
   )
 
-  result = parse_ega_body(resp)
+  result <- parse_ega_body(resp)
 
   expect_equal(result$name, "{\"user\":\"alice\",\"age:\"30")
 })
 
 test_that("URL path extraction fails, unexpected tibble column name", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "some/unexpected/format",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw("This is a plain-text response.")
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "some/unexpected/format",
+    headers = list("content-type" = "text/plain"),
+    body = charToRaw("This is a plain-text response.")
   )
 
   expect_error(
@@ -230,18 +164,10 @@ test_that("URL path extraction fails, unexpected tibble column name", {
 })
 
 test_that("api/ string not in URL path", {
-  resp <- structure(
-    list(
-      method = "GET",
-      url = "https://api.example.com/otherpath/abc",
-      status_code = 200L,
-      headers = list(
-        "content-type" = "text/plain; charset=utf-8",
-        "date" = "Mon, 20 Feb 2023 10:00:00 GMT"
-      ),
-      body = charToRaw("This is a plain-text response.")
-    ),
-    class = "httr2_response"
+  resp <- httr2::response(
+    url = "https://api.example.com/otherpath/abc",
+    headers = list("content-type" = "text/plain"),
+    body = charToRaw("This is a plain-text response.")
   )
 
   result <- parse_ega_body(resp)

@@ -57,7 +57,7 @@ test_that("'op' is not a list => subscript or $ operator fails", {
   op <- "invalid"
   expect_error(
     Rega:::.get_operation_params(op),
-    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable"
+    "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|argument must be a list"
   )
 })
 
@@ -88,4 +88,28 @@ test_that("Parameters has no 'name'", {
     Rega:::.get_operation_params(op),
     "Parameter needs a 'name' value"
   )
+})
+
+test_that("'parameters' elements are not lists", {
+  op <- list(
+    parameters = list(
+      c(name = "id", `in` = "path")
+    )
+  )
+  expect_error(.get_operation_params(op), "Each element in 'op\\$parameters' must be a list")
+
+
+  op <- list(
+    parameters = list(
+      NULL
+    )
+  )
+  expect_error(.get_operation_params(op), "Each element in 'op\\$parameters' must be a list")
+
+  op <- list(
+    parameters = list(
+      "aaaa"
+    )
+  )
+  expect_error(.get_operation_params(op), "Each element in 'op\\$parameters' must be a list")
 })

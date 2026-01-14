@@ -8,7 +8,7 @@ test_that("Operation with requestBody => function has 'body' formal arg", {
     path = "/items",
     requestBody = list(description = "Some body spec")
   )
-  api <- list(host = "https://example.com")
+  api <- list(host = "https://example.com", parameters = list())
 
   result_fn <- api_function_factory(op, api)
   body_text <- paste(deparse(rlang::fn_body(result_fn)), collapse = " ")
@@ -44,11 +44,11 @@ test_that("With api_key specified => will be present in formals", {
   )
   api <- list(host = "https://secure.example.org")
 
-  result_fn <- api_function_factory(op, api, api_key="ABCD1234")
+  result_fn <- api_function_factory(op, api, bearer_token = "ABCD1234")
   args_names <- names(formals(result_fn))
 
   expect_type(result_fn, "closure")
-  expect_true("api_key" %in% args_names)
+  expect_true("bearer_token" %in% args_names)
 })
 
 test_that("Setting verbosity level", {
@@ -64,9 +64,49 @@ test_that("Setting verbosity level", {
   expect_match(body_text, 'resp <- req_perform\\(req, verbosity = 2\\)')
 })
 
+test_that("Setting token_url", {
+  op <- list(
+    method = "POST",
+    path = "/items"
+  )
+  api <- list(host = "https://example.com")
+
+  result_fn <- api_function_factory(op, api, verbosity = , token_url = "www.token.url")
+  body_text <- paste(deparse(rlang::fn_body(result_fn)), collapse = " ")
+
+  expect_match(body_text, 'req <- ega_oauth\\(req, token_url = "www.token.url"\\)')
+})
+
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
+
+test_that("invalid http method", {
+  op <- list(
+    method = "INVALID_METHOD",
+    path = "/items",
+    requestBody = list(description = "Some body spec")
+  )
+  api <- list(host = "https://example.com", parameters = list())
+
+  expect_error(
+    api_function_factory(op, api),
+    "Invalid http method"
+  )
+})
+
+test_that("'api' must be a named list", {
+  op <- list(
+    method = "POST",
+    path = "/items",
+    requestBody = list(description = "Some body spec")
+  )
+
+  expect_error(api_function_factory(op, list()), "must be a named list")
+  expect_error(api_function_factory(op, c()), "must be a named list")
+  expect_error(api_function_factory(op, NULL), "must be a named list")
+})
+
 
 test_that("'op$path' is not a string", {
   op <- list(
@@ -77,7 +117,7 @@ test_that("'op$path' is not a string", {
 
   expect_error(
     api_function_factory(op, api),
-    "value must be a single character string"
+    "must be a non-empty character scalar"
   )
 })
 
@@ -86,7 +126,7 @@ test_that("'api$host' is missing or invalid", {
     method = "GET",
     path = "/items"
   )
-  api <- list()
+  api <- list(openapi = "3.1.0")
 
   result_fn = api_function_factory(op, api)
   body_text <- paste(deparse(rlang::fn_body(result_fn)), collapse = " ")
@@ -101,7 +141,7 @@ test_that("'verbosity is not numeric", {
     path = "/items"
   )
   expect_error(
-    api_function_factory(op, list(), verbosity = "c"),
+    api_function_factory(op, list(openapi = "3.1.0"), verbosity = "c"),
     "'verbosity' must be numeric between 0 and 3"
   )
 })
@@ -112,7 +152,7 @@ test_that("'verbosity is out of range", {
     path = "/items"
   )
   expect_error(
-    api_function_factory(op, list(), verbosity = 15),
+    api_function_factory(op, list(openapi = "3.1.0"), verbosity = 15),
     "'verbosity' must be numeric between 0 and 3"
   )
 })

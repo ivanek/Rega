@@ -41,6 +41,28 @@ test_that("Multiple transformations", {
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
 
+test_that("'df' is not a data.frame", {
+  fruit_lut <- list(Apple = "Red", Banana = "Yellow")
+
+  expect_error(
+    multi_lut_add(
+      list(
+        fruit = c("Apple", "Banana")
+      ),
+      list("color", "fruit", fruit_lut)
+    ),
+    "must be a data frame"
+  )
+
+  expect_error(
+    multi_lut_add(
+      NULL,
+      list("color", "fruit", fruit_lut)
+    ),
+    "must be a data frame"
+  )
+})
+
 test_that("One of the lists has length != 3", {
   df <- data.frame(x = 1:2)
   bad_arg <- list("new_col", "x")

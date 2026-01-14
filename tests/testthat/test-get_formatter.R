@@ -58,7 +58,7 @@ test_that("Function specified by 'type' doesn't exist in the environment", {
 
   expect_error(
     get_formatter("column", params),
-    "object 'this_function_does_not_exist' not found"
+    "function 'this_function_does_not_exist' not found"
   )
 })
 
