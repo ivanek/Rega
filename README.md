@@ -20,7 +20,7 @@ devtools::install_github("ivanek/Rega")
 
 ## Usage
 
-### Setup credentials
+### Setup credentials (see vignette for more details)
 
 `httr2` is built around the notion that the key should live in an environment 
 variable. So the first step is to make your package key available on your local 
