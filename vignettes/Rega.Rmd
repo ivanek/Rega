@@ -23,11 +23,12 @@ abstract: "Rega provides interface to European Genome-Phenome Archive (EGA)."
 vignette: >
   %\VignetteIndexEntry{The Rega User Guide}
   %\VignetteKeywords{API}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options:
-  chunk_output_type: 
-    console
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
 ---
 
 ```{r options, include=FALSE}
@@ -59,51 +60,103 @@ if (out_type == "html") {
 }
 ```
 
-# Load package
+# Install/Load packages
+
+Install (if necessary) and load all necessary packages
 
 ```{r load-package}
+# Install CRAN packages
+install.packages("devtools")   
+library(devtools)
+install.packages("httr2") 
+library(httr2)
+
+# Install GitHub packages
+devtools::install_github("ivanek/Rega")  
 library(Rega)
+
+
 ```
 
 # Fill in the submission template
 
-Download the empty MS Excel template from 
-`inst/extdata/ega_full_template_v2.xlsx` and fill it in according to the 
+Download the empty MS Excel template from
+`inst/extdata/ega_full_template_v2.xlsx` and fill it in according to the
 instructions in the 'Instructions' tab.
 
 # Setup credentials
 
-`httr2` is built around the notion that the key should live in an environment 
-variable. So the first step is to make your package key available on your local 
-development machine by adding a line to your your user-level `.Renviron` 
-(which you can easily open with `usethis::edit_r_environ()`)
+`httr2` is designed around the idea that authentication credentials,
+such as API keys or passwords, should be stored in an environment
+variable rather than written directly in the code. To do so, you need
+first to create a secret package key:
 
-The `REGA_EGA_PASSWORD` environmental variable isn't supposed to store the 
-password in the plain text, instead:
-    
-- generate a secret key using `httr2::secret_make_key()` and store it as the 
-    "REGA_KEY" environmental variable (e.g. using `export` command in bash or
-    in `.Renviron` file)
-- generate an encrypted password using your secret key via 
-    `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")`
-- use the resulting value as "REGA_EGA_PASSWORD"
+## Create a secret package key
 
-```{r env-credentials}
-Sys.setenv("REGA_EGA_USERNAME" = "<your-ega-username>")
-Sys.setenv("REGA_EGA_PASSWORD" = "<your-ega-password>")
+First, create a secret key that will be used to encrypt and decrypt your
+password.
+
+```{r generate_key}
+# Generate a secret key
+httr2::secret_make_key() # returns a string eg. "5h4Yk...X2a"
 ```
+
+To make this package key available on your local development machine,
+store it as the "REGA_KEY" environmental variable it your user-level
+`.Renviron` file, which is automatically loaded when R starts.
+
+```{r store_key, eval=FALSE}
+usethis::edit_r_environ()
+# Add the following line to the .Renviron file
+# (replace "5h4Yk...X2a" with your actual key)
+REGA_KEY=5h4Yk...X2a
+```
+
+Restart R after saving the file so the variable becomes available.
+
+## Encrypt and store your EGA password
+
+Environment variables should not store passwords in plain text. Instead,
+use the secret key stored in `REGA_KEY` to encrypt your EGA password.
+
+```{r encrypt_password}
+encrypted_password <- httr2::secret_encrypt(
+  "<your-ega-password>",
+  "REGA_KEY"
+) 
+encrypted_password # this encrypted string is safe to store.
+```
+
+Store the encrypted password as an environment variable in your
+`.Renviron` file:
+
+Now you can create an `REGA_EGA_PASSWORD` environmental variable which
+will store your EGA password. However, environmental variable aren't
+supposed to store passwords in plain text. Therefore, use your secret
+key stored as `REGA_KEY` to encrypt your EGA password
+
+This encrypted string is then safe to store as an environment variable
+in the `.Renviron` file
+
+```{r store_encrypted_password, eval=FALSE}
+usethis::edit_r_environ()
+# Add the encrypted password to the .Renviron file
+REGA_EGA_PASSWORD=<your-encrypted-password>
+```
+
+Restart R after saving the file so the variable becomes available.
 
 # Data submission
 
 ## Submission metadata parsing
 
-The default parser parses the bundled `xlsx` template 
-(`inst/extdata/ega_full_template_v2.xlsx`). Changing the parser 
-behavior, such as whether to append `c4gh` extension to files or which sheets 
-to parse from the metadata files is controlled by YAML config file 
-`inst/extdata/default_parser_params.yaml`. To modify the parameters, 
-create a local copy of the file and pass it as `param_file` argument to 
-`default_parser` function.
+The default parser parses the bundled `xlsx` template
+(`inst/extdata/ega_full_template_v2.xlsx`). Changing the parser
+behavior, such as whether to append `c4gh` extension to files or which
+sheets to parse from the metadata files is controlled by YAML config
+file `inst/extdata/default_parser_params.yaml`. To modify the
+parameters, create a local copy of the file and pass it as `param_file`
+argument to `default_parser` function.
 
 ```{r parse-metadata}
 metadata_file <- system.file(
@@ -117,11 +170,12 @@ parsed_metadata
 
 ## Submission metadata validation
 
-The internal validation is a bit stricter in enforcing uniqueness of titles 
-and descriptions for individual tables (the API itself doesn't have this 
-requirement). If the validation only fails in this particular case, you can 
-still continue with creating the submission. However, there have been instances 
-of failed reviews due to non-unique titles and descriptions before.
+The internal validation is a bit stricter in enforcing uniqueness of
+titles and descriptions for individual tables (the API itself doesn't
+have this requirement). If the validation only fails in this particular
+case, you can still continue with creating the submission. However,
+there have been instances of failed reviews due to non-unique titles and
+descriptions before.
 
 ```{r validate-metadata}
 validation_summary <- default_validator(parsed_metadata)
@@ -136,7 +190,8 @@ Extract EGA API using the bundled YAML specification
 api <- extract_api()
 ```
 
-Create a client using the embedded `httr2` OAuth authentication (default).
+Create a client using the embedded `httr2` OAuth authentication
+(default).
 
 ```{r client-with-oauth}
 ega <- create_client(api, verbosity = 0)
@@ -144,8 +199,8 @@ ega <- create_client(api, verbosity = 0)
 
 ## Run new submission workflow
 
-Specify one of the available workflow function with your parsed metadata and 
-a client as parameters.
+Specify one of the available workflow function with your parsed metadata
+and a client as parameters.
 
 ```{r run-workflow, eval=FALSE}
 responses <- new_submission(parsed_metadata, ega, "log.yaml")
@@ -153,7 +208,7 @@ responses <- new_submission(parsed_metadata, ega, "log.yaml")
 
 ## Other workflows
 
-You can get the entire contents of current submission metadata via 
+You can get the entire contents of current submission metadata via
 `get_submission` workflow.
 
 ```{r get-submission-contents, eval=FALSE}
@@ -161,28 +216,28 @@ resp <- get_submission(00001, ega, logfile = "log.yaml")
 resp <- get_submission(00001, ega)
 ```
 
-Or delete the entire contents of current submission metadata via 
-`delete_submission_contents` workflow or delete the entire submission by using 
-the `delete_submission` workflow.
+Or delete the entire contents of current submission metadata via
+`delete_submission_contents` workflow or delete the entire submission by
+using the `delete_submission` workflow.
 
 ```{r delete-submission-contents, eval=FALSE}
 resp <- delete_submission_contents(00001, ega)
 resp <- delete_submission(00001, ega)
 ```
 
-**Workflow for updating the submission metadata by `PUT`
-method is under development.**
+**Workflow for updating the submission metadata by `PUT` method is under
+development.**
 
 # Authentication
 
-`Rega` package supports authentication through OAuth or Bearer token via 
+`Rega` package supports authentication through OAuth or Bearer token via
 functions `ega_oauth` (default) and `ega_token` respectively.
 
 # Utilities
 
-If you wish to create your own templates for EGA submissions, we provide a few 
-functions to retrieve properties and enums through API and save them in text 
-files. We will use the API and the client created above.
+If you wish to create your own templates for EGA submissions, we provide
+a few functions to retrieve properties and enums through API and save
+them in text files. We will use the API and the client created above.
 
 Relevant functions include:
 
@@ -193,10 +248,10 @@ Relevant functions include:
 
 ## Bearer token authentication
 
-For testing, debugging and prototyping purposes, it is possible to directly use 
-generated bearer token with API when creating the client. It is then your 
-responsibility of the user to track the validity and refresh the token as
-necessary.
+For testing, debugging and prototyping purposes, it is possible to
+directly use generated bearer token with API when creating the client.
+It is then your responsibility of the user to track the validity and
+refresh the token as necessary.
 
 ```{r client-with-token, eval=FALSE}
 bt <- ega_token()
