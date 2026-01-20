@@ -12,12 +12,12 @@ tryCatch(
       )
     }) |>
       setNames(ega$get__enums()$enums)
+
+    saveRDS(
+      enums,
+      file.path("inst", "extdata", "ega_enums.rds"),
+      overwrite = TRUE
+    )
   }
 
-  # TODO remove repositories
-  saveRDS(
-    enums,
-    file.path("inst", "extdata", "ega_enums.rds"),
-    overwrite = TRUE
-  )
 )

@@ -3,6 +3,7 @@
 ## Author: Igor Cervenka
 ## Licence: Artistic-2.0
 library(openxlsx)
+library(yaml)
 
 # Data -------------------------------------------------------------------------
 ## Get enums
@@ -43,95 +44,11 @@ enums_df <- as.data.frame(
   })
 )
 
-## Create instructions
-instructions <- c(
-  "Please read the instructions carefully to avoid submission errors",
-  "",
-  "Aliases",
-  "This sheet is not part of an actual submission, it contains placeholders that allow for internal linking of Samples, Experiments, Runs, Analyses and Datasets, so they could be translated to provisional or accession IDs during submission.",
-  "Please fill this sheet first, creating unique placeholder ID for each Sample, Experiment, Run, Analysiss and Dataset that you are submitting.",
-  "Placeholders for Samples are the actual sample names.",
-  "This sheet is not a rectangular dataframe, just an enumeration of individual items. See image below for example.",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "Files",
-  "Names of raw files for the submission, if the files were encrypted and their names differ only in the c4gh extension, there is no need to add it, it will be appended during the submission process.",
-  "If the files have been placed in the sub-directory of EGA Inbox, you can indicate it in the  'EGA Inbox Relative Path' column.",
-  "Please fill in this sheet after the Aliases as other sheets that require file names will read values from this sheet.",
-  "",
-  "Analysis Files",
-  "Names of analysis files for the submission, if the files were encrypted and their names differ only in the c4gh extension, there is no need to add it, it will be appended during the submission process.",
-  "If the files have been placed in the sub-directory of EGA Inbox, you can indicate it in the  'EGA Inbox Relative Path' column.",
-  "Please fill in this sheet after the Aliases as other sheets that require file names will read values from this sheet.",
-  "If no analyses files are provided, leave the fields empty.",
-  "",
-  "Submission",
-  "The top level item that encompasses all the other. It will receive an Accession ID once completed that you can reference in your manuscript.",
-  "",
-  "Studies",
-  "Study description is expected to be a 3-5 sentences definition of the project with some background, goals, and details.",
-  "One submission can have one or more studies.",
-  "Does not have to be the same as the EGA submission name.",
-  "",
-  "Samples",
-  "Summary of all biological samples linked to the submission. Please create a duplicate of the first row if you wish to add more samples.",
-  "Samples need an alias which will be used to link files to samples.",
-  "",
-  "Experiments",
-  "Here you have to specify how the experiment was done (Instrument model, design name (e.g. 'TruSeq Rna-Seq'), library type, ...).",
-  "You could create more experiments if you have different data type in to the same study/EGA submission (e.g. ATAC-seq and RNA-seq).",
-  "One submission can have one or more experiments.",
-  "Platform: The platform in sequencing refers to the specific technology or machine used to perform sequencing (e.g. Illumina Sequencing, Pacific Biosciences (PacBio) Sequencing, Oxford Nanopore Technologies (ONT) Sequencing, …)",
-  "Instrument mode: The sequencing model refers to the specific instrument version within a platform family (e.g., Illumina NovaSeq 6000, PacBio Sequel II, ...) tailored to different scales, throughput levels, and application types. Each platform offers several models designed to address a range of project needs.  ",
-  "Library Selection: Library Selection in sequencing refers to the process of enriching or selecting specific fragments of DNA or RNA that are most relevant for sequencing from a larger pool of nucleic acids. This step is crucial because it determines the portion of the genome, transcriptome, or other DNA/RNA content that will be represented in the final sequencing output.",
-  "",
-  "Runs",
-  "Runs connect samples to files and experiment. Please create a duplicate of the first row if you wish to add more runs.",
-  "Files cannot be reused among the different Runs. Each file can only be associated to one Run.",
-  "",
-  "Analyses",
-  "Analyses gather processed files, for example BAM or VCF files including mapping info. They linked to one study and to one/multiple samples, files and experiments.",
-  "Currently this is the only sheet/entry that is optional for the EGA submission. If you don't want to submit any analyses, delete the entries in the Alias sheet. There is not need to delete 'Analysis Files' and 'Analyses' sheets, you can leave them empty.",
-  "Analysis files cannot be reused among the different Analyses",
-  "SEQUENCE VARIATION Analysis type must have 'Chromosomes groups' or 'Chromosomes' specified",
-  "SAMPLE PHENOTYPE Analysis type cannot have 'Experiment Types', 'Genome ID', 'Chromosome groups' and 'Chromosomes' specified",
-  "Selected 'Chromosome groups' and 'Chromosomes' must match 'Genome ID' (and possibly some other hidden requirement), this is not entirely clear how it is decided, spedifying 'Chromosomes' from group 3 worked for GRCh38.p14",
-  "",
-  "Datasets",
-  "Here you describe your dataset(s).",
-  "For each dataset, you need to link to a policy.",
-  "Dataset description is expected to be a 3-4 sentences (at least 50 characters), definition of the dataset content, including sample number and details, file type, and technology/experimentation used.",
-  "",
-  "Collaborators, Repositories, Extra Attributes",
-  "These fields are present in other sheets, but for submission they are formatted as key value pairs. ",
-  "If you wish to add any of these to your submission, please create an appropriate entry in one of these 3 sheets and you will be able to select in from a dropdown menu afterwards.",
-  "",
-  "Additional Instructions",
-  "Fill in the Samples and Runs by copying the first empty row below, this will preserve the fields where you need to choose multiple values",
-  "For Studies, Experiments and Datasets, if multiple tables are needed, copy the whole table to the right (see image below)",
-  "Fields marked with * are mandatory",
-  "Values for fields with red triangle in the corner need to be chosen from available values",
-  "Fields with light green background accept multiple values separated by ; (semicolon)",
-  "Fields with light blue background can be present in the table multiple times and can be copied and pasted on the rows below if necessary",
-  "Do not delete rows and columns that you don't fill in, just leave them empty"
-)
-
-instructions_headers = c(
-  "Aliases", "Files", "Analysis Files", "Submission", "Studies", "Samples",
-  "Experiments", "Runs", "Analyses", "Datasets",
-  "Collaborators, Repositories, Extra Attributes", "Additional Instructions"
-)
+instructions = read_yaml("inst/extdata/instructions.yaml")
 
 ## Create data for worksheets
 data_list <- list(
-  "Instructions" = as.data.frame(instructions),
+  # "Instructions" = as.data.frame(instructions),
   "Aliases" = data.frame(
     X1 = c("Studies", "Study1"),
     X2 = c("Experiments", "Experiment1"),
@@ -198,9 +115,9 @@ data_list <- list(
     X1 = c(
       "* Dataset", "* Title", "* Description",
       "* Policy Accession ID", "* Dataset Types", "Extra Attributes",
-      "Runs", "Analyses"
+      "Analyses", "Runs"
     ),
-    X2 = c("Dataset1", NA, NA, NA, NA, NA, "Run1", NA)
+    X2 = c("Dataset1", NA, NA, NA, NA, NA, NA, "Run1")
   ),
   "Collaborators" = data.frame(
     X1 = "* ID", X2 = "* Access Type", X3 = "Comment"
@@ -211,7 +128,31 @@ data_list <- list(
   "Extra Attributes" = data.frame(
     X1 = "* Tag", X2 = "* Value", X3 = "Unit"
   ),
-  "Select Input Data" = enums_df
+  # Add colnames to data frame, here the headers are not exported to xlsx
+  "Select Input Data" = rbind(colnames(enums_df), enums_df)
+)
+
+# Styles -----------------------------------------------------------------------
+green_bg <- createStyle(fgFill = "darkseagreen2")
+blue_bg <- createStyle(fgFill = "lightskyblue2")
+
+bold_font <- createStyle(textDecoration = "bold")
+
+instructions_header_style = createStyle(
+  fgFill = "#4F81BD",
+  fontColour = "#FFFFFF",
+  textDecoration = "bold",
+  halign = "center",
+  valign = "center",
+  border = "TopBottomLeftRight"
+)
+
+instructions_text_style = createStyle(
+  fgFill = "#EEEEEE",
+  wrapText = TRUE,
+  valign = "center",
+  indent = 2,
+  border = "TopBottomLeftRight"
 )
 
 # Workbook ---------------------------------------------------------------------
@@ -242,6 +183,35 @@ tab_col <- list(
 # Hidden sheets
 hidden_sheets <- c("Select Input Data")
 
+# Write instruction data
+addWorksheet(
+  wb, "Instructions",
+  tabColour = tab_col[["Instructions"]]
+)
+
+writeData(
+  wb, "Instructions",
+  "Please read the instructions carefully to avoid submission errors"
+)
+
+cur = 3
+
+for(item in instructions) {
+  writeData(wb, "Instructions", item$header, startRow = cur)
+  addStyle(
+    wb, "Instructions",
+    style = header_style, cur, cols = 1
+  )
+
+  writeData(wb, "Instructions", item$text, startRow = cur + 1, colNames = FALSE)
+  addStyle(
+    wb, "Instructions",
+    style = body_style, rows = (cur + 1):(cur + length(item$text)), cols = 1
+  )
+
+  cur = cur + length(item$text) + 2
+}
+
 # Write each sheet's data
 for (s in sheet_names) {
   addWorksheet(
@@ -261,8 +231,8 @@ for (s in sheet_names) {
 input_data_target <- function(enums, header) {
   cl <- LETTERS[match(header, names(enums))]
   sprintf(
-    "'Select Input Data'!$%s%d:$%s%d",
-    cl, 1, cl, length(enums[[header]])
+    "'Select Input Data'!$%s$%d:$%s$%d",
+    cl, 2, cl, length(enums[[header]]) + 1
   )
 }
 
@@ -305,8 +275,8 @@ dropdown_data <- list(
   list("Analyses", 10, 2, input_data_target(enums, "chromosomes")),
   list("Datasets", 1, 2, "'Aliases'!$C$2:$C$100"),
   list("Datasets", 6, 2, "'Extra Attributes'!$A$2:$A$100"),
-  list("Datasets", 7, 2, "'Aliases'!$D$2:$D$1000"),
-  list("Datasets", 8, 2, "'Aliases'!$F$2:$F$100"),
+  list("Datasets", 7, 2, "'Aliases'!$F$2:$F$1000"),
+  list("Datasets", 8, 2, "'Aliases'!$E$2:$E$100"),
   list("Datasets", 5, 2, input_data_target(enums, "dataset_types"))
 )
 
@@ -374,13 +344,10 @@ for (sheet in names(rowtable_colors)) {
   )
 }
 
-green_bg <- createStyle(fgFill = "darkseagreen2")
-blue_bg <- createStyle(fgFill = "lightskyblue2")
-
 # Sheet - Row - Column - Fill
 cell_bgs <- list(
-  list("Instructions", 74, 1, green_bg),
-  list("Instructions", 75, 1, blue_bg),
+  list("Instructions", 7, 1, green_bg),
+  list("Instructions", 8, 1, blue_bg),
   list("Submission", 3, 1, blue_bg),
   list("Studies", 5, 1, green_bg),
   list("Studies", 6, 1, green_bg),
@@ -407,22 +374,19 @@ for (x in cell_bgs) {
   )
 }
 
-# Additional Bold headers
-bold_font <- createStyle(textDecoration = "bold")
-
 addStyle(
   wb, "Instructions",
   createStyle(textDecoration = "bold", fontSize = 16, fontColour = "red"),
   rows = 1, cols = 1, stack = TRUE
 )
 
-addStyle(
-  wb, "Instructions", createStyle(textDecoration = "bold", fontSize = 16),
-  rows = sapply(
-    instructions_headers, \(x) grep(paste0("^", x, "$"), instructions)
-  ),
-  cols = 1, stack = TRUE
-)
+# addStyle(
+#   wb, "Instructions", createStyle(textDecoration = "bold", fontSize = 16),
+#   rows = sapply(
+#     instructions_headers, \(x) grep(paste0("^", x, "$"), instructions)
+#   ),
+#   cols = 1, stack = TRUE
+# )
 
 coltable_sheets <- c(
   "Submission", "Studies", "Experiments", "Analyses", "Datasets"
@@ -436,12 +400,14 @@ for (sheet in coltable_sheets) {
 }
 
 # 4) Column widths,
+setColWidths(wb, "Instructions", cols = 1, widths = 100)
+
 # Sheet - Column - Width
 widths_list <- list(
   list("Aliases", 1, 20), list("Aliases", 2, 20), list("Aliases", 3, 20),
   list("Aliases", 4, 40), list("Aliases", 5, 20), list("Aliases", 6, 20),
-  list("Files", 1, 80), list("Files", 2, 80),
-  list("Analysis Files", 1, 80), list("Analysis Files", 2, 80),
+  list("Files", 1, 80), list("Files", 2, 40),
+  list("Analysis Files", 1, 80), list("Analysis Files", 2, 40),
   list("Submission", 1, 25), list("Submission", 2, 60),
   list("Studies", 1, 25), list("Studies", 2, 60),
   list("Samples", 1, 40), list("Samples", 2, 15), list("Samples", 3, 15),
@@ -488,13 +454,8 @@ addStyle(
 
 # 6) Insert images
 insertImage(
-  wb, "Instructions", system.file("extdata/aliases.png", package = "Rega"),
-  startRow = 8, units = "px", dpi = 144, width = 1302, height = 316
-)
-
-insertImage(
   wb, "Instructions", system.file("extdata/multi_table.png", package = "Rega"),
-  startRow = length(instructions) + 2,
+  startRow = 3, startCol = 3,
   units = "px", dpi = 144, width = 2100, height = 304
 )
 
@@ -504,4 +465,3 @@ saveWorkbook(
   file.path("inst", "extdata", "ega_full_template_v3.xlsx"),
   overwrite = TRUE
 )
-

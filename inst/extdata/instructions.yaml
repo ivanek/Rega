@@ -1,0 +1,160 @@
+- header: Quick Instruction
+  text:
+    - >-
+      Fill the sheets in the order that they appear (apart from Collaborators,
+      Repositories, Extra Attributes, see appropriate entry).
+    - >-
+      Fields marked with * are mandatory
+      - >-
+      Do not delete rows and columns that you don't fill in, just leave them
+      empty
+    - >-
+      Values for fields with red triangle in the corner need to be chosen from
+      available values
+    - >-
+      Fields with light green background accept multiple values separated
+      by ; (semicolon)
+    - >-
+      Fields with light blue background can be present in the table multiple
+      times and can be copied and pasted on the rows below if necessary
+    - >-
+      Fill in the Samples and Runs by copying the first empty row below, this
+      will preserve the fields where you need to choose multiple values
+    - >-
+      For Studies, Experiments and Datasets, if multiple tables are needed,
+      copy the whole table to the right (see image below)
+- header: Aliases (Placeholders)
+  text:
+    - >-
+      It is used to create placeholder IDs that links your Samples, Experiments,
+      Runs, Analyses and Datasets internally. These placeholder IDs will be
+      translated to provisional or accession IDs during submission. Complete
+      this sheet first, assigning a unique placeholder ID for each Sample,
+      Experiment, Run, Analysis (if available) and Dataset.
+    - >-
+      Placeholders for
+      Samples will become the sample names. You may choose any name (e.g.
+      Sample1, Sample2, …), but it must be unique across all submissions
+      under the same EGA account.
+    - >-
+      This sheet is not a rectangular dataframe. It is simply a list of
+      individual items. See the `Aliases` sheet for
+      an example.
+- header: Files
+  text:
+    - >-
+      Names of all raw files for the submission.  If files are encrypted and
+      differ only by the `.c4gh` extension, do not include the extension.
+      It will be added automatically during submission.
+    - >-
+      Do not prefix the file names with slashes or other relative paths.
+    - >-
+      If the files are located in a sub-directory within your `encrypted`
+      EGA Inbox, specify the name of the sub-directory in the
+      'EGA Inbox Relative Path' name column.
+    - >-
+      Complete this sheet after the Aliases sheet, as other sheets depend on it.
+- header: Analysis Files
+  text:
+    - >-
+      Names of all raw files for the submission.  If files are encrypted and
+      differ only by the `.c4gh` extension, do not include the extension.
+      It will be added automatically during submission.
+    - >-
+      Do not prefix the file names with slashes or other relative paths.
+    - >-
+      If the files are located in a sub-directory within your `encrypted`
+      EGA Inbox, specify the name of the sub-directory in the
+      'EGA Inbox Relative Path' name column.
+    - >-
+      Complete this sheet after the Aliases sheet, as other sheets depend on it.
+    - >-
+      If no analyses files are provided, leave the fields empty.
+- header: Submission
+  text:
+    - >-
+      The top level item that encompasses all the other and will receive an
+      Accession ID for tracking. This name and description will only be used
+      internally during the submission process and will not be visible on the
+      EGA webpage. For referencing in your manuscript you will only use the
+      Study ID or the Dataset ID.
+- header: Studies
+  text:
+    - >-
+      Title is expected to be between 3 to 20 words. The title of the studies
+      doesn’t need to match the EGA submission name.
+    - >-
+      Provide a 3-5 sentences as description with background, goals,
+      and key details. One submission can include one or more studies.
+- header: Samples
+  text:
+    - >-
+      List all biological samples. Duplicate the row to add additional samples.
+      Each Subject ID must be linked to a Sample Alias to link files to samples.
+    - >-
+      Try to make the Sample names/aliases unique to not interfere with other
+      submissions.
+- header: Experiments
+  text:
+    - >-
+      Specify how the experiment was performed (e.g., instrument model, design
+      name, library type) You can create more experiments if you have different
+      data types in the same study/EGA submission (e.g. ATAC-seq and RNA-seq).
+- header: Runs
+  text:
+    - >-
+      Runs connect samples to files and experiment. Duplicate the first row to
+      add more runs. Files cannot be reused among the different Runs. Each file
+      can only be associated to one Run.
+- header: Analyses
+  text:
+    - >-
+      Analyses gather processed files, for example BAM or VCF files including
+      mapping info. They are linked to one study and to one/multiple samples,
+      files and experiments.
+    - >-
+      Currently this is the only sheet/entry that is optional for the EGA
+      submission. If you don't want to submit any analyses, delete the entries
+      in the Alias sheet. There is not need to delete 'Analysis Files' and
+      'Analyses' sheets, you can leave them empty.
+    - >-
+      Analysis files cannot be reused among the different Analyses
+    - >-
+      There are three types of analyses: REFERENCE ALIGNMENT, SEQUENCE VARIATION
+      and SAMPLE PHENOTYPE and they have specific requirements for which other
+      fields must or cannot be specified. See the entry at the end of the
+      Instructions sheet for details.
+- header: Datasets
+  text:
+    - >-
+      For each dataset, you need to a Policy Accesion ID, this will be usually
+      issued by your institution or a commitee that controls data access.
+    - >-
+      Title is expected to be between 3 to 20 words.
+    - >-
+      Description is expected to be a 3-4 sentences
+      (at least 50 characters), definition of the dataset content, including
+      sample number and details, file type, and technology/experimentation used.
+- header: Collaborators, Repositories, Extra Attributes
+  text:
+    - >-
+      These fields are present in other sheets, but for submission they are
+      formatted as key value pairs.
+    - >-
+      If you wish to add any of these to your submission, please create an
+      appropriate entry in one of these 3 sheets and you will be able to select
+      in from a dropdown menu afterwards.
+
+- header: Additional requirements for Analyses sheet
+  text:
+    - >-
+      REFERENCE ALIGNMENT Analysis type must have 'Experiment Types', 'Genome ID',
+      'Chromosomes groups' or 'Chromosomes' specified
+    - >-
+      SEQUENCE VARIATION Analysis type must have 'Experiment Types', 'Genome ID',
+      'Chromosomes groups' or 'Chromosomes' specified
+    - >-
+      SAMPLE PHENOTYPE Analysis type cannot have 'Experiment Types', 'Platform',
+      'Genome ID', 'Chromosome groups' and 'Chromosomes' specified
+    - >-
+      Selected 'Chromosome groups' and 'Chromosomes' must match 'Genome ID'
