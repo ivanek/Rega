@@ -30,6 +30,19 @@ test_that("'l' is NULL", {
   expect_equal(na_to_empty_list(NULL), list())
 })
 
+test_that("Elements that are vectors with partial NAs", {
+  input <- list(c(NA, 2), c(3, NA))
+  expect_equal(na_to_empty_list(input), input)
+})
+
+test_that("Passing objects that result in logical(0) after is.na", {
+  input <- list(new.env())
+  expect_warning(
+    expect_equal(na_to_empty_list(input), list(list())),
+    "is.na\\(\\) applied to non-\\(list or vector\\)"
+  )
+})
+
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
@@ -37,18 +50,4 @@ test_that("'l' is NULL", {
 test_that("l is not list, vector or NULL", {
   expect_error(na_to_empty_list(new.env()), "must be a list, vector or NULL")
   expect_error(na_to_empty_list(function() {}), "must be a list, vector or NULL")
-})
-
-test_that("Elements that are vectors with partial NAs (ambiguous behavior)", {
-  input <- list(c(NA, 2), c(3, NA))
-  expect_error(na_to_empty_list(input), "the condition has length > 1")
-})
-
-test_that("Passing objects that don't work with is.na() (e.g., environment)", {
-  bad_object <- new.env()
-  input <- list(bad_object)
-  expect_warning(
-    expect_error(na_to_empty_list(input), "argument is of length zero"),
-    "is.na\\(\\) applied to non-\\(list or vector\\)"
-  )
 })

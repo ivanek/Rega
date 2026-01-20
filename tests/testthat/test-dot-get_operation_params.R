@@ -11,7 +11,7 @@ test_that("Multiple parameters in different categories", {
     )
   )
 
-  result <- Rega:::.get_operation_params(op)
+  result <- .get_operation_params(op)
   expect_equal(result$path, c("id"))
   expect_equal(result$query, c("sort", "prefix"))
   expect_equal(result$header, c("authToken"))
@@ -19,7 +19,7 @@ test_that("Multiple parameters in different categories", {
 
 test_that("No parameters => returns empty character vectors", {
   op <- list(parameters = list())
-  result <- Rega:::.get_operation_params(op)
+  result <- .get_operation_params(op)
 
   expect_equal(result$path, character(0))
   expect_equal(result$query, character(0))
@@ -34,7 +34,7 @@ test_that("Parameters exist but 'in' is not one of path/query/header => ignored"
     )
   )
 
-  result <- Rega:::.get_operation_params(op)
+  result <- .get_operation_params(op)
 
   expect_equal(result$path, c("id"))
   expect_equal(result$query, character(0))
@@ -43,7 +43,7 @@ test_that("Parameters exist but 'in' is not one of path/query/header => ignored"
 
 test_that("'op' is missing 'parameters' field", {
   op <- list()
-  result <- Rega:::.get_operation_params(op)
+  result <- .get_operation_params(op)
   expect_equal(result$path, character(0))
   expect_equal(result$query, character(0))
   expect_equal(result$header, character(0))
@@ -56,7 +56,7 @@ test_that("'op' is missing 'parameters' field", {
 test_that("'op' is not a list => subscript or $ operator fails", {
   op <- "invalid"
   expect_error(
-    Rega:::.get_operation_params(op),
+    .get_operation_params(op),
     "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|argument must be a list"
   )
 })
@@ -71,7 +71,7 @@ test_that("Parameters has no 'in'", {
   )
 
   expect_error(
-    Rega:::.get_operation_params(op),
+    .get_operation_params(op),
     "argument is of length zero"
   )
 })
@@ -85,7 +85,7 @@ test_that("Parameters has no 'name'", {
   )
 
   expect_error(
-    Rega:::.get_operation_params(op),
+    .get_operation_params(op),
     "Parameter needs a 'name' value"
   )
 })

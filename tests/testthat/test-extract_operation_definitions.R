@@ -78,8 +78,8 @@ test_that("Complex example api", {
 
   expect_length(ops, 19)
   expect_true(all(c(
-    "get__pet_findByStatus", "get__pet_findByTags", "get__store_order__orderId",
-    "post__user_createWithList"
+    "get__pet__findByStatus", "get__pet__findByTags", "get__store__order__orderId",
+    "post__user__createWithList"
   ) %in% names(ops)))
   opid1 <- names(ops)[1]
   expect_equal("put__pet", opid1)

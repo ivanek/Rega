@@ -22,11 +22,11 @@ test_that("Single-row table", {
     stringsAsFactors = FALSE
   )
 
-  result <- submit_table(df, id = "singleID", endpoint_func = mock_endpoint_func)
+  result <- submit_table(df, id = "12345", endpoint_func = mock_endpoint_func)
 
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 1)
-  expect_equal(result$id, "singleID")
+  expect_equal(result$id, "12345")
   expect_equal(result$A, "Hello")
   expect_equal(result$B, 999)
 })
@@ -39,11 +39,11 @@ test_that("Multiple-row data frame, endpoint_func returns a data frame", {
     stringsAsFactors = FALSE
   )
 
-  result <- submit_table(df, id = "testID", endpoint_func = mock_endpoint_func)
+  result <- submit_table(df, id = "12345", endpoint_func = mock_endpoint_func)
 
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 2)
-  expect_equal(result$id, c("testID", "testID"))
+  expect_equal(result$id, c("12345", "12345"))
   expect_equal(result$A, c("A", "B"))
   expect_equal(result$B, c(1, 2))
 })
@@ -52,7 +52,7 @@ test_that("Empty response", {
   df <- data.frame(col1 = c("A", "B"))
   empty_endpoint_func <- function(id, body) NULL
 
-  result <- submit_table(df, id = "id", endpoint_func = empty_endpoint_func)
+  result <- submit_table(df, id = "12", endpoint_func = empty_endpoint_func)
   expect_equal(result, NULL)
 })
 
@@ -64,7 +64,7 @@ test_that("'tab' is not a data frame", {
   not_a_df <- list(a = 1, b = 2)
 
   expect_error(
-    submit_table(not_a_df, id = "test", endpoint_func = mock_endpoint_func),
+    submit_table(not_a_df, id = "12345", endpoint_func = mock_endpoint_func),
     "must be a data frame"
   )
 })
@@ -74,7 +74,7 @@ test_that("'endpoint_func' is not a function", {
   not_a_func <- "I am not a function"
 
   expect_error(
-    submit_table(df, id = "test", endpoint_func = not_a_func),
+    submit_table(df, id = "EGAB00000000001", endpoint_func = not_a_func),
     "could not find function|'endpoint_func' must be a function"
   )
 })
@@ -86,7 +86,7 @@ test_that("'endpoint_func' throws an error internally", {
   }
 
   expect_error(
-    submit_table(df, id = "test", endpoint_func = bad_endpoint_func),
+    submit_table(df, id = "EGAB00000000001", endpoint_func = bad_endpoint_func),
     "Simulated endpoint failure"
   )
 })
@@ -95,7 +95,7 @@ test_that("'tab' has zero rows", {
   empty_df <- data.frame(colA = character(0), colB = numeric(0))
 
   expect_error(
-    submit_table(empty_df, id = "empty", endpoint_func = mock_endpoint_func),
+    submit_table(empty_df, id = "987654", endpoint_func = mock_endpoint_func),
     "'tab' has zero rows."
   )
 })

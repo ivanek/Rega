@@ -5,7 +5,7 @@
 test_that("handles a single endpoint and returns a list", {
   # Mock objects
   mock_client <- list(
-    put__submissions__accession_id__analysis_rollback = function(id) paste("rolled back", id, "analysis")
+    put__submissions__accession_id__analysis__rollback = function(id) paste("rolled back", id, "analysis")
   )
 
   # Test
@@ -22,8 +22,8 @@ test_that("handles a single endpoint and returns a list", {
 test_that("successfully rolls back multiple endpoints with a default client", {
   # Mock objects
   mock_client <- list(
-    put__submissions__accession_id__samples_rollback = function(id) paste("rolled back", id, "samples"),
-    put__submissions__accession_id__files_rollback = function(id) paste("rolled back", id, "files")
+    put__submissions__accession_id__samples__rollback = function(id) paste("rolled back", id, "samples"),
+    put__submissions__accession_id__files__rollback = function(id) paste("rolled back", id, "files")
   )
 
   local_mocked_bindings(

@@ -11,7 +11,7 @@ test_that("No issues => prints 'Validation passed!'", {
   )
 
   expect_message(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "Validation passed!"
   )
 })
@@ -25,13 +25,13 @@ test_that("Some fails => prints 'Validation failed!' message with correct counts
   )
 
   expect_message(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "Validation failed! See validation object for details:"
   )
-  expect_message(Rega:::.summarise_validation(val_sum), "Fails: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "NAs: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "Errors: 0")
-  expect_message(Rega:::.summarise_validation(val_sum), "Warnings 0")
+  expect_message(.summarise_validation(val_sum), "Fails: 2")
+  expect_message(.summarise_validation(val_sum), "NAs: 2")
+  expect_message(.summarise_validation(val_sum), "Errors: 0")
+  expect_message(.summarise_validation(val_sum), "Warnings 0")
 })
 
 test_that("Multiple fails, nas, errors, warnings => combined 'Validation failed!'", {
@@ -43,26 +43,26 @@ test_that("Multiple fails, nas, errors, warnings => combined 'Validation failed!
   )
 
   expect_message(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "Validation failed! See validation object for details:"
   )
-  expect_message(Rega:::.summarise_validation(val_sum), "Fails: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "NAs: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "Errors: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "Warnings 1")
+  expect_message(.summarise_validation(val_sum), "Fails: 2")
+  expect_message(.summarise_validation(val_sum), "NAs: 2")
+  expect_message(.summarise_validation(val_sum), "Errors: 2")
+  expect_message(.summarise_validation(val_sum), "Warnings 1")
 })
 
 test_that("'validation_summary' is a list", {
   val_sum <- list(fails = c(1, 0), nNA = 0, error = c(1, 1, 0), warning = 1)
 
   expect_message(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "Validation failed! See validation object for details:"
   )
-  expect_message(Rega:::.summarise_validation(val_sum), "Fails: 1")
-  expect_message(Rega:::.summarise_validation(val_sum), "NAs: 0")
-  expect_message(Rega:::.summarise_validation(val_sum), "Errors: 2")
-  expect_message(Rega:::.summarise_validation(val_sum), "Warnings 1")
+  expect_message(.summarise_validation(val_sum), "Fails: 1")
+  expect_message(.summarise_validation(val_sum), "NAs: 0")
+  expect_message(.summarise_validation(val_sum), "Errors: 2")
+  expect_message(.summarise_validation(val_sum), "Warnings 1")
 })
 
 # ------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ test_that("'validation_summary' lacks required columns", {
   )
 
   expect_error(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "Missing required columns in 'validation_summary'"
   )
 })
@@ -93,7 +93,7 @@ test_that("Columns are not numeric => sum(...) might fail or misbehave", {
   )
 
   expect_error(
-    Rega:::.summarise_validation(val_sum),
+    .summarise_validation(val_sum),
     "invalid 'type' \\(character\\) of argument"
   )
 })

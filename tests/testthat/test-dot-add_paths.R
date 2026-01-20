@@ -5,7 +5,7 @@
 test_that("Single path param", {
   params <- c("id")
 
-  result <- Rega:::.add_paths(params)
+  result <- .add_paths(params)
 
   expect_length(result, 1)
   expect_true(is.expression(result[[1]]) || is.call(result[[1]]))
@@ -22,7 +22,7 @@ test_that("Single path param", {
 
 test_that("Multiple path params => a list of multiple expressions", {
   params <- c("user", "repo")
-  result <- Rega:::.add_paths(params)
+  result <- .add_paths(params)
 
   expect_length(result, 2)
   for (expr in result) {
@@ -47,19 +47,19 @@ test_that("Multiple path params => a list of multiple expressions", {
 
 test_that("No path params", {
   params <- character(0)
-  result <- Rega:::.add_paths(params)
+  result <- .add_paths(params)
   expect_equal(result, list())
 })
 
 test_that("No path params, empty list", {
   params <- list()
-  result <- Rega:::.add_paths(params)
+  result <- .add_paths(params)
   expect_equal(result, list())
 })
 
 test_that("Element of 'path_params' is malformed, 'path_params' is a character vector", {
   params <- c("id", 123)
-  result <- Rega:::.add_paths(params)
+  result <- .add_paths(params)
 
   expect_length(result, 2)
   for (expr in result) {
@@ -82,7 +82,7 @@ test_that("Element of 'path_params' is malformed, 'path_params' is a character v
 test_that("Element of 'path_params' is malformed, 'path_params' is a list", {
   params <- list("id", 123)
   expect_error(
-    Rega:::.add_paths(params),
+    .add_paths(params),
     "elements must be a non-empty character scalar"
   )
 })

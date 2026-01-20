@@ -4,7 +4,7 @@
 
 test_that("Retrieves an enumeration from client with default prefix", {
   mock_client <- list(
-    get__enums_colors = function() c("red", "blue", "green")
+    get__enums__colors = function() c("red", "blue", "green")
   )
 
   result <- get_enum(mock_client, "colors")
@@ -13,16 +13,16 @@ test_that("Retrieves an enumeration from client with default prefix", {
 
 test_that("Retrieves an enumeration with a custom enum_prefix", {
   mock_client <- list(
-    get__customprefix_shapes = function() c("circle", "square", "triangle")
+    get__customprefix__shapes = function() c("circle", "square", "triangle")
   )
 
-  result <- get_enum(mock_client, "shapes", enum_prefix = "get__customprefix_")
+  result <- get_enum(mock_client, "shapes", enum_prefix = "get__customprefix__")
   expect_equal(result, c("circle", "square", "triangle"))
 })
 
 test_that("The enumeration function returns a data frame", {
   mock_client <- list(
-    get__enums_people = function() data.frame(name = c("Alice", "Bob"))
+    get__enums__people = function() data.frame(name = c("Alice", "Bob"))
   )
 
   result <- get_enum(mock_client, "people")

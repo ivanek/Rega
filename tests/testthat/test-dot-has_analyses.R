@@ -9,7 +9,7 @@ test_that("'aliases$analyses' is non-empty, analysis_files has at least 1 row =>
     ),
     analysis_files = data.frame(file_path = c("file1", "file2"))
   )
-  expect_true(Rega:::.has_analyses(meta))
+  expect_true(.has_analyses(meta))
 })
 
 test_that("'aliases$analyses' length > 0, analysis_files row > 0 => TRUE", {
@@ -22,7 +22,7 @@ test_that("'aliases$analyses' length > 0, analysis_files row > 0 => TRUE", {
       stringsAsFactors = FALSE
     )
   )
-  expect_true(Rega:::.has_analyses(meta))
+  expect_true(.has_analyses(meta))
 })
 
 test_that("'aliases$analyses' not present", {
@@ -32,7 +32,7 @@ test_that("'aliases$analyses' not present", {
     ),
     analysis_files = data.frame()
   )
-  expect_false(Rega:::.has_analyses(meta))
+  expect_false(.has_analyses(meta))
 })
 
 test_that("'aliases$analyses' empty", {
@@ -42,7 +42,7 @@ test_that("'aliases$analyses' empty", {
     ),
     analysis_files = data.frame()
   )
-  expect_false(Rega:::.has_analyses(meta))
+  expect_false(.has_analyses(meta))
 })
 
 # ------------------------------------------------------------------------------
@@ -52,33 +52,49 @@ test_that("'aliases$analyses' empty", {
 test_that("'meta' is not a list", {
   not_a_list <- "invalid_input"
   expect_error(
-    Rega:::.has_analyses(not_a_list),
+    .has_analyses(not_a_list),
     "must be a list"
   )
 })
 
-test_that("'meta$aliases' is missing or not a list", {
-  meta <- list()
+test_that("'meta$aliases' is missing", {
   expect_error(
-    Rega:::.has_analyses(meta),
+    .has_analyses(list()),
     "must have a top-level element 'aliases'"
+  )
+
+  expect_error(
+    .has_analyses(NULL),
+    "must be a list"
+  )
+
+  expect_error(
+    .has_analyses(NULL),
+    "must be a list"
   )
 })
 
-# test_that("'meta$aliases$analyses' is not a vector/list", {
-#   meta <- list(
-#     aliases = list(analyses = data.frame(colA = 1:3)),
-#     analysis_files = data.frame(file_path = "file1")
-#   )
-#   expect_error(
-#     Rega:::.has_analyses(meta),
-#     "'meta\\$aliases\\$analyses' must be a vector or list"
-#   )
-# })
+test_that("'meta$aliases' is not a list", {
+  expect_error(
+    .has_analyses(list(aliases = c())),
+    "'aliases' element within 'meta' must be a list"
+  )
+
+  expect_error(
+    .has_analyses(list(aliases = NULL)),
+    "'aliases' element within 'meta' must be a list"
+  )
+
+  expect_error(
+    .has_analyses(list(aliases = "abc")),
+    "'aliases' element within 'meta' must be a list"
+  )
+})
+
 
 test_that("'meta$analysis_files' is missing or not a data frame", {
   meta <- list(
     aliases = list(analyses = c("analysis1", "analysis2"))
   )
-  expect_error(Rega:::.has_analyses(meta), "must contain a top-level element named.*'analysis_files'")
+  expect_error(.has_analyses(meta), "must contain a top-level element named.*'analysis_files'")
 })

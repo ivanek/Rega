@@ -11,7 +11,7 @@ test_that("Code_list_entry is present in meta => returns a validation object", {
   )
   aliases <- list(colors = c("red", "blue", "green", "yellow"))
 
-  result <- Rega:::.basic_validator(
+  result <- .basic_validator(
     meta,
     aliases,
     column = "color",
@@ -44,7 +44,7 @@ test_that("Uses custom column and code list, all present", {
   )
   aliases <- list(my_codes = c("A", "B", "C", "D", "G"))
 
-  result <- Rega:::.basic_validator(
+  result <- .basic_validator(
     meta, aliases,
     column = "my_col", code_list_entry = "my_codes"
   )
@@ -79,7 +79,7 @@ test_that("'code_list_entry' not present in meta => returns NULL", {
   aliases <- list(colors = c("red", "blue"))
 
   # 'code_list_entry' = "colors" but meta has only "shapes"
-  result <- Rega:::.basic_validator(
+  result <- .basic_validator(
     meta, aliases,
     column = "color", code_list_entry = "colors"
   )
@@ -96,7 +96,7 @@ test_that("'column' not present in meta", {
   aliases <- list(colors = c("red", "blue"))
 
   # 'code_list_entry' = "colors" but meta has only "shapes"
-  result <- Rega:::.basic_validator(
+  result <- .basic_validator(
     meta, aliases,
     column = "color", code_list_entry = "colors"
   )
@@ -118,7 +118,7 @@ test_that("'aliases' is empty", {
   )
   aliases <- list(a = list())
 
-  result <- Rega:::.basic_validator(
+  result <- .basic_validator(
     meta, aliases,
     column = "code", code_list_entry = "codes"
   )
@@ -147,7 +147,7 @@ test_that("Meta[[code_list_entry]] is not a data frame => confront() fails", {
 
   # confront() expects a data frame or similar table as the first argument
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       meta, aliases,
       column = "color", code_list_entry = "colors"
     ),
@@ -157,7 +157,7 @@ test_that("Meta[[code_list_entry]] is not a data frame => confront() fails", {
 
 test_that("meta must be a list", {
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       c("ccc"), list(colors = "test"),
       column = "color", code_list_entry = "colors"
     ),
@@ -165,7 +165,7 @@ test_that("meta must be a list", {
   )
 
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       matrix(1), list(colors = "test"),
       column = "color", code_list_entry = "colors"
     ),
@@ -173,7 +173,7 @@ test_that("meta must be a list", {
   )
 
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       factor(""), list(colors = "test"),
       column = "color", code_list_entry = "colors"
     ),
@@ -190,7 +190,7 @@ test_that("aliases must be a named list", {
   )
 
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       meta, list(),
       column = "shape", code_list_entry = "shapes"
     ),
@@ -198,7 +198,7 @@ test_that("aliases must be a named list", {
   )
 
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       meta, "aaa",
       column = "shape", code_list_entry = "shapes"
     ),
@@ -206,7 +206,7 @@ test_that("aliases must be a named list", {
   )
 
   expect_error(
-    Rega:::.basic_validator(
+    .basic_validator(
       meta, factor(1),
       column = "shape", code_list_entry = "shapes"
     ),

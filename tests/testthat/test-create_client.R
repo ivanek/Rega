@@ -24,8 +24,8 @@ test_that("API with one operation definition", {
   client <- create_client(api)
 
   expect_length(client, 1)
-  expect_named(client, "post_pet")
-  expect_true(is.function(client$post_pet))
+  expect_named(client, "post__pet")
+  expect_true(is.function(client$post__pet))
 })
 
 test_that("Test petstore API with multiple operation definitions", {
@@ -37,8 +37,8 @@ test_that("Test petstore API with multiple operation definitions", {
   expect_named(client)
   expect_true(all(
     c(
-      "get__pet_findByStatus", "get__pet_findByTags",
-      "get__pet__petId", "delete__store_order__orderId"
+      "get__pet__findByStatus", "get__pet__findByTags",
+      "get__pet__petId", "delete__store__order__orderId"
     ) %in% names(client)
   ))
   expect_true(all(vapply(client, is.function, logical(1))))

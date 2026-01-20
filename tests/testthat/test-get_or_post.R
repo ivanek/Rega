@@ -13,7 +13,7 @@ test_that("No existing records => calls submit_table => returns posted data", {
 
   my_data <- data.frame(x = 1:2, y = c("A", "B"))
   result <- get_or_post(
-    submission_id = "id0001",
+    submission_id = "12345",
     data = my_data,
     client = mock_client,
     endpoint = "endpointA",
@@ -40,7 +40,7 @@ test_that("Some existing records => same number => retrieve_if_exists=TRUE => re
 
   expect_message(
     result <- get_or_post(
-      submission_id = "id0002",
+      submission_id = "56789",
       data = my_data,
       client = mock_client,
       endpoint = "endpointA",
@@ -64,7 +64,7 @@ test_that("Get returns a 0-row data frame => calls submit_table => success", {
 
   my_data <- data.frame(x = 1, y = "OnlyOneRow")
   result <- get_or_post(
-    submission_id = "id003",
+    submission_id = "EGAZ12345678901",
     data = my_data,
     client = mock_client,
     endpoint = "endpointB",
@@ -93,7 +93,7 @@ test_that("Mismatch in row count => stops with error", {
 
   expect_error(
     get_or_post(
-      submission_id = "SUB_MISMATCH",
+      submission_id = "EGAB00000000001",
       data = my_data,
       client = mock_client,
       endpoint = "endpointC",
@@ -114,7 +114,7 @@ test_that("Same number of existing rows but retrieve_if_exists=FALSE => error", 
   my_data <- data.frame(b = c("X", "Y"))
   expect_error(
     get_or_post(
-      submission_id = "SUB_SAME_ROWS",
+      submission_id = "123456",
       data = my_data,
       client = mock_client,
       endpoint = "endpointZ",
@@ -129,7 +129,7 @@ test_that("Client is not a function", {
 
   expect_error(
     get_or_post(
-      submission_id = "SUB_SAME_ROWS",
+      submission_id = "123456",
       data = data.frame(),
       client = mock_client,
       endpoint = "endpointA"
@@ -147,7 +147,7 @@ test_that("'client' does not have the needed get/post method => error", {
 
   expect_error(
     get_or_post(
-      submission_id = "MISSING_GET",
+      submission_id = "EGAB00000000001",
       data = data.frame(x = 1),
       client = mock_client,
       endpoint = "endpointA"
@@ -165,7 +165,7 @@ test_that("data is not data frame", {
 
   expect_error(
     get_or_post(
-      submission_id = "ABC",
+      submission_id = "1",
       data = my_data,
       client = mock_client,
       endpoint = "endpointX"

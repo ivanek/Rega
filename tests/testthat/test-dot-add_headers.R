@@ -7,7 +7,7 @@ test_that("No security, no token, no headers => returns expression with only Con
   operation <- list(security = NULL)
   api <- list(security = NULL)
 
-  result_expr <- Rega:::.add_headers(header_params, operation, api, token = NULL)
+  result_expr <- .add_headers(header_params, operation, api, token = NULL)
   result_str <- deparse(result_expr)
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
@@ -22,7 +22,7 @@ test_that("Security present + token => includes Authorization header", {
   operation <- list(security = TRUE)
   api <- list(security = NULL)
 
-  result_expr <- Rega:::.add_headers(header_params, operation, api, token = "myToken")
+  result_expr <- .add_headers(header_params, operation, api, token = "myToken")
   result_str <- deparse(result_expr)
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
@@ -35,7 +35,7 @@ test_that("Token is not NULL", {
   operation <- list(security = TRUE)
   api <- list(security = TRUE)
 
-  result_expr <- Rega:::.add_headers(character(0), operation, api, token = token)
+  result_expr <- .add_headers(character(0), operation, api, token = token)
   result_str <- deparse(result_expr)
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
@@ -47,7 +47,7 @@ test_that("User-specified header params => include them as symbols", {
   operation <- list(security = NULL)
   api <- list(security = NULL)
 
-  result_expr <- Rega:::.add_headers(header_params, operation, api, token = NULL)
+  result_expr <- .add_headers(header_params, operation, api, token = NULL)
   result_str <- deparse(result_expr)
 
   expect_true(is.expression(result_expr) || is.call(result_expr))
@@ -63,7 +63,7 @@ test_that("User-specified header params => include them as symbols", {
 test_that("'header_params' is not a character vector", {
   header_params <- 123
   expect_error(
-    Rega:::.add_headers(header_params, list(), list()),
+    .add_headers(header_params, list(), list()),
     "Can't convert.*to a symbol|argument must be a character vector"
   )
 })
@@ -71,7 +71,7 @@ test_that("'header_params' is not a character vector", {
 test_that("'operation' or 'api' missing fields => can't check 'security'", {
   l <- "invalid value"
   expect_error(
-    Rega:::.add_headers(character(0), l, list()),
+    .add_headers(character(0), l, list()),
     "\\$ operator is invalid for atomic vectors|'operation' must be a named list|'api' must be a named list."
   )
 })

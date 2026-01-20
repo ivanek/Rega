@@ -13,7 +13,7 @@ test_that("'op' has a requestBody and a non-NULL schema", {
     )
   )
 
-  result <- Rega:::.add_json_validation(op)
+  result <- .add_json_validation(op)
 
   expect_length(result, 2)
   expect_true(is.call(result[[1]]) || is.expression(result[[1]]))
@@ -91,7 +91,7 @@ test_that("'op' has a requestBody and a complex schema", {
     )))
   ))
 
-  result <- Rega:::.add_json_validation(op)
+  result <- .add_json_validation(op)
 
   expect_length(result, 2)
   expect_true(is.call(result[[1]]) || is.expression(result[[1]]))
@@ -122,7 +122,7 @@ test_that("'op$schema' is not a list", {
     )
   )
 
-  result <- Rega:::.add_json_validation(op)
+  result <- .add_json_validation(op)
 
   expect_length(result, 2)
   expect_true(is.call(result[[1]]) || is.expression(result[[1]]))
@@ -133,7 +133,7 @@ test_that("'op$schema' is not a list", {
 
 test_that("'op' has no requestBody", {
   op <- list(foo = "bar")
-  result <- Rega:::.add_json_validation(op)
+  result <- .add_json_validation(op)
   expect_equal(result, list())
 })
 
@@ -146,7 +146,7 @@ test_that("'op' has requestBody, but no schema", {
     )
   )
 
-  result <- Rega:::.add_json_validation(op)
+  result <- .add_json_validation(op)
   expect_equal(result, list())
 })
 
@@ -157,7 +157,7 @@ test_that("'op' has requestBody, but no schema", {
 test_that("'op' is not a list", {
   op <- "invalid value"
   expect_error(
-    Rega:::.add_json_validation(op),
+    .add_json_validation(op),
     "\\$ operator is invalid for atomic vectors|object of type 'character' is not subsettable|must be a named list"
   )
 })
