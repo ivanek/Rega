@@ -7,9 +7,8 @@
 .add_queries(query_params)
 }
 \arguments{
-\item{query_params}{A character vector of query parameter names to include
-in the request. Query parameters are created \code{.get_operation_params}
-function.}
+\item{query_params}{A character vector of query parameter names to include in
+the request. Query parameters are created \code{.get_operation_params} function.}
 }
 \value{
 An expression to add query parameters to an API request using

@@ -11,8 +11,7 @@ add_required_str(p, r, req_str = "* ")
 
 \item{r}{Character vector. Fields that are required.}
 
-\item{req_str}{Character. Prefix to mark required fields.
-Defaults to \code{"* "}.}
+\item{req_str}{Character. Prefix to mark required fields. Defaults to \code{"* "}.}
 }
 \value{
 A character vector with required fields prefixed and ordered to

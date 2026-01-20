@@ -11,7 +11,7 @@ create_client(api, ...)
 host, and global settings.}
 
 \item{...}{List. List of additional arguments passed to
-\code{api_function_factory}}
+\code{api_function_factory}.}
 }
 \value{
 A named list of functions, where each function corresponds to an API

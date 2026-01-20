@@ -7,8 +7,8 @@
 extract_operation_definitions(api)
 }
 \arguments{
-\item{api}{List. Parsed API specification, generated from a JSON or
-YAML file. Must include a \code{paths} element with API endpoint definitions.}
+\item{api}{List. Parsed API specification, generated from a JSON or YAML
+file. Must include a \code{paths} element with API endpoint definitions.}
 }
 \value{
 A named list of operations, where each name corresponds to an

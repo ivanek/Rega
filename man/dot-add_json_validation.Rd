@@ -7,12 +7,12 @@
 .add_json_validation(op)
 }
 \arguments{
-\item{op}{A list representing the API operation, which may contain a
-request body and schema.}
+\item{op}{A list representing the API operation, which may contain a request
+body and schema.}
 }
 \value{
-A list of expressions for JSON schema validation, or an empty list
-if no schema is found.
+A list of expressions for JSON schema validation, or an empty list if
+no schema is found.
 }
 \description{
 Generates validation expressions for an API operation based on its JSON

@@ -15,9 +15,9 @@ parse_text_body(resp)
 A list of parsed data or a tibble if the content is raw text.
 }
 \description{
-Processes a text response by either parsing it as JSON (if structured
-with curly braces) or returning it as a single-column tibble. Null
-JSON elements are converted to empty lists to facilitate unnesting.
+Processes a text response by either parsing it as JSON (if structured with
+curly braces or square brackets) or returning it as a list. Null JSON
+elements are converted to empty lists to facilitate unnesting.
 }
 \examples{
 text_resp <- httr2::response(

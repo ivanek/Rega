@@ -10,12 +10,11 @@
 \item{meta}{A list containing parsed EGA metadata, where elements correspond
 to individual sheets.}
 
-\item{aliases}{A list of aliases, reference values used for validation (not
-used in this function but included for consistency with other validators).}
+\item{aliases}{A list of aliases, reference values used for validation.}
 }
 \value{
-A validation object containing the results of the check or NULL if
-analyses sheet was not present in metadata
+A validation object containing the results of the check or
+\code{NULL} if analyses sheet was not present in metadata
 }
 \description{
 Validates the metadata by checking the following:

@@ -13,10 +13,9 @@ parse_json_body(resp)
 A list of lists, where each inner list represents a record.
 }
 \description{
-Extracts the JSON body from a response and ensures the output is
-structured as a list of objects. Named lists (single records) are
-wrapped in a parent list to maintain consistency for downstream
-unnesting.
+Extracts the JSON body from a response and ensures the output is structured
+as a list of objects. Named lists (single records) are wrapped in a parent
+list to maintain consistency for downstream unnesting.
 }
 \examples{
 json_resp <- httr2::response(

@@ -18,7 +18,7 @@ operations. If \code{NULL}, default client will be created by
 \code{create_client(extract_api())}. Defaults to \code{NULL}.}
 
 \item{logfile}{A string specifying the path to a log file. If \code{NULL}, no
-log is written.}
+log is written. Defaults to \code{NULL}.}
 
 \item{...}{Additional arguments for future extensions (currently unused).}
 }
@@ -26,8 +26,8 @@ log is written.}
 A list of responses from the rollback operations for each endpoint.
 }
 \description{
-Rolls back specified endpoints for a submission identified by its ID using
-the client and logs the responses if a logfile is specified.
+Rolls back specified endpoints for a submission identified by its accession
+ID using the client and logs the responses if a logfile is specified.
 }
 \examples{
 mock_client <- list(

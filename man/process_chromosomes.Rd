@@ -21,7 +21,7 @@ present, returns an empty list.
 }
 \description{
 This function processes chromosome data by extracting unique chromosome IDs
-and labels or retrieving chromosome group information from a lookup when
+and labels or retrieving chromosome group information from a lookup where
 applicable.
 }
 \examples{

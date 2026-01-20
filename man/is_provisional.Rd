@@ -2,7 +2,7 @@
 % Please edit documentation in R/workflow_helpers.R
 \name{is_provisional}
 \alias{is_provisional}
-\title{Check whether IDs are provisional}
+\title{Check whether IDs is a provisional ID.}
 \usage{
 is_provisional(x)
 }
@@ -14,8 +14,8 @@ A logical vector indicating which values are provisional IDs.
 }
 \description{
 Determine if input values match the format of provisional IDs, either as
-whole-number numerics or as character strings of at least two digits
-without leading zeros.
+whole-number numerics or as character strings of at least two digits without
+leading zeros.
 }
 \examples{
 is_provisional(c(10, 11, 3.5, 9))

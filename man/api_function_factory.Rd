@@ -24,8 +24,8 @@ verbosity level should the requests \code{httr2::req_perform} be performed.
 Default: 0.}
 
 \item{bearer_token}{Character, optional. The API bearer token for
-authentication, will be included in the headers of the request. Defaults
-to \code{NULL}}
+authentication, will be included in the headers of the request. Defaults to
+\code{NULL}}
 
 \item{token_url}{Character, optional. Token endpoint URL from which to obtain
 the access token. If \code{bearer_token} is specified, it will take

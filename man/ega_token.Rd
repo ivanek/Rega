@@ -18,14 +18,14 @@ the value returned by \code{.get_ega_username()}.}
 the value returned by \code{.get_ega_password()}.}
 
 \item{token_url}{Character. The URL for the EGA token endpoint. Defaults to
-the standard EGA token URL if not provided.}
+the standard EGA token URL if not provided. Defaults to \code{NULL}.}
 }
 \value{
 A list containing the token details if successful. Actual token value
 can be retrieved by \code{token$access_token}
 }
 \description{
-This function retrieves an API token from the European Genome-phenome Archive
+This function retrieves an API token from the European Genome-Phenome Archive
 (EGA) using user credentials.
 }
 \examples{

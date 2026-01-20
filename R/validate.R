@@ -2,22 +2,22 @@
 
 #' Validator for Default Parser
 #'
-#' Used to validate internal consistency of submission metadata parsed using
-#' the default parser. Performs several checks on EGA dataset for submission,
+#' Used to validate internal consistency of submission metadata parsed using the
+#' default parser. Performs several checks on EGA dataset for submission,
 #' ensuring that aliases for studies, experiments, samples, runs, analyses and
-#' datasets are  are properly linked, as they will be replaced with provisional
-#' or accession IDs during submission process. Displays a success message if
-#' all validation passed or a summary message if validation failed. In addition
-#' it returns a data frame with validation details.
+#' datasets are are properly linked, as they will be replaced with provisional
+#' or accession IDs during submission process. Displays a success message if all
+#' validation passed or a summary message if validation failed. In addition it
+#' returns a data frame with validation details.
 #'
 #' @param meta List of data frames. Correspond to tables of EGA submission.
-#' @param aliases List of lists. Aliases that should present in the
-#' EGA tables.  If `NULL`, the function will attempt to locate it in the
-#' `meta` parameter. Defaults to `NULL`
+#' @param aliases List of lists. Aliases that should present in the EGA tables.
+#'   If \code{NULL}, the function will attempt to locate it in the `meta`
+#'   parameter. Defaults to \code{NULL}
 #'
 #' @return Data frame. Validator object that includes all performed validations
-#' and their statistics (number of passes, fails and NAs, or whether errors or
-#' warnings were encountered during validation)
+#'   and their statistics (number of passes, fails and NAs, or whether errors or
+#'   warnings were encountered during validation)
 #'
 #' @importFrom validate summary
 #'
@@ -169,7 +169,7 @@ default_validator <- function(meta, aliases = NULL) {
 #'   and sheet name in metadata to compare against.
 #'
 #' @return A validation object containing the results of the check or NULL if
-#'  sheet specified by \code{ode_list_entry} was not present in metadata
+#'   sheet specified by \code{ode_list_entry} was not present in metadata
 #'
 #' @importFrom validate validator confront is_unique
 #'
@@ -263,6 +263,8 @@ default_validator <- function(meta, aliases = NULL) {
 #' Validates the metadata by checking the following:
 #' - study titles are unique
 #' - study descriptions are unique
+#' - study title contains number of words within required range
+#' - study description contains number of sentences within required range
 #'
 #' @param meta A list containing parsed EGA metadata, where elements correspond
 #'   to individual sheets.
@@ -289,7 +291,6 @@ default_validator <- function(meta, aliases = NULL) {
     }
 
     cond <- validate::validator(
-        # TODO put back
         studies_title_is_unique = is_unique(title),
         studies_description_is_unique = is_unique(description),
         studies_title_length = get_word_number(title) >= 3 &
@@ -308,6 +309,7 @@ default_validator <- function(meta, aliases = NULL) {
 #' - samples for runs are specified
 #' - file types for runs are specified
 #' - files for runs are specified
+#' - files for runs are unique
 #' - experiments for runs are present in aliases
 #' - samples for runs are present in aliases
 #'
@@ -364,9 +366,10 @@ default_validator <- function(meta, aliases = NULL) {
 #' Validates the metadata by checking the following:
 #' - analyses titles are unique
 #' - analyses descriptions are unique
-#' - files for analyses are specified
 #' - experiments for analyses are present in aliases
 #' - samples for analyses are present in aliases
+#' - files for analyses are specified
+#' - files for analyses are unique
 #'
 #' @param meta A list containing parsed EGA metadata, where elements correspond
 #'   to individual sheets.
@@ -431,11 +434,12 @@ default_validator <- function(meta, aliases = NULL) {
 #' - datasets descriptions are unique
 #' - runs for datasets are present in aliases (as nested lists)
 #' - all runs in aliases are present in datasets (as nested lists)
+#' - datatsets titles contains number of words within required range
+#' - datasets descriptions contains number of sentences within required range
 #'
 #' @param meta A list containing parsed EGA metadata, where elements correspond
 #'   to individual sheets.
-#' @param aliases A list of aliases, reference values used for validation (not
-#'   used in this function but included for consistency with other validators).
+#' @param aliases A list of aliases, reference values used for validation.
 #'
 #' @return A validation object containing the results of the check.
 #'
@@ -487,11 +491,10 @@ default_validator <- function(meta, aliases = NULL) {
 #'
 #' @param meta A list containing parsed EGA metadata, where elements correspond
 #'   to individual sheets.
-#' @param aliases A list of aliases, reference values used for validation (not
-#'   used in this function but included for consistency with other validators).
+#' @param aliases A list of aliases, reference values used for validation.
 #'
-#' @return A validation object containing the results of the check or NULL if
-#'   analyses sheet was not present in metadata
+#' @return A validation object containing the results of the check or
+#'   \code{NULL} if analyses sheet was not present in metadata
 #'
 #' @importFrom validate validator confront
 #'
@@ -525,6 +528,8 @@ default_validator <- function(meta, aliases = NULL) {
         stop("'aliases' must be a named list.")
     }
 
+    # TODO Analyses description must be at least 50 char. Use the same validation
+    # for title and description as for the others
     cond <- validate::validator(
         dataset_analyses_in_aliases = unlist(analyses) %in% aliases$analyses
     )
@@ -541,10 +546,10 @@ default_validator <- function(meta, aliases = NULL) {
 #' Retrieve the Schema for an API Operation
 #'
 #' @param op List. The API operation definition containing a `requestBody`
-#' element with content and schema details.
+#'   element with content and schema details.
 #'
-#' @return The schema for the operation's JSON request body, or `NULL` if no
-#' schema is defined.
+#' @return The schema for the operation's JSON request body, or \code{NULL} if
+#'   no schema is defined.
 #'
 #' @examples
 #' # Get operations from API
@@ -572,10 +577,10 @@ get_operation_schema <- function(op) {
 #' fail, it displays the overall result of the validation as first and then it
 #' tests separately against all `oneOf` sub schemas.
 #'
-#' @param payload JSON string or single row of data frame converted to JSON
-#'   representation with `unbox_row` function or a list with all items of length
-#'   1 converted to JSON representation with `unbox_list` function. The payload
-#'   to validate against the schema.
+#' @param payload The payload to validate against the schema. JSON string or
+#'   single row of data frame converted to JSON representation with `unbox_row`
+#'   function or a list with all items of length 1 converted to JSON
+#'   representation with `unbox_list` function.
 #' @param schema List. The JSON schema defining the validation rules.
 #'
 #' @return Logical value indicating whether the payload is valid. If invalid,
@@ -651,15 +656,14 @@ validate_schema <- function(payload, schema) {
     valid
 }
 
-
 #' Convert Validation Results to a Message
 #'
-#' @param v Logical. The validation result, which may include an
-#' `errors` attribute detailing validation errors.
+#' @param v Logical. The validation result, which may include an `errors`
+#'   attribute detailing validation errors.
 #'
 #' @return A character string summarizing the validation results. If validation
-#' errors are present, they are included in the message; otherwise, a success
-#' message is returned.
+#'   errors are present, they are included in the message; otherwise, a success
+#'   message is returned.
 #'
 #' @importFrom utils capture.output
 #'

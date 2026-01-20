@@ -12,8 +12,8 @@ delete_submission(id, client = NULL, logfile = NULL, ...)
 \item{client}{An API client object with a \code{delete} method for
 submissions.}
 
-\item{logfile}{A string specifying the path to a log file. If \code{NULL},
-no log is written.}
+\item{logfile}{A string specifying the path to a log file. If \code{NULL}, no
+log is written. Defaults to \code{NULL}.}
 
 \item{...}{Additional arguments for future extensions (currently unused).}
 }

@@ -22,6 +22,7 @@ Validates the metadata by checking the following:
 \item samples for runs are specified
 \item file types for runs are specified
 \item files for runs are specified
+\item files for runs are unique
 \item experiments for runs are present in aliases
 \item samples for runs are present in aliases
 }

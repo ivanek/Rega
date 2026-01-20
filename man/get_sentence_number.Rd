@@ -7,7 +7,7 @@
 get_sentence_number(text)
 }
 \arguments{
-\item{text}{A length-one character vector.}
+\item{text}{A character vector.}
 }
 \value{
 An integer scalar giving the number of sentences in \code{text}.
@@ -15,7 +15,8 @@ An integer scalar giving the number of sentences in \code{text}.
 \description{
 Count how many sentences are in a character string, based on terminal
 punctuation marks \code{.}, \code{!}, or \code{?} following an
-alphanumeric character.
+alphanumeric character. If there is no punctuation character at the end, it
+will still count it as another sentence.
 }
 \examples{
 get_sentence_number("First sentence. Second sentence? Third!")

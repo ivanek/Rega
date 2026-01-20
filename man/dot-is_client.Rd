@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{.is_client}
 \alias{.is_client}
-\title{Validate that an object is a client list of functions.}
+\title{Validate that an object is an API client.}
 \usage{
 .is_client(client)
 }
@@ -10,8 +10,8 @@
 \item{client}{An object to be tested, expected to be a list of functions.}
 }
 \value{
-Returns \code{TRUE} invisibly if the validation succeeds, otherwise
-stops execution with an error.
+Returns \code{TRUE} if the validation succeeds, otherwise stops
+execution with an error.
 }
 \description{
 Checks that \code{client} is a list where every element is a function.

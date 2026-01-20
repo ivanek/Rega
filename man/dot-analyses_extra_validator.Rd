@@ -21,9 +21,10 @@ Validates the metadata by checking the following:
 \itemize{
 \item analyses titles are unique
 \item analyses descriptions are unique
-\item files for analyses are specified
 \item experiments for analyses are present in aliases
 \item samples for analyses are present in aliases
+\item files for analyses are specified
+\item files for analyses are unique
 }
 }
 \examples{

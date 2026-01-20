@@ -14,8 +14,8 @@ either an accession or provisional ID.}
 "get" or "delete".}
 
 \item{client}{List of functions. EGA API client created by \code{create_client}
-function from EGA API schema with \code{get} and \code{delete} methods.
-If \code{NULL}, default client will be created by
+function from EGA API schema with \code{get} and \code{delete} methods. If
+\code{NULL}, default client will be created by
 \code{create_client(extract_api())}. Defaults to \code{NULL}.}
 }
 \value{

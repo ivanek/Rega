@@ -7,11 +7,13 @@
 extract_api(spec_file = NULL, host = NULL)
 }
 \arguments{
-\item{spec_file}{Character. Path to the API specification file in JSON or
-YAML format.}
+\item{spec_file}{Character. Optional.Path to the API specification file in
+JSON or YAML format. If NULL default \code{extdata/ega_api_deref.yaml} is used.
+Defaults to \code{NULL}}
 
 \item{host}{Character. Optional. The API host URL. If not supplied, it will
-be inferred from the specification file's \code{servers} element.}
+be inferred from the specification file's \code{servers} element. Defaults to
+\code{NULL}}
 }
 \value{
 A list containing the parsed API specification, including the \code{host}

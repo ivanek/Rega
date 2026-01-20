@@ -27,7 +27,7 @@ api_name_to_label <- function(x) {
 #'
 #' @param x Character vector. Prettified labels to convert.
 #' @param req_str Character. Optional prefix to remove from labels. Defaults to
-#' `"* "`.
+#'   `"* "`.
 #'
 #' @return A character vector with labels converted to API-style names.
 #'
@@ -38,7 +38,7 @@ api_name_to_label <- function(x) {
 #' @export
 label_to_api_name <- function(x, req_str = "* ") {
     if (is.list(x)) {
-        x = as.character(x)
+        x <- as.character(x)
     }
 
     if (!is.character(x)) {
@@ -346,13 +346,13 @@ row_table_formatter <- function(tab, params) {
 #' Format File Table with EGA File Paths
 #'
 #' @param tab Data frame. The input table containing file information. Columns
-#' `file`, `ega_inbox_relative_path` need to be present in the data.
+#'   `file`, `ega_inbox_relative_path` need to be present in the data.
 #' @param params List. Additional parameters for formatting. Takes a formatter
-#' params value from parser parameter yaml file. Includes `crypt_ext` for
-#' encryption file extensions and `prepend_slash` to control path prefix.
+#'   params value from parser parameter yaml file. Includes `crypt_ext` for
+#'   encryption file extensions and `prepend_slash` to control path prefix.
 #'
 #' @return A formatted data frame with cleaned column names, and updated
-#' `ega_file` paths based on file and relative path information.
+#'   `ega_file` paths based on file and relative path information.
 #'
 #' @importFrom stringr str_trim
 #'
@@ -419,7 +419,7 @@ file_formatter <- function(tab, params) {
 #'
 #' @param x Character. The name of the submission metadata table/sheet.
 #' @param params List. A list containing a `formatter` element from parser
-#' parameter yaml file.
+#'   parameter yaml file.
 #'
 #' @return The formatter function corresponding to the specified table.
 #'
@@ -471,9 +471,9 @@ get_formatter <- function(x, params) {
 #' Retrieve Formatter Parameters by Name
 #'
 #' @param x Character. The name of the formatter for which to retrieve
-#' parameters.
+#'   parameters.
 #' @param params List. A list containing a `formatter` element from parser
-#' parameter yaml file.
+#'   parameter yaml file.
 #'
 #' @return A list of parameters for the specified formatter.
 #'
@@ -524,13 +524,13 @@ get_formatter_params <- function(x, params) {
 
 #' Fold Columns with a Common Prefix into a Single Column Nested as List
 #'
-#' If `NA` values are present in any of the columns to be nested, they
-#' will be removed. If the column is not present it will be added with
-#' `NA` as a single value.
+#' If \code{NA} values are present in any of the columns to be nested, they will
+#' be removed. If the column is not present it will be added with \code{NA} as a
+#' single value.
 #'
 #' @param tab Data frame. The input table with columns to fold.
 #' @param column_prefix Character. The prefix of columns to nest into a single
-#' column represented as list.
+#'   column represented as list.
 #' @param new_name Character. The name of the new folded column.
 #'
 #' @return A data frame with the specified columns nested into a single column.
@@ -624,7 +624,7 @@ has_linked_sheets <- function(metadata, colname) {
 #'   processing.
 #'
 #' @return A data frame containing the merged data, or an empty list if the
-#'   target is entirely `NA`.
+#'   target is entirely \code{NA}.
 #'
 #' @importFrom stats setNames
 #'
@@ -640,7 +640,7 @@ merge_linked_sheet <- function(target, source, dat, sheet) {
     .validate_character_scalar(source)
 
     if (is.list(dat)) {
-        dat = as.data.frame(dat)
+        dat <- as.data.frame(dat)
     }
 
     if (!is.data.frame(dat))  {
@@ -714,13 +714,6 @@ link_sheet <- function(metadata, sheet_name) {
             "'metadata[[\"%s\"]]' must be a data frame.", sheet_name
         ))
     }
-
-    # TODO check
-    # if (ncol(source_data) == 0L) {
-    #     stop(sprintf(
-    #         "`metadata[[\"%s\"]]` must have at least one column.", sheet_name
-    #     ))
-    # }
 
     are_linked <- has_linked_sheets(metadata, sheet_name)
     linked_sheets <- names(metadata)[are_linked]
@@ -858,7 +851,7 @@ format_chromosomes <- function(metadata) {
 #' Process a Vector or List of Chromosome Data
 #'
 #' This function processes chromosome data by extracting unique chromosome IDs
-#' and labels or retrieving chromosome group information from a lookup when
+#' and labels or retrieving chromosome group information from a lookup where
 #' applicable.
 #'
 #' @param chr_data A list containing chromosome-related information. Expected to
@@ -894,19 +887,13 @@ process_chromosomes <- function(chr_data, select_input_data) {
     if (!is.list(select_input_data)) {
         stop("select_input_data must be a list.")
     }
-
     if (is.null(select_input_data$chromosomes)) {
         stop("select_input_data$chromosomes must exist.")
     }
-
-    # Cast to list in case it's a data frame
-    if (identical(class(chr_data), "data.frame")) {
-        chr_data <- as.list(chr_data)
-    }
+    if (identical(class(chr_data), "data.frame")) chr_data <- as.list(chr_data)
 
     # Cast all the columns to list for uniform access
     chr_data[] <- lapply(chr_data, as.vector)
-
     # Validation of presence of particular columns/members
     has_chr <- "chromosomes" %in% names(chr_data) &&
         !all(is.na(chr_data$chromosomes))

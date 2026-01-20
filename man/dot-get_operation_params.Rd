@@ -8,8 +8,8 @@
 }
 \arguments{
 \item{op}{List. An operation definition containing a \code{parameters} element,
-which is a list of parameter definitions. Each parameter should include
-a \code{name} and an \verb{in} field specifying its location.}
+which is a list of parameter definitions. Each parameter should include a
+\code{name} and an \verb{in} field specifying its location.}
 }
 \value{
 A named list with elements:

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{get_schemas}
 \alias{get_schemas}
-\title{Retrieve Request Schemas from an API Specification}
+\title{Retrieve Request schemas from an API Specification}
 \usage{
 get_schemas(api)
 }

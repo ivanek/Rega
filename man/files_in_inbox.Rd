@@ -10,8 +10,8 @@ files_in_inbox(file_list, client = NULL)
 \item{file_list}{A character vector or list of file prefixes to check.}
 
 \item{client}{List of functions. EGA API client created by \code{create_client}
-function from EGA API schema. If \code{NULL}, default client will be created by
-\code{create_client(extract_api())}. Defaults to \code{NULL}.}
+function from EGA API schema. If \code{NULL}, default client will be
+created by \code{create_client(extract_api())}. Defaults to \code{NULL}.}
 }
 \value{
 A logical scalar, \code{TRUE} if all files are present, otherwise

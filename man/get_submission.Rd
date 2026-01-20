@@ -11,12 +11,12 @@ get_submission(id, client = NULL, logfile = NULL, ...)
 accession or provisional ID.}
 
 \item{client}{List of functions. EGA API client created by \code{create_client}
-function from EGA API schema with \code{get} methods. If \code{NULL}, default
-client will be created by \code{create_client(extract_api())}.
+function from EGA API schema with \code{get} methods. If \code{NULL},
+default client will be created by \code{create_client(extract_api())}.
 Defaults to \code{NULL}.}
 
-\item{logfile}{A string specifying the path to a log file. If \code{NULL},
-no log is written.}
+\item{logfile}{A string specifying the path to a log file. If \code{NULL}, no
+log is written. Defaults to \code{NULL}.}
 
 \item{...}{Additional arguments for future extensions (currently unused).}
 }

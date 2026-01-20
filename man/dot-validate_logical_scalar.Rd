@@ -9,18 +9,18 @@
 \arguments{
 \item{x}{An object to be tested.}
 
-\item{varname}{A character string specifying the name of the
-variable being checked, used in the error message.}
+\item{varname}{A character string specifying the name of the variable being
+checked, used in the error message.  If \code{NULL}, the variable name is
+taken from the name of variable being tested. Defaults to \code{NULL}}
 }
 \value{
-Returns \code{TRUE} invisibly if the validation succeeds,
-otherwise stops execution with an error.
+Returns \code{TRUE} if the validation succeeds, otherwise stops
+execution with an error.
 }
 \description{
-This internal function checks if \code{x} is a logical vector with
-a length of exactly one and is not \code{NA}. If the check fails,
-the function stops execution and reports an error using the
-provided variable name.
+Checks if \code{x} is a logical vector with a length of exactly one and is
+not \code{NA}. If the check fails, the function stops execution and reports
+an error using the variable name.
 }
 \examples{
 # Returns TRUE silently

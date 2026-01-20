@@ -21,6 +21,8 @@ Validates the metadata by checking the following:
 \itemize{
 \item study titles are unique
 \item study descriptions are unique
+\item study title contains number of words within required range
+\item study description contains number of sentences within required range
 }
 }
 \examples{

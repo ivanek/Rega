@@ -24,7 +24,7 @@ get_or_post(
 be a submission type endpoint identified with provisional ID.}
 
 \item{id_type}{A string specifying type of EGA id. One of 'provisional' or
-'accession'. Defaults to 'provisional'.}
+'accession'. Defaults to \code{provisional}.}
 
 \item{retrieve_if_exists}{A logical flag indicating whether to retrieve data
 if it already exists. Defaults to \code{FALSE}.}
@@ -36,7 +36,7 @@ A data frame containing the response from the API.
 This function retrieves existing data from an API or submits new data if it
 does not exist, with optional error handling and retrieval options.
 \itemize{
-\item If no data is present in the database, it will supplied data will be
+\item If no data is present in the database, supplied data will be
 inserted.
 \item If there is data already present in the database and the number of records
 don't match, error will raised.

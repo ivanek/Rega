@@ -15,7 +15,7 @@ lists.
 }
 \description{
 Replaces \code{NA} values in a list with empty lists, preserving the original
-structure of the list.
+structure of the list. Doesn't work on nested lists.
 }
 \examples{
 input_list <- list(1, NA, "text", NA)

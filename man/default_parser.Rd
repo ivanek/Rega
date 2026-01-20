@@ -10,7 +10,9 @@ default_parser(metadata_file, param_file = NULL)
 \item{metadata_file}{Character. Path to a default template xlsx file
 containing the submission metadata information.}
 
-\item{param_file}{Character. Path to a yaml file with parameters for parser.}
+\item{param_file}{Character. Path to a yaml file with parameters for parser.
+If NULL, uses the \code{extdata/default_parser_params.yaml}. Defaults to
+\code{NULL}.}
 }
 \value{
 List of data frames or lists. Submission information parsed from the

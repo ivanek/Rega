@@ -1,17 +1,16 @@
-#' Check if a String is a Valid Accession Identifier
+#' Check if a String is a Valid Accession Identifier.
 #'
-#' This function verifies whether the input string matches the format of a
-#' valid accession identifier based on a specified schema.
+#' Verifies whether the input string matches the format of a valid accession
+#' identifier based on a specified schema.
 #'
-#' @param x A character vector to be tested for validity as an accession.
-#' @param schema A character string specifying the schema. Valid options
-#' include "study", "studies", "sample", "samples", "experiment",
-#' "experiments", "analysis", "analyses", "run", "runs", "policy",
-#' "DAC", "dataset", "datasets", "submission" and `NULL`. `NULL` will check
-#' against any of the schemas. Defaults to `NULL`.
+#' @param x A character vector to be tested for validity as accessions.
+#' @param schema A character string specifying the schema. Valid options include
+#'   "study", "studies", "sample", "samples", "experiment", "experiments",
+#'   "analysis", "analyses", "run", "runs", "policy", "DAC", "dataset",
+#'   "datasets", "submission" and \code{NULL}. \code{NULL} will check against
+#'   any of the schemas. Defaults to \code{NULL}.
 #'
-#' @return A logical vector indicating whether each element of \code{x} is a
-#' valid accession identifier for the specified schema.
+#' @return A logical vector indicating which values are accession IDs.
 #'
 #' @importFrom rlang is_empty
 #'
@@ -56,11 +55,11 @@ is_accession <- function(x, schema = NULL) {
     grepl(paste0("^EGA", letter, "\\d{11}$"), x)
 }
 
-#' Check whether IDs are provisional
+#' Check whether IDs is a provisional ID.
 #'
 #' Determine if input values match the format of provisional IDs, either as
-#' whole-number numerics or as character strings of at least two digits
-#' without leading zeros.
+#' whole-number numerics or as character strings of at least two digits without
+#' leading zeros.
 #'
 #' @param x A numeric or character vector of candidate provisional IDs.
 #'
@@ -94,9 +93,9 @@ is_provisional <- function(x) {
 #'
 #' @param steps An integer specifying the total number of steps.
 #'
-#' @return A function that takes a message string as input and displays it
-#' along with the current step and total steps. The step count increments
-#' automatically with each call.
+#' @return A function that takes a message string as input and displays it along
+#'   with the current step and total steps. The step count increments
+#'   automatically with each call.
 #'
 #' @examples
 #' stepper <- step_msg(3)
@@ -183,7 +182,7 @@ unbox_list <- function(l) {
 #' @param tab A data frame containing the data to be submitted.
 #' @param id An EGA accession/provisional ID passed to the \code{endpoint_func}.
 #' @param endpoint_func A function that handles the API request. It should
-#' accept \code{id} and a JSON \code{body} as arguments.
+#'   accept \code{id} and a JSON \code{body} as arguments.
 #'
 #' @return Data frame. A combined response object from the API.
 #'
@@ -200,15 +199,17 @@ submit_table <- function(tab, id, endpoint_func) {
         stop("'tab' has zero rows.")
     }
 
-    .validate_character_scalar(id)
+    if (!is_provisional(id) && !is_accession(id)) {
+        stop("'submission_id' must be either provisional or accession ID.")
+    }
 
     if (!is.function(endpoint_func)) {
         stop("The 'endpoint_func' must be a function.")
     }
 
     row_resp <- vector("list", length = nrow(tab))
-    # For seems to work best/least problematic when maintaining structure to be
-    # converted to JSON
+    # For loop seems to work best/least problematic when maintaining structure
+    # to be converted to JSON
     for (x in seq_len(nrow(tab))) {
         row_resp[[x]] <- endpoint_func(id, body = unbox_row(tab[x, ]))
     }
@@ -221,7 +222,7 @@ submit_table <- function(tab, id, endpoint_func) {
 #'
 #' This function retrieves existing data from an API or submits new data if it
 #' does not exist, with optional error handling and retrieval options.
-#' - If no data is present in the database, it will supplied data will be
+#' - If no data is present in the database, supplied data will be
 #' inserted.
 #' - If there is data already present in the database and the number of records
 #' don't match, error will raised.
@@ -235,7 +236,7 @@ submit_table <- function(tab, id, endpoint_func) {
 #' @param endpoint A string specifying the EGA API endpoint. The endpoint will
 #'   be a submission type endpoint identified with provisional ID.
 #' @param id_type A string specifying type of EGA id. One of 'provisional' or
-#'   'accession'. Defaults to 'provisional'.
+#'   'accession'. Defaults to \code{provisional}.
 #' @param retrieve_if_exists A logical flag indicating whether to retrieve data
 #'   if it already exists. Defaults to \code{FALSE}.
 #'
@@ -272,7 +273,9 @@ get_or_post <- function(
     submission_id, data, client, endpoint, id_type = "provisional",
     retrieve_if_exists = FALSE
 ) {
-    .validate_character_scalar(submission_id)
+    if (!is_provisional(submission_id) && !is_accession(submission_id)) {
+       stop("'submission_id' must be either provisional or accession ID.")
+    }
     if (!is.data.frame(data)) stop("'data' must be a data frame.")
     .is_client(client)
     .validate_character_scalar(endpoint)
@@ -316,7 +319,7 @@ get_or_post <- function(
 #'
 #' @param responses A list of responses to be saved.
 #' @param logfile A string specifying the path to the log file. If \code{NULL},
-#' no file is written.
+#'   no file is written.
 #'
 #' @return Invisibly returns \code{NULL}
 #'
@@ -331,7 +334,7 @@ save_log <- function(responses, logfile) {
     if (!is.list(responses) && !is.vector(responses)) {
         stop(
             "The 'responses' argument must be a list (or vector coercible
-             to a list)."
+                to a list)."
         )
     }
 
@@ -399,8 +402,8 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
 #'
 #' @param file_list A character vector or list of file prefixes to check.
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema. If `NULL`, default client will be created by
-#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'   function from EGA API schema. If \code{NULL}, default client will be
+#'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #'
 #' @return A logical scalar, \code{TRUE} if all files are present, otherwise
 #'   \code{FALSE}.

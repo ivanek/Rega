@@ -10,8 +10,8 @@ step_msg(steps)
 \item{steps}{An integer specifying the total number of steps.}
 }
 \value{
-A function that takes a message string as input and displays it
-along with the current step and total steps. The step count increments
+A function that takes a message string as input and displays it along
+with the current step and total steps. The step count increments
 automatically with each call.
 }
 \description{

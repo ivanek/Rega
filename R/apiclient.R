@@ -3,14 +3,16 @@
 #' This function parses an API specification file (JSON or YAML) and extracts
 #' relevant details.
 #'
-#' @param spec_file Character. Path to the API specification file in JSON or
-#' YAML format.
+#' @param spec_file Character. Optional.Path to the API specification file in
+#'   JSON or YAML format. If NULL default `extdata/ega_api_deref.yaml` is used.
+#'   Defaults to \code{NULL}
 #' @param host Character. Optional. The API host URL. If not supplied, it will
-#' be inferred from the specification file's `servers` element.
+#'   be inferred from the specification file's `servers` element. Defaults to
+#'   \code{NULL}
 #'
 #' @return A list containing the parsed API specification, including the `host`
-#' and `basePath` elements. If the specification file lacks required elements,
-#' appropriate warnings or errors are raised.
+#'   and `basePath` elements. If the specification file lacks required elements,
+#'   appropriate warnings or errors are raised.
 #'
 #' @importFrom tools file_ext
 #' @importFrom yaml read_yaml
@@ -45,7 +47,6 @@ extract_api <- function(spec_file = NULL, host = NULL) {
 
     api <- parse_fun(spec_file)
 
-    # used (including the port).
     if (is.null(host)) {
         server_urls <- vapply(api$servers, \(x) x$url, FUN.VALUE = character(1))
         if (length(server_urls) < 1) {
@@ -77,12 +78,12 @@ extract_api <- function(spec_file = NULL, host = NULL) {
 #' This function extracts operation definitions from an API specification,
 #' including HTTP methods, paths, parameters, request bodies, and responses.
 #'
-#' @param api List. Parsed API specification, generated from a JSON or
-#' YAML file. Must include a `paths` element with API endpoint definitions.
+#' @param api List. Parsed API specification, generated from a JSON or YAML
+#'   file. Must include a `paths` element with API endpoint definitions.
 #'
 #' @return A named list of operations, where each name corresponds to an
-#' operation ID. If operation Id is not found in the specification, unique one
-#' will be created. Each operation contains:
+#'   operation ID. If operation Id is not found in the specification, unique one
+#'   will be created. Each operation contains:
 #' - `method`: HTTP method (e.g., GET, POST).
 #' - `path`: Endpoint path.
 #' - `parameters`: List of operation parameters.
@@ -111,14 +112,19 @@ extract_operation_definitions <- function(api) {
             operation <- methods[[method]]
             operation_id <- operation$operation_id
             if (is.null(operation_id)) {
+                # first remove the braces and them replace slash by
+                # double underscore
+                op_path = gsub("[/]", "__", gsub("[{}]", "", path))
+                op_path <- gsub("^_+", "", op_path)
+                op_path <- gsub("_+$", "", op_path)
+
                 # Generate a unique operation_id if missing
                 operation_id <- paste0(
                     tolower(method),
-                    "_",
-                    gsub("[/{}/]", "_", path)
+                    "__",
+                    op_path
                 )
-                operation_id <- gsub("^_", "", operation_id)
-                operation_id <- gsub("_$", "", operation_id)
+
             }
             operations[[operation_id]] <- list(
                 method = toupper(method),
@@ -170,12 +176,12 @@ is_valid_http_method <- function(m) {
 #' function arguments. Required parameters are marked as missing arguments.
 #'
 #' @param op List. An operation definition containing a `parameters` element,
-#' which is a list of parameter definitions. Each parameter should include a
-#' `name` and an optional `required` field.
+#'   which is a list of parameter definitions. Each parameter should include a
+#'   `name` and an optional `required` field.
 #'
 #' @return A named list representing function arguments. Names correspond to
-#' parameter names, with required parameters set to missing (`quote(expr = )`)
-#' and others initialized to `NULL`.
+#'   parameter names, with required parameters set to missing (`quote(expr = )`)
+#    and others initialized to \code{NULL}.
 #'
 #' @examples
 #' # Convert operation parameters to function arguments
@@ -220,8 +226,8 @@ is_valid_http_method <- function(m) {
 #' their location (`path`, `query`, or `header`).
 #'
 #' @param op List. An operation definition containing a `parameters` element,
-#' which is a list of parameter definitions. Each parameter should include
-#' a `name` and an `in` field specifying its location.
+#'   which is a list of parameter definitions. Each parameter should include a
+#'   `name` and an `in` field specifying its location.
 #'
 #' @return A named list with elements:
 #' - `path`: Character vector of path parameter names.
@@ -382,9 +388,8 @@ is_valid_http_method <- function(m) {
 #' This function creates an expression to add query parameters to an API
 #' request.
 #'
-#' @param query_params A character vector of query parameter names to include
-#'   in the request. Query parameters are created `.get_operation_params`
-#'   function.
+#' @param query_params A character vector of query parameter names to include in
+#'   the request. Query parameters are created `.get_operation_params` function.
 #'
 #' @return An expression to add query parameters to an API request using
 #'   `req_url_query()`.
@@ -423,11 +428,11 @@ is_valid_http_method <- function(m) {
 #' schema. If a schema is present, the function returns expressions to validate
 #' the request body and raise an error if validation fails.
 #'
-#' @param op A list representing the API operation, which may contain a
-#'   request body and schema.
+#' @param op A list representing the API operation, which may contain a request
+#'   body and schema.
 #'
-#' @return A list of expressions for JSON schema validation, or an empty list
-#'   if no schema is found.
+#' @return A list of expressions for JSON schema validation, or an empty list if
+#'   no schema is found.
 #'
 #' @importFrom rlang expr
 #'
@@ -462,8 +467,8 @@ is_valid_http_method <- function(m) {
 #' Add Request Body to API Request
 #'
 #' Adds a JSON request body to an API request if required. If the request
-#' requires a body, an expression is returned to include it; otherwise, an
-#' empty list is returned.
+#' requires a body, an expression is returned to include it; otherwise, an empty
+#' list is returned.
 #'
 #' @param has_body A logical value indicating whether the request requires a
 #'   body.
@@ -502,13 +507,13 @@ is_valid_http_method <- function(m) {
 #'   verbosity level should the requests \code{httr2::req_perform} be performed.
 #'   Default: 0.
 #' @param bearer_token Character, optional. The API bearer token for
-#'   authentication, will be included in the headers of the request. Defaults
-#'   to `NULL`
+#'   authentication, will be included in the headers of the request. Defaults to
+#'   \code{NULL}
 #' @param token_url Character, optional. Token endpoint URL from which to obtain
 #'   the access token. If \code{bearer_token} is specified, it will take
-#'   precedence. If `NULL`, URL
+#'   precedence. If \code{NULL}, URL
 #'   `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`
-#'   will be used. Defaults to `NULL`.
+#'   will be used. Defaults to \code{NULL}.
 #'
 #' @return A dynamically generated function that performs the specified API
 #'   operation. The function accepts arguments corresponding to operation
@@ -617,7 +622,7 @@ api_function_factory <- function(
 #' @param api List. The API specification, including operation definitions,
 #'   host, and global settings.
 #' @param ... List. List of additional arguments passed to
-#'   \code{api_function_factory}
+#'   \code{api_function_factory}.
 #'
 #' @return A named list of functions, where each function corresponds to an API
 #'   operation. The function names match the operation IDs from the
@@ -754,10 +759,9 @@ extract_resource_name <- function(resp) {
 
 #' Parse and Standardize JSON Response Body
 #'
-#' Extracts the JSON body from a response and ensures the output is
-#' structured as a list of objects. Named lists (single records) are
-#' wrapped in a parent list to maintain consistency for downstream
-#' unnesting.
+#' Extracts the JSON body from a response and ensures the output is structured
+#' as a list of objects. Named lists (single records) are wrapped in a parent
+#' list to maintain consistency for downstream unnesting.
 #'
 #' @param resp An `httr2_response` object containing JSON content.
 #'
@@ -789,9 +793,9 @@ parse_json_body <- function(resp) {
 
 #' Parse Plain Text or JSON-like Response Body
 #'
-#' Processes a text response by either parsing it as JSON (if structured
-#' with curly braces) or returning it as a single-column tibble. Null
-#' JSON elements are converted to empty lists to facilitate unnesting.
+#' Processes a text response by either parsing it as JSON (if structured with
+#' curly braces or square brackets) or returning it as a list. Null JSON
+#' elements are converted to empty lists to facilitate unnesting.
 #'
 #' @param resp An `httr2_response` object with "text/plain" content.
 #' @param resource_name String used as the column name for raw text output.

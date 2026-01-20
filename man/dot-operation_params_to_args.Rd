@@ -14,7 +14,6 @@ which is a list of parameter definitions. Each parameter should include a
 \value{
 A named list representing function arguments. Names correspond to
 parameter names, with required parameters set to missing (\code{quote(expr = )})
-and others initialized to \code{NULL}.
 }
 \description{
 This function transforms an operation's parameter definitions into a list of

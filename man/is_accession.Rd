@@ -2,26 +2,25 @@
 % Please edit documentation in R/workflow_helpers.R
 \name{is_accession}
 \alias{is_accession}
-\title{Check if a String is a Valid Accession Identifier}
+\title{Check if a String is a Valid Accession Identifier.}
 \usage{
 is_accession(x, schema = NULL)
 }
 \arguments{
-\item{x}{A character vector to be tested for validity as an accession.}
+\item{x}{A character vector to be tested for validity as accessions.}
 
-\item{schema}{A character string specifying the schema. Valid options
-include "study", "studies", "sample", "samples", "experiment",
-"experiments", "analysis", "analyses", "run", "runs", "policy",
-"DAC", "dataset", "datasets", "submission" and \code{NULL}. \code{NULL} will check
-against any of the schemas. Defaults to \code{NULL}.}
+\item{schema}{A character string specifying the schema. Valid options include
+"study", "studies", "sample", "samples", "experiment", "experiments",
+"analysis", "analyses", "run", "runs", "policy", "DAC", "dataset",
+"datasets", "submission" and \code{NULL}. \code{NULL} will check against
+any of the schemas. Defaults to \code{NULL}.}
 }
 \value{
-A logical vector indicating whether each element of \code{x} is a
-valid accession identifier for the specified schema.
+A logical vector indicating which values are accession IDs.
 }
 \description{
-This function verifies whether the input string matches the format of a
-valid accession identifier based on a specified schema.
+Verifies whether the input string matches the format of a valid accession
+identifier based on a specified schema.
 }
 \examples{
 is_accession("EGAB00000000001", "submission") # TRUE

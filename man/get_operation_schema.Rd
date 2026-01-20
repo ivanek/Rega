@@ -11,8 +11,8 @@ get_operation_schema(op)
 element with content and schema details.}
 }
 \value{
-The schema for the operation's JSON request body, or \code{NULL} if no
-schema is defined.
+The schema for the operation's JSON request body, or \code{NULL} if
+no schema is defined.
 }
 \description{
 Retrieve the Schema for an API Operation

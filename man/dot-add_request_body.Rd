@@ -16,8 +16,8 @@ An expression to add the JSON request body if \code{has_body} is
 }
 \description{
 Adds a JSON request body to an API request if required. If the request
-requires a body, an expression is returned to include it; otherwise, an
-empty list is returned.
+requires a body, an expression is returned to include it; otherwise, an empty
+list is returned.
 }
 \examples{
 Rega:::.add_request_body(TRUE)

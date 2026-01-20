@@ -8,6 +8,8 @@
 #' @param metadata_file Character. Path to a default template xlsx file
 #'   containing the submission metadata information.
 #' @param param_file Character. Path to a yaml file with parameters for parser.
+#'   If NULL, uses the `extdata/default_parser_params.yaml`. Defaults to
+#'   \code{NULL}.
 #'
 #' @return List of data frames or lists. Submission information parsed from the
 #'   xlsx file.
@@ -157,7 +159,7 @@ default_parser <- function(metadata_file, param_file = NULL) {
     }
 
     # Checks if the Aliases have an analysis entry or if there are Analysis
-    # Files specified, if not, deletes both Analyses and Analyses Files sheet
+    # Files specified
     if (is.null(meta$aliases$analyses) ||
             length(meta$aliases$analyses) == 0 ||
             dim(meta$analysis_files)[1] == 0) {

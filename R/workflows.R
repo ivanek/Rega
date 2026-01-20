@@ -15,10 +15,10 @@
 #' @param request_data List of data frames. Parsed submission metadata
 #'   containing correctly formatted and linked information for submission
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema. If `NULL`, default client will be created by
-#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'   function from EGA API schema. If \code{NULL}, default client will be
+#'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #' @param logfile Character. Path of log file to log the `httr2` responses from
-#'   individual operations or `NULL`. Defaults to `NULL`.
+#'   individual operations or \code{NULL}. Defaults to \code{NULL}.
 #' @param id Integer.
 #' @param retrieve_if_exists Logical.
 #' @param ... List. Additional arguments to the function.
@@ -464,9 +464,9 @@ new_submission <- function(
 #' @param id Character or numeric. Represents the submission identifier. Can be
 #'   either an accession or provisional ID.
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema with \code{get} and \code{delete} methods.
-#'   If `NULL`, default client will be created by
-#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'   function from EGA API schema with \code{get} and \code{delete} methods. If
+#'   \code{NULL}, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #' @param method A string specifying the operation to perform. Valid options are
 #'   "get" or "delete".
 #'
@@ -532,17 +532,17 @@ use_submission <- function(id, method, client = NULL) {
 #' responses if a logfile is specified.
 #'
 #' @param id A string representing the submission identifier. Can be either an
-#' accession or provisional ID.
+#'   accession or provisional ID.
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema with \code{get} methods. If `NULL`, default
-#'   client will be created by \code{create_client(extract_api())}.
-#'   Defaults to `NULL`.
-#' @param logfile A string specifying the path to a log file. If \code{NULL},
-#'   no log is written.
+#'   function from EGA API schema with \code{get} methods. If \code{NULL},
+#'   default client will be created by \code{create_client(extract_api())}.
+#'   Defaults to \code{NULL}.
+#' @param logfile A string specifying the path to a log file. If \code{NULL}, no
+#'   log is written. Defaults to \code{NULL}.
 #' @param ... Additional arguments for future extensions (currently unused).
 #'
 #' @return A list of responses including submission data and associated
-#' datasets, analyses, runs, experiments, samples, and studies.
+#'   datasets, analyses, runs, experiments, samples, and studies.
 #'
 #' @examples
 #' mock_client <- list(
@@ -585,13 +585,13 @@ get_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #' the responses if a logfile is specified.
 #'
 #' @param id A string representing the submission identifier. Can be either an
-#' accession or provisional ID.
+#'   accession or provisional ID.
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema with \code{delete} methods. If `NULL`, default
-#'   client will be created by \code{create_client(extract_api())}.
-#'   Defaults to `NULL`.
-#' @param logfile A string specifying the path to a log file. If \code{NULL},
-#' no log is written.
+#'   function from EGA API schema with \code{delete} methods. If \code{NULL},
+#'   default client will be created by \code{create_client(extract_api())}.
+#'   Defaults to \code{NULL}.
+#' @param logfile A string specifying the path to a log file. If \code{NULL}, no
+#'   log is written. Defaults to \code{NULL}.
 #' @param ... Additional arguments for future extensions (currently unused).
 #'
 #' @return A list of responses for the deletion of associated datasets,
@@ -628,13 +628,13 @@ delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @param id A string representing the submission identifier (provisional ID).
 #' @param client List of functions. EGA API client created by `create_client`
-#'   function from EGA API schema with \code{delete} method for submissions.
-#'   If `NULL`, default client will be created by
-#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'   function from EGA API schema with \code{delete} method for submissions. If
+#'   \code{NULL}, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #' @param client An API client object with a \code{delete} method for
-#' submissions.
-#' @param logfile A string specifying the path to a log file. If \code{NULL},
-#' no log is written.
+#'   submissions.
+#' @param logfile A string specifying the path to a log file. If \code{NULL}, no
+#'   log is written. Defaults to \code{NULL}.
 #' @param ... Additional arguments for future extensions (currently unused).
 #'
 #' @return A list containing the response for the submission deletion.
@@ -667,18 +667,18 @@ delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
 
 #' Rollback Submission Endpoints and Log Responses
 #'
-#' Rolls back specified endpoints for a submission identified by its ID using
-#' the client and logs the responses if a logfile is specified.
+#' Rolls back specified endpoints for a submission identified by its accession
+#' ID using the client and logs the responses if a logfile is specified.
 #'
 #' @param id A string representing the submission identifier. Must be an
 #'   accession ID.
 #' @param client List of functions. EGA API client created by `create_client`
 #'   function from EGA API schema with \code{put} methods and rollback
-#'   operations. If `NULL`, default client will be created by
-#'   \code{create_client(extract_api())}. Defaults to `NULL`.
+#'   operations. If \code{NULL}, default client will be created by
+#'   \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #' @param endpoints A character vector of endpoint names to rollback.
 #' @param logfile A string specifying the path to a log file. If \code{NULL}, no
-#'   log is written.
+#'   log is written. Defaults to \code{NULL}.
 #' @param ... Additional arguments for future extensions (currently unused).
 #'
 #' @return A list of responses from the rollback operations for each endpoint.
@@ -717,7 +717,7 @@ rollback_submission <- function(
         endpoint_str <- paste0(
             "put__submissions__accession_id__",
             x,
-            "_rollback"
+            "__rollback"
         )
         client[[endpoint_str]](id)
     })

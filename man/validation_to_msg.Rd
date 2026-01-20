@@ -7,8 +7,8 @@
 validation_to_msg(v)
 }
 \arguments{
-\item{v}{Logical. The validation result, which may include an
-\code{errors} attribute detailing validation errors.}
+\item{v}{Logical. The validation result, which may include an \code{errors}
+attribute detailing validation errors.}
 }
 \value{
 A character string summarizing the validation results. If validation

@@ -10,8 +10,7 @@
 \item{meta}{A list containing parsed EGA metadata, where elements correspond
 to individual sheets.}
 
-\item{aliases}{A list of aliases, reference values used for validation (not
-used in this function but included for consistency with other validators).}
+\item{aliases}{A list of aliases, reference values used for validation.}
 }
 \value{
 A validation object containing the results of the check.
@@ -23,6 +22,8 @@ Validates the metadata by checking the following:
 \item datasets descriptions are unique
 \item runs for datasets are present in aliases (as nested lists)
 \item all runs in aliases are present in datasets (as nested lists)
+\item datatsets titles contains number of words within required range
+\item datasets descriptions contains number of sentences within required range
 }
 }
 \examples{

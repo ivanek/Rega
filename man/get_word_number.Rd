@@ -7,7 +7,7 @@
 get_word_number(text)
 }
 \arguments{
-\item{text}{A length-one character vector.}
+\item{text}{A character vector with text.}
 }
 \value{
 An integer vector giving the number of words per element of
