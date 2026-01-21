@@ -3,16 +3,21 @@ title: "The Rega User Guide"
 bibliography: Rega-refs.bib
 date: "Last edited: `r format(Sys.time(), '%d %B, %Y')`"
 author: 
-  - name: "Robert Ivánek"
-    affiliation: 
-    - Department of Biomedicine, University of Basel, Basel, Switzerland
-    - Swiss Institute of Bioinformatics, Basel, Switzerland
-    email: robert.ivanek@unibas.ch
   - name: "Igor Cervenka"
     affiliation: 
     - Department of Biomedicine, University of Basel, Basel, Switzerland
     - Swiss Institute of Bioinformatics, Basel, Switzerland
     email: igor.cervenka@unibas.ch
+  - name: "Athimed El Taher"
+    affiliation: 
+    - Department of Biomedicine, University of Basel, Basel, Switzerland
+    - Swiss Institute of Bioinformatics, Basel, Switzerland
+    email: athimed.eltaher@unibas.ch
+  - name: "Robert Ivánek"
+    affiliation: 
+    - Department of Biomedicine, University of Basel, Basel, Switzerland
+    - Swiss Institute of Bioinformatics, Basel, Switzerland
+    email: robert.ivanek@unibas.ch
 package: "`r BiocStyle::pkg_ver('Rega')`"
 output:
   BiocStyle::html_document:
@@ -60,103 +65,86 @@ if (out_type == "html") {
 }
 ```
 
-# Install/Load packages
-
-Install (if necessary) and load all necessary packages
+# Load packages
 
 ```{r load-package}
-# Install CRAN packages
-install.packages("devtools")   
-library(devtools)
-install.packages("httr2") 
-library(httr2)
-
-# Install GitHub packages
-devtools::install_github("ivanek/Rega")  
 library(Rega)
-
-
 ```
+
+# Setting Up Secure Credentials
+
+The httr2 package follows security best practices by storing sensitive 
+information (like API keys or passwords) as environment variables rather 
+than hard-coding them into your scripts.
+
+To keep your credentials secure, we use a two-step process:
+
+- Create a Master Key: A secret key to encrypt/decrypt data.
+- Encrypt your Password: Storing the password in a format that is unreadable 
+    without the Master Key.
+
+## Create and Store a Master Secret Key
+
+```{r generate-secret}
+# Run this in your R console to generate a key
+httr2::secret_make_key()
+```
+To make this key available every time you open R, you must store it in your 
+user-level .Renviron file.
+
+- Run usethis::edit_r_environ() to open the file.
+- Add the following line (replace the string with the key you just generated): 
+    `REGA_KEY="your-generated-key-here"`
+- Save and close the file.
+
+Important: Restart R after saving to ensure the variable is loaded into your 
+environment.
+
+## Encrypt Your EGA Password
+
+Now, use your master key (REGA_KEY) to encrypt your actual EGA password. This 
+ensures that even if someone sees your .Renviron file, they cannot read your 
+password.
+
+
+```{r encrypt-password}
+# Replace <your-ega-password> with your actual password
+# This returns a long encrypted string. Copy it.
+httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")
+```
+
+## Store the Encrypted Password
+
+Finally, store the encrypted string (not your plain-text password) in your 
+.Renviron file.
+
+- Open your .Renviron again: usethis::edit_r_environ().
+- Add the encrypted string as a new variable: 
+    `REGA_EGA_PASSWORD="your-encrypted-string-here"`
+- Save and close.
+
+## Final Step: Restart R
 
 # Fill in the submission template
 
 Download the empty MS Excel template from
-`inst/extdata/ega_full_template_v2.xlsx` and fill it in according to the
+`inst/extdata/ega_full_template_v3.xlsx` and fill it in according to the
 instructions in the 'Instructions' tab.
-
-# Setup credentials
-
-`httr2` is designed around the idea that authentication credentials,
-such as API keys or passwords, should be stored in an environment
-variable rather than written directly in the code. To do so, you need
-first to create a secret package key:
-
-## Create a secret package key
-
-First, create a secret key that will be used to encrypt and decrypt your
-password.
-
-```{r generate_key}
-# Generate a secret key
-httr2::secret_make_key() # returns a string eg. "5h4Yk...X2a"
-```
-
-To make this package key available on your local development machine,
-store it as the "REGA_KEY" environmental variable it your user-level
-`.Renviron` file, which is automatically loaded when R starts.
-
-```{r store_key, eval=FALSE}
-usethis::edit_r_environ()
-# Add the following line to the .Renviron file
-# (replace "5h4Yk...X2a" with your actual key)
-REGA_KEY=5h4Yk...X2a
-```
-
-Restart R after saving the file so the variable becomes available.
-
-## Encrypt and store your EGA password
-
-Environment variables should not store passwords in plain text. Instead,
-use the secret key stored in `REGA_KEY` to encrypt your EGA password.
-
-```{r encrypt_password}
-encrypted_password <- httr2::secret_encrypt(
-  "<your-ega-password>",
-  "REGA_KEY"
-) 
-encrypted_password # this encrypted string is safe to store.
-```
-
-Store the encrypted password as an environment variable in your
-`.Renviron` file:
-
-Now you can create an `REGA_EGA_PASSWORD` environmental variable which
-will store your EGA password. However, environmental variable aren't
-supposed to store passwords in plain text. Therefore, use your secret
-key stored as `REGA_KEY` to encrypt your EGA password
-
-This encrypted string is then safe to store as an environment variable
-in the `.Renviron` file
-
-```{r store_encrypted_password, eval=FALSE}
-usethis::edit_r_environ()
-# Add the encrypted password to the .Renviron file
-REGA_EGA_PASSWORD=<your-encrypted-password>
-```
-
-Restart R after saving the file so the variable becomes available.
 
 # Data submission
 
-## Submission metadata parsing
+## Metadata parsing
 
-The default parser parses the bundled `xlsx` template
-(`inst/extdata/ega_full_template_v2.xlsx`). Changing the parser
-behavior, such as whether to append `c4gh` extension to files or which
-sheets to parse from the metadata files is controlled by YAML config
-file `inst/extdata/default_parser_params.yaml`. To modify the
-parameters, create a local copy of the file and pass it as `param_file`
-argument to `default_parser` function.
+The default parser is pre-configured to handle the bundled xlsx template 
+(`inst/extdata/ega_full_template_v3.xlsx`) automatically. As long as the 
+templateis filled out according to the provided instructions, the default 
+parameters will work seamlessly, and no manual adjustments are required.
+
+If you need to customize the parser's behavior—such as toggling the `c4gh` 
+file extension, you can modify the settings via the YAML configuration. To do 
+this, create a local copy of `inst/extdata/default_parser_params.yaml`,
+adjust the values as needed, and pass the path of your new file to the 
+`param_file` argument in the `default_parser` function.
 
 ```{r parse-metadata}
 metadata_file <- system.file(
@@ -165,55 +153,79 @@ metadata_file <- system.file(
 )
 
 parsed_metadata <- default_parser(metadata_file)
-parsed_metadata
+head(parsed_metadata)
 ```
 
-## Submission metadata validation
+## Metadata validation
 
-The internal validation is a bit stricter in enforcing uniqueness of
-titles and descriptions for individual tables (the API itself doesn't
-have this requirement). If the validation only fails in this particular
-case, you can still continue with creating the submission. However,
-there have been instances of failed reviews due to non-unique titles and
-descriptions before.
+To ensure a seamless submission process, the package includes a client-side 
+validation layer. This system automatically cross-references your metadata 
+against the schema requirements of both the EGA API and the underlying target 
+database. To ensure your submission continues smoothly, you should address all 
+flagged validation failures and errors.
 
 ```{r validate-metadata}
 validation_summary <- default_validator(parsed_metadata)
 validation_summary
 ```
 
-## Create API client
-
-Extract EGA API using the bundled YAML specification
-
-```{r extract-api}
-api <- extract_api()
-```
-
-Create a client using the embedded `httr2` OAuth authentication
-(default).
-
-```{r client-with-oauth}
-ega <- create_client(api, verbosity = 0)
-```
-
-## Run new submission workflow
-
-Specify one of the available workflow function with your parsed metadata
-and a client as parameters.
+## Running `new_submission` workflow
 
 ```{r run-workflow, eval=FALSE}
-responses <- new_submission(parsed_metadata, ega, "log.yaml")
+responses <- new_submission(parsed_metadata, logfile = "log.yaml")
 ```
 
-## Other workflows
+# Manual client creation
 
-You can get the entire contents of current submission metadata via
-`get_submission` workflow.
+If you encounter errors during metadata submission and would like to get more
+details, you can create a client with verbose logging.
 
-```{r get-submission-contents, eval=FALSE}
-resp <- get_submission(00001, ega, logfile = "log.yaml")
-resp <- get_submission(00001, ega)
+Extract EGA API using the bundled YAML specification and create a client using 
+the embedded `httr2` OAuth authentication (default), changing the verbosity.
+
+```{r client-with-oauth}
+api <- extract_api()
+ega <- create_client(api, verbosity = 3)
+```
+
+Run the `new_submission` workflow with the custom client.
+
+```{r run-workflow-verbose, eval=FALSE}
+responses <- new_submission(parsed_metadata, client = ega)
+```
+
+This will create your metadata submission in EGA and fill in all provided
+information. However, this workflow does not finalize your submission. In order
+to finalize submission either use the GUI interface of EGA Submitter Portal,
+or run `finalise_submission("<returned_submission_id>", "<release_date>")`.
+Note that the release date should ideally be around 2 weeks away from 
+metadata submission to allow for review by EGA team.
+
+# Other workflows
+
+There are several other workflow available:
+
+- `get_submission`: 
+- `get_entry_by_title`: 
+- `delete_submission_contents`: 
+- `delete_submission`: 
+- `rollback_submission`:
+
+Please see the corresponding help pages for more details.
+
+## Examples
+
+You can get the detailed data on individual tables (`submissions`, `studies`, 
+`samples`, `experiments`, `runs`, `analyses` and `datasets`) that contain a 
+specific string in their `title` column using `get_entry_by_title` function.
+
+```{r get-entry-by-title, eval=FALSE}
+# checks all tables
+resp <- get_entry_by_title("RNASeq")
+# checks only samples and studies, logs responses
+resp <- get_entry_by_title(
+    "RNASeq", type = c("samples", "studies"), logfile = "log.yaml"
+)
 ```
 
 Or delete the entire contents of current submission metadata via
@@ -228,11 +240,6 @@ resp <- delete_submission(00001, ega)
 **Workflow for updating the submission metadata by `PUT` method is under
 development.**
 
-# Authentication
-
-`Rega` package supports authentication through OAuth or Bearer token via
-functions `ega_oauth` (default) and `ega_token` respectively.
-
 # Utilities
 
 If you wish to create your own templates for EGA submissions, we provide
@@ -241,8 +248,8 @@ them in text files. We will use the API and the client created above.
 
 Relevant functions include:
 
--   `get_schemas()`
--   `get_properties()`
+- `get_schemas()`
+- `get_properties()`
 
 # Notes
 
@@ -250,7 +257,7 @@ Relevant functions include:
 
 For testing, debugging and prototyping purposes, it is possible to
 directly use generated bearer token with API when creating the client.
-It is then your responsibility of the user to track the validity and
+It is then the responsibility of the user to track the validity and
 refresh the token as necessary.
 
 ```{r client-with-token, eval=FALSE}
