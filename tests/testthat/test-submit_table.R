@@ -99,3 +99,31 @@ test_that("'tab' has zero rows", {
     "'tab' has zero rows."
   )
 })
+
+test_that("ID is not a provisional or accession ID", {
+  expect_error(
+    submit_table(
+      data.frame(col1 = 1, col2 = 2), id = "aaa",
+      endpoint_func = mock_endpoint_func
+    ),
+    "must be either provisional or accession ID"
+  )
+
+  expect_error(
+    submit_table(
+      data.frame(col1 = 1, col2 = 2), id = c(),
+      endpoint_func = mock_endpoint_func
+    ),
+    "must be either provisional or accession ID"
+  )
+
+  expect_error(
+    submit_table(
+      data.frame(col1 = 1, col2 = 2), id = list(),
+      endpoint_func = mock_endpoint_func
+    ),
+    "must be either provisional or accession ID"
+  )
+})
+
+

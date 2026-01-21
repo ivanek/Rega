@@ -114,7 +114,7 @@ extract_operation_definitions <- function(api) {
             if (is.null(operation_id)) {
                 # first remove the braces and them replace slash by
                 # double underscore
-                op_path = gsub("[/]", "__", gsub("[{}]", "", path))
+                op_path <- gsub("[/]", "__", gsub("[{}]", "", path))
                 op_path <- gsub("^_+", "", op_path)
                 op_path <- gsub("_+$", "", op_path)
 

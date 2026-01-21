@@ -350,8 +350,8 @@ na_to_empty_list <- function(l) {
 #'
 #' @param x An object to be tested.
 #' @param varname A character string specifying the name of the variable being
-#'   checked, used in the error message. If \code{NULL}, the variable name is taken
-#'   from the name of variable being tested. Defaults to \code{NULL}
+#'   checked, used in the error message. If \code{NULL}, the variable name is
+#'   taken from the name of variable being tested. Defaults to \code{NULL}
 #'
 #' @return Returns \code{TRUE} if the validation succeeds, otherwise stops
 #'   execution with an error.

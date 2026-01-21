@@ -274,7 +274,7 @@ get_or_post <- function(
     retrieve_if_exists = FALSE
 ) {
     if (!is_provisional(submission_id) && !is_accession(submission_id)) {
-       stop("'submission_id' must be either provisional or accession ID.")
+        stop("'submission_id' must be either provisional or accession ID.")
     }
     if (!is.data.frame(data)) stop("'data' must be a data frame.")
     .is_client(client)

@@ -173,3 +173,52 @@ test_that("data is not data frame", {
     "must be a data frame"
   )
 })
+
+test_that("ID is not a provisional or accession ID", {
+  mock_client <- list(
+    `get__submissions__provisional_id__endpointC` = function(sub_id) {
+      data.frame(a = 1:2)
+    },
+    `post__submissions__provisional_id__endpointC` = function(...) stop("Should not post")
+  )
+
+  expect_error(
+    get_or_post(
+      submission_id = "aaaa",
+      data = data.frame(),
+      client = mock_client,
+      endpoint = "endpointC"
+    ),
+    "must be either provisional or accession ID"
+  )
+
+  expect_error(
+    get_or_post(
+      submission_id = "123aaa",
+      data = data.frame(),
+      client = mock_client,
+      endpoint = "endpointC"
+    ),
+    "must be either provisional or accession ID"
+  )
+
+  expect_error(
+    get_or_post(
+      submission_id = list(),
+      data = data.frame(),
+      client = mock_client,
+      endpoint = "endpointC"
+    ),
+    "must be either provisional or accession ID"
+  )
+
+  expect_error(
+    get_or_post(
+      submission_id = c(),
+      data = data.frame(),
+      client = mock_client,
+      endpoint = "endpointC"
+    ),
+    "must be either provisional or accession ID"
+  )
+})

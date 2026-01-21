@@ -10,8 +10,8 @@
 \item{x}{An object to be tested.}
 
 \item{varname}{A character string specifying the name of the variable being
-checked, used in the error message. If \code{NULL}, the variable name is taken
-from the name of variable being tested. Defaults to \code{NULL}}
+checked, used in the error message. If \code{NULL}, the variable name is
+taken from the name of variable being tested. Defaults to \code{NULL}}
 }
 \value{
 Returns \code{TRUE} if the validation succeeds, otherwise stops

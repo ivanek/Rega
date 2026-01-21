@@ -7,7 +7,7 @@
 finalise_submission(
   id,
   release_date,
-  dataset_changelogs = NULL,
+  dataset_changelogs = data.frame(),
   client = NULL,
   logfile = NULL,
   ...
