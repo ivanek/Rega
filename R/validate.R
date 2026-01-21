@@ -413,6 +413,10 @@ default_validator <- function(meta, aliases = NULL) {
     cond <- validate::validator(
         analysis_title_is_unique = is_unique(title),
         analysis_description_is_unique = is_unique(description),
+        analyses_title_length = (get_word_number(title) >= 3) &
+            (get_word_number(title) <= 20),
+        analyses_description_length = (get_sentence_number(description) >= 3) &
+            (get_sentence_number(description) <= 5),
         analysis_sample_in_aliases = unlist(samples) %in% aliases$samples,
         analysis_experiment_in_aliases =
             unlist(experiments) %in% aliases$experiments,
@@ -528,8 +532,6 @@ default_validator <- function(meta, aliases = NULL) {
         stop("'aliases' must be a named list.")
     }
 
-    # TODO Analyses description must be at least 50 char. Use the same validation
-    # for title and description as for the others
     cond <- validate::validator(
         dataset_analyses_in_aliases = unlist(analyses) %in% aliases$analyses
     )
