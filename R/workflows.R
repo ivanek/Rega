@@ -84,8 +84,6 @@ new_submission <- function(
         stop("'request_data' must be a named list.")
     }
 
-    # TODO id validation?
-
     luts <- list()
     responses <- list()
 
@@ -456,6 +454,97 @@ new_submission <- function(
     responses
 }
 
+
+#' Finalise an EGA submission
+#'
+#' Submits the finalisation request for a submission identified by either an
+#' accession or provisional ID. Validates the release date and sends optional
+#' dataset changelogs.
+#'
+#' @param id Character scalar. The submission accession or provisional ID.
+#' @param release_date Character scalar. Expected release date in YYYY-MM-DD
+#'   format.
+#' @param dataset_changelogs Data frame. Optional changelog metadata for
+#'   associated datasets. If specified, the requred columns are `dataset` and
+#'   `message`. Defaults to empty data.frame.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema. If \code{NULL}, default client will be
+#'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
+#' @param logfile Character. Path of log file to log the `httr2` responses from
+#'   individual operations or \code{NULL}. Defaults to \code{NULL}.
+#' @param ... List. Additional arguments to the function.
+#'
+#' @return The API response object from the finalisation request.
+#'
+#' @importFrom jsonlite fromJSON
+#'
+#' @examples
+#' # Requires credentials
+#' try(
+#'     finalise_submission("123456", "2025-12-31")
+#' )
+#'
+#' @export
+finalise_submission <- function(
+    id, release_date, dataset_changelogs = data.frame(), client = NULL,
+    logfile = NULL, ...
+) {
+    if (is_accession(id)) {
+        base_url <- "submissions__accession_id"
+    } else if (is_provisional(id)) {
+        base_url <- "submissions__provisional_id"
+    } else {
+        stop("Unknown ID type, must be valid accession of provisional ID.")
+    }
+
+    .validate_character_scalar(release_date)
+    # Check if release day is proper format
+    if (!grepl("^\\d{4}-\\d{2}-\\d{2}$", release_date)) {
+        stop("Incorrect 'release_date' format, must be YYYY-MM-DD.")
+    }
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
+    }
+
+    # Check if dataset_changelog has proper format
+    if (!identical(dataset_changelogs, data.frame())) {
+        target_cols <- c("dataset", "message")
+        missing_cols <- !target_cols %in% names(dataset_changelogs)
+
+        if (any(missing_cols)) {
+            stop(sprintf(
+                "'dataset_changelogs' must contain following columns: %s.",
+                paste(target_cols, collapse = ", ")
+            ))
+        }
+
+        is_valid_col <- vapply(dataset_changelogs[target_cols], function(x) {
+            is.character(x) && !any(is.na(x))
+        }, logical(1))
+
+        if (!all(is_valid_col)) {
+            stop(
+                "'dataset_changelogs' columns must be character type without NA
+                values."
+            )
+        }
+    }
+
+    body <- list(
+        expected_release_date = release_date,
+        dataset_changelogs = dataset_changelogs
+    )
+
+    responses <- client[[paste0("post__", base_url, "__finalise")]](
+        id, toJSON(body, auto_unbox = TRUE)
+    )
+    save_log(responses, logfile)
+    responses
+}
+
 #' Retrieve or Delete Submission Data
 #'
 #' Handles retrieval or deletion of data associated with a submission
@@ -573,6 +662,74 @@ get_submission <- function(id, client = NULL, logfile = NULL, ...) {
         list(submission = client[[paste0("get", "__", base_url)]](id)),
         use_submission(id, "get", client)
     )
+
+    save_log(responses, logfile)
+
+    responses
+}
+
+
+#' Retrieve EGA entries by title
+#'
+#' Searches for entries across specified EGA metadata types that match a given
+#' title string. Returns a list of data frames for each type.
+#'
+#' @param title Character scalar. The title or substring to search for.
+#' @param type Character vector. One or more metadata types ("submissions",
+#'   "studies", "samples", "experiments", "runs", "analyses" and "datasets"). If
+#'   NULL, searches all valid types.
+#' @param client List of functions. EGA API client created by `create_client`
+#'   function from EGA API schema. If \code{NULL}, default client will be
+#'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
+#' @param logfile Character. Path of log file to log the `httr2` responses from
+#'   individual operations or \code{NULL}. Defaults to \code{NULL}.
+#' @param ... List. Additional arguments to the function.
+#'
+#' @return A named list of data frames containing entries matching the title.
+#'
+#' @examples
+#' # Requires credentials
+#' try(
+#'     get_entry_by_title("My Study", type = "studies")
+#' )
+#'
+#' @export
+get_entry_by_title <- function(
+    title, type = NULL, client = NULL, logfile = NULL, ...
+) {
+    valid_types <- c(
+        "submissions", "studies", "samples", "experiments", "runs", "analyses",
+        "datasets"
+    )
+
+    if (is.null(type)) {
+        type <- valid_types
+    } else {
+        if (!all(type %in% valid_types)) {
+            stop(sprintf(
+                "Invalid types specified, must be one of: %s.",
+                paste(valid_types, collapse = ", ")
+            ))
+        }
+    }
+
+    .validate_character_scalar(title)
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
+    }
+
+    responses <- lapply(type, function(x) {
+        sr <- client[[paste0("get__", x)]]()
+        if ("title" %in% names(sr)) {
+            sr <- sr[grepl(title, sr$title), ]
+        } else {
+            sr <- sr[FALSE, ]
+        }
+    }) |>
+        setNames(type)
 
     save_log(responses, logfile)
 
