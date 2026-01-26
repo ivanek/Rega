@@ -47,7 +47,7 @@ test_that("'op' has a requestBody and a complex schema", {
           type = "string", description = "The sample description",
           example = "My Sample Description"
         ), biological_sex = list(
-          type = "string", description = "The sample biological sex. See enum [/enums/biological_sex](paths/enums-biological_sex/get)\n",
+          type = "string", description = "The sample biological sex.\n",
           example = "male"
         ), subject_id = list(
           type = "string",
@@ -61,7 +61,7 @@ test_that("'op' has a requestBody and a complex schema", {
           description = "The sample biosample ID", example = NULL
         ),
         case_control = list(
-          type = "string", description = "The sample case control. See enum [/enums/case_controls](/paths/enums-case_controls/get)\n",
+          type = "string", description = "The sample case control.\n",
           example = "case"
         ), organism_part = list(
           type = "string",

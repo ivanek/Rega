@@ -32,7 +32,7 @@ test_that("files_in_inbox returns FALSE if some files are missing or duplicated"
       if (prefix == "duplicate") {
         return(data.frame(n = 1:2))
       }
-      return(data.frame(n = 1))
+      data.frame(n = 1)
     }
   )
 

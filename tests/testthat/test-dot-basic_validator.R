@@ -213,4 +213,3 @@ test_that("aliases must be a named list", {
     "must be a named list"
   )
 })
-

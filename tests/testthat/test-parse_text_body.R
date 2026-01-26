@@ -5,7 +5,7 @@
 test_that("parse_text_body handles single value", {
   resp <- httr2::response(
     headers = list("content-type" = "text/plain"),
-    body = charToRaw('Simple text')
+    body = charToRaw("Simple text")
   )
 
   result <- parse_text_body(resp)
@@ -85,7 +85,7 @@ test_that("parse_text_body handles json-like strings 3", {
 test_that("parse_text_body handles error paths and malformed JSON-like text", {
   resp <- httr2::response(
     headers = list("content-type" = "text/plain"),
-    body = charToRaw('')
+    body = charToRaw("")
   )
 
   expect_error(parse_text_body(resp), "Can't retrieve empty body")

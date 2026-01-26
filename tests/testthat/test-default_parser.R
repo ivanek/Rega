@@ -1,5 +1,5 @@
-example_metadata = "../resources/test_template.xlsx"
-example_metadata_analyses = "../resources/test_template_analyses.xlsx"
+example_metadata <- "../resources/test_template.xlsx"
+example_metadata_analyses <- "../resources/test_template_analyses.xlsx"
 
 # ------------------------------------------------------------------------------
 # 1) Happy Path Tests

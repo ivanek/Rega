@@ -33,8 +33,8 @@ test_that("Operation without requestBody", {
 
   expect_type(result_fn, "closure")
   expect_false("body" %in% args_names)
-  expect_match(body_text, 'req <- req_method\\(request\\(url\\), \"GET\")')
-  expect_no_match(body_text, 'req <- req_body_json\\(req, body,')
+  expect_match(body_text, 'req <- req_method\\(request\\(url\\), \"GET\")') # nolint
+  expect_no_match(body_text, "req <- req_body_json\\(req, body,")
 })
 
 test_that("With api_key specified => will be present in formals", {
@@ -61,7 +61,7 @@ test_that("Setting verbosity level", {
   result_fn <- api_function_factory(op, api, verbosity = 2)
   body_text <- paste(deparse(rlang::fn_body(result_fn)), collapse = " ")
 
-  expect_match(body_text, 'resp <- req_perform\\(req, verbosity = 2\\)')
+  expect_match(body_text, "resp <- req_perform\\(req, verbosity = 2\\)")
 })
 
 test_that("Setting token_url", {

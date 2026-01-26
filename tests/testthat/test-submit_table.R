@@ -125,5 +125,3 @@ test_that("ID is not a provisional or accession ID", {
     "must be either provisional or accession ID"
   )
 })
-
-

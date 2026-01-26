@@ -7,7 +7,7 @@ test_that("ega_oauth creates a valid request object (Happy Paths)", {
     req$client <- client
     req$auth <- TRUE
     req$username <- username
-    return(req)
+    req
   }
 
   local_mocked_bindings(

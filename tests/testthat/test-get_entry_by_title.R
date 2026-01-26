@@ -16,15 +16,17 @@ test_that("get_entry_by_title happy paths", {
   )
 
   local_mocked_bindings(
-    create_client = function(...) list(
-      get__submissions = function() data.frame(),
-      get__studies = function() mock_resp_studies,
-      get__samples = function() mock_resp_samples,
-      get__experiments = function() mock_resp_samples,
-      get__runs = function() data.frame(),
-      get__analyses = function() data.frame(),
-      get__datasets = function() data.frame()
-    )
+    create_client = function(...) {
+      list(
+        get__submissions = function() data.frame(),
+        get__studies = function() mock_resp_studies,
+        get__samples = function() mock_resp_samples,
+        get__experiments = function() mock_resp_samples,
+        get__runs = function() data.frame(),
+        get__analyses = function() data.frame(),
+        get__datasets = function() data.frame()
+      )
+    }
   )
 
   # 1. Single Type, NULL client
