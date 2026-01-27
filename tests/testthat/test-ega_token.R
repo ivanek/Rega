@@ -30,17 +30,17 @@ test_that("ega_token handles custom token URLs", {
       expect_equal(req$url, custom_url)
       list(status_code = 200, body = list(token = "abc"))
     },
-    resp_body_json = function(resp) resp$body,
-    .package = "Rega"
+    resp_body_json = function(resp) resp$body
   )
 
-  expect_warning(result <- ega_token(token_url = custom_url))
+  result <- ega_token(username = "a", password = "b", token_url = custom_url)
   expect_equal(result$token, "abc")
 })
 
 # ------------------------------------------------------------------------------
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
+
 test_that("ega_token returns error string and message on failure", {
   # Mock bindings
   mock_resp_fail <- list(

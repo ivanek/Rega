@@ -2,13 +2,41 @@
 # 1) Happy Path Tests
 # ------------------------------------------------------------------------------
 
-# TODO test the empty envvar by mocking user interaction with popup window
-test_that(".get_ega_username retrieves from environment ", {
+test_that(".get_ega_username: keyring", {
+  local_mocked_bindings(
+    key_list = function(...) {
+      data.frame(service = "service_name", username = "keyring_user")
+    }
+  )
+
+  expect_type(.get_ega_username(), "character")
+  expect_identical(.get_ega_username(), "keyring_user")
+})
+
+test_that(".get_ega_username: keyring, multiple users, returns first", {
+  local_mocked_bindings(
+    key_list = function(...) {
+      data.frame(
+        service = c("service_name1", "service_name2"),
+        username = c("keyring_user1", "keyring_user2")
+      )
+    }
+  )
+
+  expect_type(.get_ega_username(), "character")
+  expect_identical(.get_ega_username(), "keyring_user1")
+})
+
+test_that(".get_ega_username happy paths: envvar (keyring not set)", {
   test_var <- "TEST_EGA_USER"
   Sys.setenv("TEST_EGA_USER" = "jdoe_ega")
   on.exit(Sys.unsetenv(test_var))
 
-  result <- .get_ega_username(test_var)
+  result <- .get_ega_username(
+    # long random service name
+    keyring_name = paste(sample(LETTERS, 100, replace = TRUE), collapse = ""),
+    envvar = test_var
+  )
   expect_equal(result, "jdoe_ega")
   expect_type(result, "character")
 
@@ -19,11 +47,8 @@ test_that(".get_ega_username retrieves from environment ", {
 })
 
 test_that(".get_ega_username falls back to askpass ", {
-  askpass <- function(prompt) "mock_user_input"
-
   local_mocked_bindings(
-    askpass = askpass,
-    .package = "Rega"
+    askpass = function(prompt) "mock_user_input"
   )
 
   Sys.unsetenv("EMPTY_VAR")
@@ -37,8 +62,12 @@ test_that(".get_ega_username falls back to askpass ", {
 # ------------------------------------------------------------------------------
 
 test_that(".get_ega_username handles invalid inputs (Error Paths)", {
-  expect_error(.get_ega_username(12345), "must be a non-empty character scalar")
-  expect_error(.get_ega_username(c("VAR1", "VAR2")))
-  expect_error(.get_ega_username(NA_character_))
-  expect_error(.get_ega_username(""))
+  expect_error(.get_ega_username(keyring_name = 12345), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(envvar = 12345), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(keyring_name = c("VAR1", "VAR2")), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(envvar = c("VAR1", "VAR2")), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(keyring_name = NA_character_), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(envvar = NA_character_), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(keyring_name = ""), "must be a non-empty character scalar")
+  expect_error(.get_ega_username(envvar = ""), "must be a non-empty character scalar")
 })

@@ -18,85 +18,104 @@
 #' rega_key <- Rega:::.get_rega_key()
 #'
 #' @keywords internal
-.get_rega_key <- function(envvar = "REGA_KEY") {
-    .validate_character_scalar(envvar)
+.get_rega_key <- function(secret_ennvar = "REGA_KEY") {
+    .validate_character_scalar(secret_ennvar)
 
-    rega_key <- Sys.getenv(envvar)
+    rega_key <- Sys.getenv(secret_ennvar)
     if (identical(rega_key, "")) {
         warn_msg <- paste(
-            sprintf("No %s environmental variable found.", envvar),
-            "Attempting to connect via unecrypted password."
+            sprintf("No %s environmental variable found.", secret_ennvar),
+            "Using unecrypted password is not permitted."
         )
-        warning(warn_msg)
+        stop(warn_msg)
     }
     rega_key
 }
 
-#' Get EGA User Name
+#' Retrieve EGA Username
 #'
-#' Retrieves the EGA username from the specified environment variable. If the
-#' variable is not set, prompts the user to enter their username interactively.
+#' Fetches the EGA username from the system keyring, an environment variable, or
+#' an interactive prompt, following that priority order.
 #'
-#' @param envvar A string specifying the name of the environment variable to
-#'   retrieve the username from. Defaults to \code{"REGA_EGA_USERNAME"}.
+#' @param keyring_name Character. Name of the service in the keyring. Defaults
+#'   to \code{"REGA_EGA"}.
+#' @param envvar Character. Name of the environment variable. Defaults to
+#'   \code{"REGA_EGA_USERNAME"}.
 #'
-#' @return A string containing the EGA username.
+#' @return A character string containing the username.
 #'
+#' @importFrom keyring key_list
 #' @importFrom askpass askpass
 #'
 #' @examples
-#' ega_username <- Rega:::.get_ega_username()
-#' ega_username <- Rega:::.get_ega_username("EGA_USERNAME")
+#' tryCatch(
+#'     Rega:::.get_ega_username()
+#' )
 #'
 #' @keywords internal
-.get_ega_username <- function(envvar = "REGA_EGA_USERNAME") {
+.get_ega_username <- function(
+    keyring_name = "REGA_EGA", envvar = "REGA_EGA_USERNAME"
+) {
+    .validate_character_scalar(keyring_name)
     .validate_character_scalar(envvar)
 
-    ega_username <- Sys.getenv(envvar)
-    if (identical(ega_username, "")) {
-        ega_username <- askpass(prompt = "Please enter your EGA username:")
+    keyring_user = key_list(keyring_name)$username
+    envvar_user = Sys.getenv(envvar)
+
+    ega_username <- if (!is.null(keyring_user) && length(keyring_user) > 0) {
+        key_list(keyring_name)$username[1]
+    } else if (!identical(envvar_user, "")) {
+        envvar_user
+    } else {
+        askpass(prompt = "Please enter your EGA username:")
     }
     ega_username
 }
 
-#' Get EGA User Password
+#' Retrieve EGA Password
 #'
-#' Retrieves the EGA password from the specified environment variable. If not
-#' found, prompts the user to enter it. If an encryption key (usually stored in
-#' REGA_KEY environmental variable) is available, the password is decrypted.
+#' Fetches the EGA password from the system keyring, an environment variable, or
+#' an interactive prompt, following that priority order. If using the
+#' environment variable, the value is decrypted using a key retrieved via
+#' `.get_rega_key`.
 #'
-#' @param envvar A string specifying the name of the environment variable to
-#'   retrieve the password from. Defaults to \code{"REGA_EGA_PASSWORD"}.
-#' @param ... Additional arguments passed to \code{.get_rega_key}.
+#' @param keyring_name Character. Name of the service in the keyring. Defaults
+#'   to \code{"REGA_EGA"}.
+#' @param envvar Character. Name of the environment variable. Defaults to
+#'   \code{"REGA_EGA_PASSWORD"}.
+#' @param ... Additional arguments passed to `.get_rega_key`.
 #'
-#' @return A string containing the decrypted EGA password.
+#' @return A character string containing the password.
 #'
 #' @importFrom askpass askpass
 #' @importFrom httr2 secret_decrypt
+#' @importFrom keyring key_get
 #'
 #' @examples
-#' ega_password <- Rega:::.get_ega_password()
+#' tryCatch(
+#'     ega_password <- Rega:::.get_ega_password()
+#' )
 #'
 #' @keywords internal
-.get_ega_password <- function(envvar = "REGA_EGA_PASSWORD", ...) {
+.get_ega_password <- function(
+    keyring_name = "REGA_EGA", envvar = "REGA_EGA_PASSWORD", ...
+) {
+    .validate_character_scalar(keyring_name)
     .validate_character_scalar(envvar)
 
-    rega_key <- .get_rega_key(...)
-    ega_password <- Sys.getenv(envvar)
+    ega_password <- tryCatch({
+        key_get(keyring_name)
+    }, error = function(e) {
+        rega_key <- .get_rega_key(...)
+        ega_password <- Sys.getenv(envvar)
 
-    if (!identical(ega_password, "") && identical(rega_key, "")) {
-        warning("Storing unencrypted password in plaintext is not recommended.")
-    }
-
-    # Ask for password if not found in environmental variable
-    if (identical(ega_password, "")) {
-        ega_password <- askpass(prompt = "Please enter your EGA username:")
-    }
-
-    # If `rega_key` environmental variable secret is set, decrypt the password
-    if (!identical(rega_key, "")) {
-        ega_password <- secret_decrypt(Sys.getenv(envvar), I(rega_key))
-    }
+        # Ask for password if not found in environmental variable
+        ega_password <- if (identical(ega_password, "")) {
+            askpass(prompt = "Please enter your EGA password:")
+        } else {
+            secret_decrypt(Sys.getenv(envvar), I(rega_key))
+        }
+    })
 
     ega_password
 }

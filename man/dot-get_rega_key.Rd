@@ -4,7 +4,7 @@
 \alias{.get_rega_key}
 \title{Retrieve Rega secret from Environment Variable}
 \usage{
-.get_rega_key(envvar = "REGA_KEY")
+.get_rega_key(secret_ennvar = "REGA_KEY")
 }
 \arguments{
 \item{envvar}{A string specifying the name of the environment variable to

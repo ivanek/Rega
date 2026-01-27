@@ -23,14 +23,10 @@ test_that(".get_rega_key retrieves existing keys", {
 # ------------------------------------------------------------------------------
 
 test_that(".get_rega_key handles missing variables and validation", {
-  expect_warning(
-    {
-      res <- .get_rega_key("NON_EXISTENT_VAR_XYZ")
-      expect_equal(res, "")
-    },
-    "No NON_EXISTENT_VAR_XYZ environmental variable found"
+  expect_error(
+    res <- .get_rega_key("NON_EXISTENT_VAR_XYZ"),
+    "Using unecrypted password is not permitted"
   )
-
 
   expect_error(.get_rega_key(12345))
   expect_error(.get_rega_key(c("KEY1", "KEY2")))

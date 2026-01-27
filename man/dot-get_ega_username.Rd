@@ -2,24 +2,28 @@
 % Please edit documentation in R/access.R
 \name{.get_ega_username}
 \alias{.get_ega_username}
-\title{Get EGA User Name}
+\title{Retrieve EGA Username}
 \usage{
-.get_ega_username(envvar = "REGA_EGA_USERNAME")
+.get_ega_username(keyring_name = "REGA_EGA", envvar = "REGA_EGA_USERNAME")
 }
 \arguments{
-\item{envvar}{A string specifying the name of the environment variable to
-retrieve the username from. Defaults to \code{"REGA_EGA_USERNAME"}.}
+\item{keyring_name}{Character. Name of the service in the keyring. Defaults
+to \code{"REGA_EGA"}.}
+
+\item{envvar}{Character. Name of the environment variable. Defaults to
+\code{"REGA_EGA_USERNAME"}.}
 }
 \value{
-A string containing the EGA username.
+A character string containing the username.
 }
 \description{
-Retrieves the EGA username from the specified environment variable. If the
-variable is not set, prompts the user to enter their username interactively.
+Fetches the EGA username from the system keyring, an environment variable, or
+an interactive prompt, following that priority order.
 }
 \examples{
-ega_username <- Rega:::.get_ega_username()
-ega_username <- Rega:::.get_ega_username("EGA_USERNAME")
+tryCatch(
+    Rega:::.get_ega_username()
+)
 
 }
 \keyword{internal}

@@ -2,26 +2,32 @@
 % Please edit documentation in R/access.R
 \name{.get_ega_password}
 \alias{.get_ega_password}
-\title{Get EGA User Password}
+\title{Retrieve EGA Password}
 \usage{
-.get_ega_password(envvar = "REGA_EGA_PASSWORD", ...)
+.get_ega_password(keyring_name = "REGA_EGA", envvar = "REGA_EGA_PASSWORD", ...)
 }
 \arguments{
-\item{envvar}{A string specifying the name of the environment variable to
-retrieve the password from. Defaults to \code{"REGA_EGA_PASSWORD"}.}
+\item{keyring_name}{Character. Name of the service in the keyring. Defaults
+to \code{"REGA_EGA"}.}
+
+\item{envvar}{Character. Name of the environment variable. Defaults to
+\code{"REGA_EGA_PASSWORD"}.}
 
 \item{...}{Additional arguments passed to \code{.get_rega_key}.}
 }
 \value{
-A string containing the decrypted EGA password.
+A character string containing the password.
 }
 \description{
-Retrieves the EGA password from the specified environment variable. If not
-found, prompts the user to enter it. If an encryption key (usually stored in
-REGA_KEY environmental variable) is available, the password is decrypted.
+Fetches the EGA password from the system keyring, an environment variable, or
+an interactive prompt, following that priority order. If using the
+environment variable, the value is decrypted using a key retrieved via
+\code{.get_rega_key}.
 }
 \examples{
-ega_password <- Rega:::.get_ega_password()
+tryCatch(
+    ega_password <- Rega:::.get_ega_password()
+)
 
 }
 \keyword{internal}
