@@ -5,16 +5,16 @@
 \title{Submit New Data to EGA}
 \usage{
 new_submission(
-  request_data,
+  dat,
   client = NULL,
   logfile = NULL,
-  id = NULL,
-  retrieve_if_exists = FALSE,
+  submission_id = NULL,
+  retrieve = FALSE,
   ...
 )
 }
 \arguments{
-\item{request_data}{List of data frames. Parsed submission metadata
+\item{dat}{List of data frames. Parsed submission metadata
 containing correctly formatted and linked information for submission}
 
 \item{client}{List of functions. EGA API client created by \code{create_client}
@@ -24,9 +24,9 @@ created by \code{create_client(extract_api())}. Defaults to \code{NULL}.}
 \item{logfile}{Character. Path of log file to log the \code{httr2} responses from
 individual operations or \code{NULL}. Defaults to \code{NULL}.}
 
-\item{id}{Integer.}
+\item{submission_id}{Integer.}
 
-\item{retrieve_if_exists}{Logical.}
+\item{retrieve}{Logical.}
 
 \item{...}{List. Additional arguments to the function.}
 }

@@ -7,7 +7,8 @@ test_that("'aliases$analyses' is non-empty, analysis_files has at least 1 row =>
     aliases = list(
       analyses = c("analysis1", "analysis2")
     ),
-    analysis_files = data.frame(file_path = c("file1", "file2"))
+    analysis_files = data.frame(file_path = c("file1", "file2")),
+    analyses = list()
   )
   expect_true(.has_analyses(meta))
 })
@@ -20,7 +21,8 @@ test_that("'aliases$analyses' length > 0, analysis_files row > 0 => TRUE", {
     analysis_files = data.frame(
       file_name = "myfile",
       stringsAsFactors = FALSE
-    )
+    ),
+    analyses = list()
   )
   expect_true(.has_analyses(meta))
 })
@@ -41,6 +43,37 @@ test_that("'aliases$analyses' empty", {
       other = list("value"), analyses = list()
     ),
     analysis_files = data.frame()
+  )
+  expect_false(.has_analyses(meta))
+})
+
+test_that("'analyses' not present", {
+  meta <- list(
+    aliases = list(
+      other = list("value")
+    ),
+    analysis_files = data.frame()
+  )
+  expect_false(.has_analyses(meta))
+})
+
+test_that("'analyses_files' not present", {
+  meta <- list(
+    aliases = list(
+      other = list("value")
+    ),
+    analyses = list()
+  )
+  expect_false(.has_analyses(meta))
+})
+
+test_that("'analyses_files' length is 0", {
+  meta <- list(
+    aliases = list(
+      analyses = c("analysis1", "analysis2")
+    ),
+    analysis_files = data.frame(),
+    analyses = list()
   )
   expect_false(.has_analyses(meta))
 })
@@ -89,12 +122,4 @@ test_that("'meta$aliases' is not a list", {
     .has_analyses(list(aliases = "abc")),
     "'aliases' element within 'meta' must be a list"
   )
-})
-
-
-test_that("'meta$analysis_files' is missing or not a data frame", {
-  meta <- list(
-    aliases = list(analyses = c("analysis1", "analysis2"))
-  )
-  expect_error(.has_analyses(meta), "must contain a top-level element named.*'analysis_files'")
 })

@@ -12,15 +12,15 @@
 #' existing submission. If logfile is specified, the responses from successfully
 #' executed steps (even if the error occurs), will be saved.
 #'
-#' @param request_data List of data frames. Parsed submission metadata
+#' @param dat List of data frames. Parsed submission metadata
 #'   containing correctly formatted and linked information for submission
 #' @param client List of functions. EGA API client created by `create_client`
 #'   function from EGA API schema. If \code{NULL}, default client will be
 #'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #' @param logfile Character. Path of log file to log the `httr2` responses from
 #'   individual operations or \code{NULL}. Defaults to \code{NULL}.
-#' @param id Integer.
-#' @param retrieve_if_exists Logical.
+#' @param submission_id Integer.
+#' @param retrieve Logical.
 #' @param ... List. Additional arguments to the function.
 #'
 #' @return List of data frames. Parsed response objects from httr2 requests
@@ -76,16 +76,13 @@
 #'
 #' @export
 new_submission <- function(
-    request_data, client = NULL, logfile = NULL, id = NULL,
-    retrieve_if_exists = FALSE, ...
+    dat, client = NULL, logfile = NULL, submission_id = NULL,
+    retrieve = FALSE, ...
 ) {
     # The rest of arguments are validated in the respective functions
-    if (!is.list(request_data) || is.null(names(request_data))) {
-        stop("'request_data' must be a named list.")
+    if (!is.list(dat) || is.null(names(dat))) {
+        stop("'dat' must be a named list.")
     }
-
-    luts <- list()
-    responses <- list()
 
     if (is.null(client)) {
         client <- create_client(extract_api())
@@ -93,367 +90,191 @@ new_submission <- function(
         .is_client(client)
     }
 
-    if (!is.logical(retrieve_if_exists)) {
-        message("'retrieve_if_exists' needs to be logical. Setting to FALSE.")
-        retrieve_if_exists <- FALSE
-    }
+    .validate_logical_scalar(retrieve)
 
+    # 0. Setup ---
     all_steps <- c(
         "files", "analysis_files", "submission", "studies", "experiments",
         "samples", "runs", "analyses", "datasets"
     )
-    sm <- step_msg(length(intersect(all_steps, names(request_data))))
+    sm <- step_msg(length(intersect(all_steps, names(dat))))
 
-    # 0. Pre-flight checks -----
+    luts <- list()
+    resp <- list()
+
+    # 1. Pre-flight checks ---
     # Samples aliases must be unique per user. Are they already present in EGA?
-    user_samples <- client$get__samples()
-    samples_in_db <- request_data$samples$alias %in% user_samples$alias
+    samples_in_db(dat$samples$alias, client, retrieve)
 
-    if (any(samples_in_db) && !retrieve_if_exists) {
-        err_msg <- sprintf(
-            paste(
-                "Samples aliases per submitter must be unique. Following",
-                "sample aliases were found in EGA database: %s."
-            ),
-            paste(
-                request_data$samples$alias[samples_in_db],
-                collapse = ", "
-            )
-        )
-        stop(err_msg)
-    }
-
-    # 1. Files -----
-    # Get file provisional IDs based on file names/paths
-    # Retrieve and parse one at a time, there is 500 query limit
-    # Create look-up based on retrieved provisional IDs and metadata
+    # 2. Files ---
     sm("Retrieving Raw Files")
+    files_resp <- fetch_files(dat$files$ega_file, client)
+    resp$raw_files <- files_resp$response
+    luts$raw_files <- files_resp$lut
 
-    responses$raw_files <- do.call(
-        rbind,
-        lapply(
-            unlist(request_data$runs$files),
-            \(x) client$get__files(prefix = x)
-        )
-    )
-
-    # Stop if some files are not present in EGA Inbox
-    stopifnot(
-        nrow(responses$raw_files) == length(unlist(request_data$runs$files))
-    )
-
-    luts$raw_files <- setNames(
-        responses$raw_files$provisional_id,
-        unlist(request_data$runs$files)
-    )
-
-    # 2. Submission -----
-    # Create submission and store the provisional ID that will be used
-    # throughout the workflow
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Creating Submission")
-                # If submission ID was specified in dots use it, otherwise
-                # create new based on the request data
-                if (!is.null(id)) {
-                    submission_id <- id
-                    responses$submission <-
-                        client$get__submissions__provisional_id(submission_id)
-                } else {
-                    responses$submission <- client$post__submissions(
-                        body = unbox_row(request_data$submission[1, ])
-                    )
-                    submission_id <- responses$submission$provisional_id[1]
-                }
-            },
-            error = workflow_error_handler(
-                "submission",
-                responses,
-                logfile
-            )
-        )
-    })
-
-    # 3. Samples ------
-    # Submit samples, they have no dependencies on other tables
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Adding Samples")
-
-                # Submit table
-                responses$samples <- get_or_post(
-                    submission_id,
-                    request_data$samples,
-                    client,
-                    "samples",
-                    retrieve_if_exists = retrieve_if_exists
-                )
-
-                luts$samples <- setNames(
-                    responses$samples$provisional_id,
-                    request_data$samples$alias
-                )
-            },
-            error = workflow_error_handler(
-                "samples",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__samples(
+    # 3. Submission (Creation) ---
+    try_step(
+        "submission", function() {
+            sm("Creating Submission")
+            if (!is.null(submission_id)) {
+                resp$submission <<- client$get__submissions__provisional_id(
                     submission_id
                 )
+            } else {
+                resp$submission <<- client$post__submissions(
+                    body = unbox_row(dat$submission[1, ])
+                )
+            }
+        },
+        NULL,
+        resp, logfile
+    )
+
+    id <- resp$submission$provisional_id[1]
+
+    # 4. Entity Submission Loop ---
+    ## Samples
+    try_step(
+        "samples", function() {
+            sm("Adding Samples")
+            # Submit table
+            resp$samples <<- get_or_post(
+                id, dat$samples, client, "samples", retrieve
             )
-        )
-    })
-
-    # 4. Studies ------
-    # Submit studies, they have no dependencies on other tables
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Adding Studies")
-
-                # Submit table
-                responses$studies <- get_or_post(
-                    submission_id,
-                    request_data$studies,
-                    client,
-                    "studies",
-                    retrieve_if_exists = retrieve_if_exists
-                )
-
-                # Create LUT
-                luts$studies <- setNames(
-                    responses$studies$provisional_id,
-                    request_data$studies$study
-                )
-            },
-            error = workflow_error_handler(
-                "samples",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__studies(
-                    submission_id
-                )
+            # Create LUT
+            luts$samples <<- setNames(
+                resp$samples$provisional_id, dat$samples$alias
             )
-        )
-    })
+        },
+        client$delete__submissions__provisional_id__samples(id),
+        resp, logfile
+    )
 
-    # 5. Experiments ------
-    # Merge studies lookup table with experiments
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Adding Experiments")
-
-                # Replace study IDs
-                request_data$experiments <- lut_add(
-                    request_data$experiments,
-                    "study_provisional_id",
-                    "study",
-                    luts$studies
-                )
-
-                # Submit table
-                responses$experiments <- get_or_post(
-                    submission_id,
-                    request_data$experiments,
-                    client,
-                    "experiments",
-                    retrieve_if_exists = retrieve_if_exists
-                )
-
-                # Create LUT
-                luts$experiments <- setNames(
-                    responses$experiments$provisional_id,
-                    request_data$experiments$experiment
-                )
-            },
-            error = workflow_error_handler(
-                "samples",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__experiments(
-                    submission_id
-                )
+    ## Studies
+    try_step(
+        "studies", function() {
+            sm("Adding Studies")
+            # Submit table
+            resp$studies <<- get_or_post(
+                id, dat$studies, client, "studies", retrieve
             )
-        )
-    })
+            # Create LUT
+            luts$studies <<- setNames(
+                resp$studies$provisional_id, dat$studies$study
+            )
+        },
+        client$delete__submissions__provisional_id__studies(id),
+        resp, logfile
+    )
 
-    # 6. Runs ------
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Adding Runs")
+    ## Experiments (Depends on Studies)
+    try_step(
+        "experiments", function() {
+            sm("Adding Experiments")
+            # Replace study IDs
+            dat$experiments <<- lut_add(
+                dat$experiments, "study_provisional_id", "study", luts$studies
+            )
+            # Submit table
+            resp$experiments <<- get_or_post(
+                id, dat$experiments, client, "experiments", retrieve
+            )
+            # Create LUT
+            luts$experiments <<- setNames(
+                resp$experiments$provisional_id, dat$experiments$experiment
+            )
+        },
+        client$delete__submissions__provisional_id__experiments(id),
+        resp, logfile
+    )
 
+    ## Runs (Depends on Experiments, Samples, Files)
+    try_step(
+        "runs", function() {
+            sm("Adding Runs")
+            # Replace IDs
+            multi_lut_args <- list(
+                list(
+                    "experiment_provisional_id", "experiment", luts$experiments
+                ),
+                list("sample_provisional_id", "alias", luts$samples),
+                list("files", "files", luts$raw_files)
+            )
+            dat$runs <<- multi_lut_add(dat$runs, !!!multi_lut_args)
+            # Submit table
+            resp$runs <<- get_or_post(id, dat$runs, client, "runs", retrieve)
+            # Create LUT
+            luts$runs <<- setNames(resp$runs$provisional_id, dat$runs$run)
+        },
+        client$delete__submissions__provisional_id__runs(id),
+        resp, logfile
+    )
+
+    ## Analyses (Optional) ---
+    # if ("analyses" %in% names(dat) && "analysis_files" %in% names(dat)) {
+    if (.has_analyses(dat)) {
+        try_step(
+            "analyses", function() {
+                sm("Retrieving Analysis Files")
+                analysis_files_resp <- fetch_files(
+                    dat$analysis_files$ega_file, client
+                )
+                resp$analysis_files <<- analysis_files_resp$response
+                luts$analysis_files <<- analysis_files_resp$lut
+
+                sm("Adding Analyses")
                 # Replace IDs
                 multi_lut_args <- list(
+                    list("study_provisional_id", "study", luts$studies),
                     list(
-                        "experiment_provisional_id",
-                        "experiment",
+                        "experiment_provisional_ids", "experiments",
                         luts$experiments
                     ),
-                    list("sample_provisional_id", "alias", luts$samples),
-                    list("files", "files", luts$raw_files)
+                    list("sample_provisional_ids", "samples", luts$sample),
+                    list("files", "files", luts$analysis_files)
                 )
-
-                request_data$runs <- multi_lut_add(
-                    request_data$runs,
-                    !!!multi_lut_args
-                )
-
+                dat$analyses <<- multi_lut_add(dat$analyses, !!!multi_lut_args)
                 # Submit table
-                responses$runs <- get_or_post(
-                    submission_id,
-                    request_data$runs,
-                    client,
-                    "runs",
-                    retrieve_if_exists = retrieve_if_exists
+                resp$analyses <<- get_or_post(
+                    id, dat$analyses, client, "analyses", retrieve
                 )
-
                 # Create LUT
-                luts$runs <- setNames(
-                    responses$runs$provisional_id,
-                    request_data$runs$run
+                luts$analyses <<- setNames(
+                    resp$analyses$provisional_id,
+                    dat$analyses$analysis
+                )
+                # Replace analysis IDs in datasets
+                dat$datasets <<- lut_add(
+                    dat$datasets, "analysis_provisional_ids", "analyses",
+                    luts$analyses
                 )
             },
-            error = workflow_error_handler(
-                "runs",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__runs(submission_id)
-            )
+            client$delete__submissions__provisional_id__analyses(id),
+            resp, logfile
         )
-    })
+    }
 
-    # 7. Analyses ------
-    # Submit analyses
-    # This is the only optional step in the analysis
-    # analysis and analyses files sheet are removed during the parsing if the
-    # analysis is not specified
-    tryCatch({
-        withCallingHandlers(
-            {
-                # If no analyses are present, return NULL
-                if ("analyses" %in% names(request_data) &&
-                        "analysis_files" %in% names(request_data)
-                ) {
-                    sm("Retrieving Analysis Files")
-                    responses$analysis_files <- do.call(
-                        rbind,
-                        lapply(
-                            unlist(request_data$analyses$files),
-                            \(x) client$get__files(prefix = x)
-                        )
-                    )
-
-                    # Stop if some files are not present in EGA Inbox
-                    stopifnot(
-                        nrow(responses$analysis_files) ==
-                            length(unlist(request_data$analyses$files))
-                    )
-
-                    # Create LUT
-                    luts$analysis_files <- setNames(
-                        responses$analysis_files$provisional_id,
-                        unlist(request_data$analyses$files)
-                    )
-
-                    sm("Adding Analyses")
-
-                    # Replace IDs
-                    multi_lut_args <- list(
-                        list("study_provisional_id", "study", luts$studies),
-                        list(
-                            "experiment_provisional_ids",
-                            "experiments",
-                            luts$experiments
-                        ),
-                        list("sample_provisional_ids", "samples", luts$sample),
-                        list("files", "files", luts$analysis_files)
-                    )
-
-                    request_data$analyses <- multi_lut_add(
-                        request_data$analyses,
-                        !!!multi_lut_args
-                    )
-
-                    # Submit table
-                    responses$analyses <- get_or_post(
-                        submission_id,
-                        request_data$analyses,
-                        client,
-                        "analyses",
-                        retrieve_if_exists = retrieve_if_exists
-                    )
-
-                    # Create LUT
-                    luts$analyses <- setNames(
-                        responses$analyses$provisional_id,
-                        request_data$analyses$analysis
-                    )
-
-                    # Replace analysis IDs in datasets
-                    request_data$datasets <- lut_add(
-                        request_data$datasets,
-                        "analysis_provisional_ids",
-                        "analyses",
-                        luts$analyses
-                    )
-                }
-            },
-            error = workflow_error_handler(
-                "analyses",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__analyses(
-                    submission_id
-                )
+    ## Datasets ---
+    try_step(
+        "datasets", function() {
+            sm("Adding Datasets")
+            # Replace run IDs
+            dat$datasets <<- lut_add(
+                dat$datasets, "run_provisional_ids", "runs", luts$runs
             )
-        )
-    })
-
-    # 8. Datasets ------
-    # Submit datasets
-    tryCatch({
-        withCallingHandlers(
-            {
-                sm("Adding Datasets")
-
-                # Replace run IDs
-                request_data$datasets <- lut_add(
-                    request_data$datasets,
-                    "run_provisional_ids",
-                    "runs",
-                    luts$runs
-                )
-
-                # Submit table
-                responses$datasets <- get_or_post(
-                    submission_id,
-                    request_data$datasets,
-                    client,
-                    "datasets",
-                    retrieve_if_exists = retrieve_if_exists
-                )
-            },
-            error = workflow_error_handler(
-                "datasets",
-                responses,
-                logfile,
-                client$delete__submissions__provisional_id__datasets(
-                    submission_id
-                )
+            # Submit table
+            resp$datasets <<- get_or_post(
+                id, dat$datasets, client, "datasets", retrieve
             )
-        )
-    })
+        },
+        client$delete__submissions__provisional_id__datasets(id),
+        resp, logfile
+    )
 
-    save_log(responses, logfile)
-
-    responses
+    # 5. Finalize ---
+    save_log(resp, logfile)
+    resp
 }
-
 
 #' Finalise an EGA submission
 #'

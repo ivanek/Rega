@@ -151,18 +151,14 @@ default_parser <- function(metadata_file, param_file = NULL) {
         stop("The 'aliases' element within 'meta' must be a list.")
     }
 
-    if (!"analysis_files" %in% names(meta)) {
-        stop(
-            "The 'meta' argument must contain a top-level element named
-            'analysis_files'."
-        )
-    }
-
     # Checks if the Aliases have an analysis entry or if there are Analysis
     # Files specified
     if (is.null(meta$aliases$analyses) ||
             length(meta$aliases$analyses) == 0 ||
-            dim(meta$analysis_files)[1] == 0) {
+            is.null(meta$analyses) ||
+            is.null(meta$analysis_files) ||
+            dim(meta$analysis_files)[1] == 0
+        ) {
         FALSE
     } else {
         TRUE

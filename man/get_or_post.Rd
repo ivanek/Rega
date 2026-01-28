@@ -9,8 +9,8 @@ get_or_post(
   data,
   client,
   endpoint,
-  id_type = "provisional",
-  retrieve_if_exists = FALSE
+  retrieve = FALSE,
+  id_type = "provisional"
 )
 }
 \arguments{
@@ -23,11 +23,11 @@ get_or_post(
 \item{endpoint}{A string specifying the EGA API endpoint. The endpoint will
 be a submission type endpoint identified with provisional ID.}
 
+\item{retrieve}{A logical flag indicating whether to retrieve data
+if it already exists. Defaults to \code{FALSE}.}
+
 \item{id_type}{A string specifying type of EGA id. One of 'provisional' or
 'accession'. Defaults to \code{provisional}.}
-
-\item{retrieve_if_exists}{A logical flag indicating whether to retrieve data
-if it already exists. Defaults to \code{FALSE}.}
 }
 \value{
 A data frame containing the response from the API.
@@ -40,9 +40,9 @@ does not exist, with optional error handling and retrieval options.
 inserted.
 \item If there is data already present in the database and the number of records
 don't match, error will raised.
-\item If the number of records match and \code{retrieve_if_exists} is set to TRUE
+\item If the number of records match and \code{retrieve} is set to TRUE
 data will be retrieved from database and nothing will be inserted. If
-\code{retrieve_if_exists} is set to FALSE, error will be raised.
+\code{retrieve} is set to FALSE, error will be raised.
 }
 }
 \examples{
@@ -68,7 +68,7 @@ result <- get_or_post(
     data = test_data,
     client = mock_client,
     endpoint = "endpoint",
-    retrieve_if_exists = FALSE
+    retrieve = FALSE
 )
 
 }

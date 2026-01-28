@@ -17,7 +17,7 @@ test_that("No existing records => calls submit_table => returns posted data", {
     data = my_data,
     client = mock_client,
     endpoint = "endpointA",
-    retrieve_if_exists = FALSE
+    retrieve = FALSE
   )
 
   expect_s3_class(result, "data.frame")
@@ -25,7 +25,7 @@ test_that("No existing records => calls submit_table => returns posted data", {
   expect_equal(result, my_data)
 })
 
-test_that("Some existing records => same number => retrieve_if_exists=TRUE => returns existing", {
+test_that("Some existing records => same number => retrieve=TRUE => returns existing", {
   my_data <- data.frame(x = 1:2, y = c("A", "B"))
   mock_existing <- my_data
 
@@ -44,7 +44,7 @@ test_that("Some existing records => same number => retrieve_if_exists=TRUE => re
       data = my_data,
       client = mock_client,
       endpoint = "endpointA",
-      retrieve_if_exists = TRUE
+      retrieve = TRUE
     ),
     "Retrieved IDs from database."
   )
@@ -68,7 +68,7 @@ test_that("Get returns a 0-row data frame => calls submit_table => success", {
     data = my_data,
     client = mock_client,
     endpoint = "endpointB",
-    retrieve_if_exists = FALSE
+    retrieve = FALSE
   )
 
   expect_s3_class(result, "data.frame")
@@ -97,13 +97,13 @@ test_that("Mismatch in row count => stops with error", {
       data = my_data,
       client = mock_client,
       endpoint = "endpointC",
-      retrieve_if_exists = FALSE
+      retrieve = FALSE
     ),
     "Number of present versus submitted records doesn't match"
   )
 })
 
-test_that("Same number of existing rows but retrieve_if_exists=FALSE => error", {
+test_that("Same number of existing rows but retrieve=FALSE => error", {
   mock_client <- list(
     `get__submissions__provisional_id__endpointZ` = function(sub_id) {
       data.frame(b = c("A", "B"))
@@ -118,7 +118,7 @@ test_that("Same number of existing rows but retrieve_if_exists=FALSE => error", 
       data = my_data,
       client = mock_client,
       endpoint = "endpointZ",
-      retrieve_if_exists = FALSE
+      retrieve = FALSE
     ),
     "records are already present"
   )

@@ -38,7 +38,9 @@ is_accession <- function(x, schema = NULL) {
         "submission" = "B"
     )
 
-    if (is_empty(x)) return(FALSE)
+    if (is_empty(x)) {
+        return(FALSE)
+    }
 
     if (is.null(schema)) {
         letter <- paste0("[", paste(unique(letter_lut), collapse = "|"), "]")
@@ -72,7 +74,9 @@ is_accession <- function(x, schema = NULL) {
 #'
 #' @export
 is_provisional <- function(x) {
-    if (is_empty(x)) return(FALSE)
+    if (is_empty(x)) {
+        return(FALSE)
+    }
 
     if (is.numeric(x)) {
         as.numeric(x) == as.integer(x)
@@ -226,19 +230,19 @@ submit_table <- function(tab, id, endpoint_func) {
 #' inserted.
 #' - If there is data already present in the database and the number of records
 #' don't match, error will raised.
-#' - If the number of records match and \code{retrieve_if_exists} is set to TRUE
+#' - If the number of records match and \code{retrieve} is set to TRUE
 #' data will be retrieved from database and nothing will be inserted. If
-#' \code{retrieve_if_exists} is set to FALSE, error will be raised.
+#' \code{retrieve} is set to FALSE, error will be raised.
 #'
 #' @param submission_id An integer representing the submission provisional ID.
 #' @param data A data frame to be submitted.
 #' @param client An API client object with \code{get} and \code{post} methods.
 #' @param endpoint A string specifying the EGA API endpoint. The endpoint will
 #'   be a submission type endpoint identified with provisional ID.
+#' @param retrieve A logical flag indicating whether to retrieve data
+#'   if it already exists. Defaults to \code{FALSE}.
 #' @param id_type A string specifying type of EGA id. One of 'provisional' or
 #'   'accession'. Defaults to \code{provisional}.
-#' @param retrieve_if_exists A logical flag indicating whether to retrieve data
-#'   if it already exists. Defaults to \code{FALSE}.
 #'
 #' @return A data frame containing the response from the API.
 #'
@@ -265,13 +269,13 @@ submit_table <- function(tab, id, endpoint_func) {
 #'     data = test_data,
 #'     client = mock_client,
 #'     endpoint = "endpoint",
-#'     retrieve_if_exists = FALSE
+#'     retrieve = FALSE
 #' )
 #'
 #' @export
 get_or_post <- function(
-    submission_id, data, client, endpoint, id_type = "provisional",
-    retrieve_if_exists = FALSE
+    submission_id, data, client, endpoint, retrieve = FALSE,
+    id_type = "provisional"
 ) {
     if (!is_provisional(submission_id) && !is_accession(submission_id)) {
         stop("'submission_id' must be either provisional or accession ID.")
@@ -280,7 +284,7 @@ get_or_post <- function(
     .is_client(client)
     .validate_character_scalar(endpoint)
     .validate_character_scalar(id_type)
-    .validate_logical_scalar(retrieve_if_exists, "retrieve_if_exists")
+    .validate_logical_scalar(retrieve, "retrieve")
 
     built_url <- paste0("__", "submissions__", id_type, "_id", "__", endpoint)
     resp <- client[[paste0("get", built_url)]](submission_id)
@@ -298,7 +302,7 @@ get_or_post <- function(
             nrow(resp), nrow(data)
         )
         stop(err_msg)
-    } else if (retrieve_if_exists) {
+    } else if (retrieve) {
         message("Retrieved IDs from database.")
     } else {
         err_msg <- sprintf(
@@ -395,27 +399,73 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
     ef
 }
 
-#' Check whether all expected files are in the inbox
+#' Execute a submission step with error handling and rollback
 #'
-#' Query the remote client for each requested file prefix and test whether a
-#' file is found for every element of \code{file_list}.
+#' Wraps a logic function in a tryCatch block to handle errors during a specific
+#' submission step, optionally triggering a rollback function.
+#'
+#' @param step_name Character. The name of the current workflow step.
+#' @param logic_fn Function. The primary logic to execute for this step.
+#' @param rollback_fn Function. A function to clean up if an error occurs.
+#' @param responses List. Current collection of API responses for logging.
+#' @param logfile Character. Path to the log file.
+#'
+#' @return The result of `logic_fn()`.
+#'
+#' @examples
+#' try_step(
+#'     "test", function() 1 + 1, function() print("fail"), list(), "log.txt")
+#' )
+#'
+#' @export
+try_step <- function(step_name, logic_fn, rollback_fn, responses, logfile) {
+    .validate_character_scalar(step_name)
+
+    if (!is.function(logic_fn)) {
+        stop("'logic_fn' must be a function.")
+    }
+
+    if (!is.list(responses)) {
+        stop("'responses' must be a list.")
+    }
+
+    if (!is.null(logfile) && (!is.character(logfile) || length(logfile) != 1)) {
+        stop("'logfile' must be a non-empty character scalar or NULL.")
+    }
+
+    tryCatch(
+        {
+            withCallingHandlers(
+                logic_fn(),
+                error = workflow_error_handler(
+                    step_name, responses, logfile, rollback_fn
+                )
+            )
+        },
+        error = function(e) stop(e)
+    )
+}
+
+#' Fetch file information from EGA inbox
+#'
+#' Query the remote client for requested file prefix, test whether a file is
+#' found for every element of \code{file_list} and return the server response.
 #'
 #' @param file_list A character vector or list of file prefixes to check.
 #' @param client List of functions. EGA API client created by `create_client`
 #'   function from EGA API schema. If \code{NULL}, default client will be
 #'   created by \code{create_client(extract_api())}. Defaults to \code{NULL}.
 #'
-#' @return A logical scalar, \code{TRUE} if all files are present, otherwise
-#'   \code{FALSE}.
+#' @return Data frame. Parsed response from client API for requested files.
 #'
 #' @examples
 #' mock_client <- list(
 #'     get__files = function(prefix = NULL) list(prefix)
 #' )
-#' files_in_inbox(c("file_a", "file_b"), mock_client)
+#' fetch_files(c("file_a", "file_b"), mock_client)
 #'
 #' @export
-files_in_inbox <- function(file_list, client = NULL) {
+fetch_files <- function(file_list, client = NULL) {
     if (is.null(client)) {
         client <- create_client(extract_api())
     } else {
@@ -426,14 +476,75 @@ files_in_inbox <- function(file_list, client = NULL) {
         stop("'file_list' must contain at least one element.")
     }
 
-    raw_files <- do.call(
+    # Retrieve metadata
+    inbox_files <- do.call(
         rbind,
-        lapply(
-            unlist(file_list),
-            \(x) client$get__files(prefix = x)
-        )
+        lapply(file_list, \(x) client$get__files(prefix = x))
     )
 
-    all_files <- nrow(raw_files) == length(unlist(file_list))
-    all_files
+    # Verification
+    if (nrow(inbox_files) != length(file_list)) {
+        stop(sprintf(
+            "Following files are missing from inbox: %s",
+            paste(
+                setdiff(file_list, inbox_files$relative_path),
+                collapse = ", "
+            )
+        ))
+    }
+
+    list(
+        response = inbox_files,
+        lut = setNames(inbox_files$provisional_id, file_list)
+    )
+}
+
+#' Check if sample aliases exist in the EGA database
+#'
+#' Validates uniqueness of sample aliases by comparing input against existing
+#' records in the EGA database. Throws an error if duplicates are found and
+#' retrieval is not enabled.
+#'
+#' @param samples Character vector of sample aliases to check.
+#' @param client An EGA API client object. If NULL, one is created.
+#' @param retrieve Logical scalar. If TRUE, exists without error even if samples
+#'   are found in the database.
+#'
+#' @return Logical TRUE if validation passes.
+#'
+#' @examples
+#' samples_in_db(c("sample1", "sample2"), client = my_client, retrieve = FALSE)
+#'
+#' @export
+samples_in_db <- function(samples, client = NULL, retrieve = FALSE) {
+    if (!length(samples) || !is.character(samples)) {
+        stop("'samples' must be a character vector with at least one element.")
+    }
+
+    if (is.null(client)) {
+        client <- create_client(extract_api())
+    } else {
+        .is_client(client)
+    }
+
+    .validate_logical_scalar(retrieve)
+
+    user_samples <- client$get__samples()
+    db_samples <- samples %in% user_samples$alias
+
+    if (any(db_samples) && !retrieve) {
+        err_msg <- sprintf(
+            paste(
+                "Samples aliases per submitter must be unique. Following",
+                "sample aliases were found in EGA database: %s."
+            ),
+            paste(
+                samples[db_samples],
+                collapse = ", "
+            )
+        )
+        stop(err_msg)
+    }
+
+    TRUE
 }

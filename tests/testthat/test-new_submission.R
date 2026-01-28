@@ -59,13 +59,13 @@ test_that("successfully completes a full submission workflow", {
 
   local_mocked_bindings(
     create_client = function(...) mock_client,
-    get_or_post = function(id, data, client, type, ...) {
+    get_or_post = function(id, data, client, retrive, type, ...) {
       data$provisional_id <- 12345
       data
     }
   )
 
-  result <- new_submission(request_data = minimal_metadata)
+  result <- new_submission(minimal_metadata)
 
   expect_type(result, "list")
   expect_named(
@@ -101,13 +101,13 @@ test_that("resumes submission correctly when an ID is provided", {
 
   local_mocked_bindings(
     create_client = function(...) mock_client,
-    get_or_post = function(id, data, client, type, ...) {
+    get_or_post = function(id, data, client, retrieve, type, ...) {
       data$provisional_id <- id
       data
     }
   )
 
-  result <- new_submission(request_data = minimal_metadata, id = 56789)
+  result <- new_submission(minimal_metadata, submission_id = 56789)
 
   expect_equal(result$submission$provisional_id, 56789)
   expect_equal(result$studies$study, "Study1")
@@ -121,11 +121,11 @@ test_that("resumes submission correctly when an ID is provided", {
 # ------------------------------------------------------------------------------
 
 test_that("throws error if request_data is not a named list", {
-  expect_error(new_submission(request_data = list(1, 2, 3)), "must be a named list")
-  expect_error(new_submission(request_data = "not a list"), "must be a named list")
+  expect_error(new_submission(list(1, 2, 3)), "must be a named list")
+  expect_error(new_submission("not a list"), "must be a named list")
 })
 
-test_that("stops if sample aliases already exist in database and retrieve_if_exists is FALSE", {
+test_that("stops if sample aliases already exist in database and retrieve is FALSE", {
   mock_client <- list(
     get__samples = function() data.frame(alias = "Sample1", stringsAsFactors = FALSE)
   )
@@ -135,12 +135,12 @@ test_that("stops if sample aliases already exist in database and retrieve_if_exi
   )
 
   expect_error(
-    new_submission(request_data = minimal_metadata, mock_client, retrieve_if_exists = FALSE),
+    new_submission(minimal_metadata, mock_client, retrieve = FALSE),
     "Samples aliases per submitter must be unique"
   )
 })
 
-test_that("stops if sample aliases already exist in database and retrieve_if_exists is FALSE", {
+test_that("stops if sample aliases already exist in database and retrieve is FALSE", {
   mock_client <- list(
     get__samples = function() data.frame(alias = "Sample1", stringsAsFactors = FALSE)
   )
@@ -150,7 +150,7 @@ test_that("stops if sample aliases already exist in database and retrieve_if_exi
   )
 
   expect_error(
-    new_submission(request_data = minimal_metadata, mock_client, retrieve_if_exists = FALSE),
+    new_submission(minimal_metadata, mock_client, retrieve = FALSE),
     "Samples aliases per submitter must be unique"
   )
 })
@@ -165,10 +165,10 @@ test_that("stops if files are missing from the EGA Inbox", {
     create_client = function(...) mock_client
   )
 
-  expect_error(new_submission(request_data = mock_request_data))
+  expect_error(new_submission(mock_request_data))
 })
 
-test_that("gracefully handles non-logical retrieve_if_exists with a message", {
+test_that("gracefully handles non-logical retrieve with a message", {
   mock_client <- list(
     get__samples = function() data.frame(alias = character()),
     get__files = function(prefix) data.frame(provisional_id = "f1"),
@@ -177,14 +177,14 @@ test_that("gracefully handles non-logical retrieve_if_exists with a message", {
 
   local_mocked_bindings(
     create_client = function(...) mock_client,
-    get_or_post = function(id, data, client, type, ...) {
+    get_or_post = function(id, data, client, retrieve, type, ...) {
       data$provisional_id <- 12345
       data
     }
   )
 
-  expect_message(
-    new_submission(request_data = minimal_metadata, retrieve_if_exists = "not_logical"),
-    "Setting to FALSE"
+  expect_error(
+    new_submission(minimal_metadata, retrieve = "not_logical"),
+    "must be a non-empty logical scalar"
   )
 })
