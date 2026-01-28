@@ -59,8 +59,8 @@
     .validate_character_scalar(keyring_name)
     .validate_character_scalar(envvar)
 
-    keyring_user = key_list(keyring_name)$username
-    envvar_user = Sys.getenv(envvar)
+    keyring_user <- key_list(keyring_name)$username
+    envvar_user <- Sys.getenv(envvar)
 
     ega_username <- if (!is.null(keyring_user) && length(keyring_user) > 0) {
         key_list(keyring_name)$username[1]

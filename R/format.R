@@ -745,6 +745,21 @@ link_sheet <- function(metadata, sheet_name) {
     metadata
 }
 
+#' Default Column Converters for EGA Metadata
+#'
+#' A named list of functions used to coerce delimited strings into
+#' specific data types during metadata processing.
+#'
+#' @format A named list:
+#' \describe{
+#'   \item{pubmed_ids}{Coerces values to integer.}
+#' }
+#'
+#' @export
+DELIM_CONVERTERS <- list(
+    pubmed_ids = function(x) as.integer(x)
+)
+
 #' Process Delimited Columns in Metadata
 #'
 #' The specified column name is searched for across all the data frames. If the
@@ -753,6 +768,9 @@ link_sheet <- function(metadata, sheet_name) {
 #' @param metadata List. A list of data frames representing metadata sheets.
 #' @param column_name Character. The name of the column to process.
 #' @param separator Character. The delimiter used to split column values.
+#' @param converters Named list of functions. Specifies how to coerce columns
+#'   with delimited strings into specific types or values. Defaults to
+#'   \code{DELIM_CONVERTERS}
 #'
 #' @return A list of updated metadata with the specified column split into lists
 #'   based on the delimiter and trimmed.
@@ -767,13 +785,21 @@ link_sheet <- function(metadata, sheet_name) {
 #' process_delimited_column(metadata, "pubmed_ids", ";")
 #'
 #' @export
-process_delimited_column <- function(metadata, column_name, separator) {
+process_delimited_column <- function(
+    metadata, column_name, separator, converters = DELIM_CONVERTERS
+) {
     if (!is.list(metadata)) {
         stop("The 'metadata' argument must be a list.")
     }
 
     .validate_character_scalar(column_name)
     .validate_character_scalar(separator)
+
+    transform_delim <- if (column_name %in% names(converters)) {
+        converters[[column_name]]
+    } else {
+        identity
+    }
 
     # use for loop to change values in place
     for (sheet in names(metadata)) {
@@ -786,13 +812,8 @@ process_delimited_column <- function(metadata, column_name, separator) {
                 if (all(is.na(y))) {
                     list()
                 } else {
-                    # API specific processing. Pubmed ids need to be integer,
-                    # ifelse doesn't work on vectors
-                    if (column_name == "pubmed_ids") {
-                        as.integer(y)
-                    } else {
-                        y
-                    }
+                    # Apply column-specific transformations
+                    transform_delim(y)
                 }
             })
         }

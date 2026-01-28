@@ -41,6 +41,31 @@ test_that("'pubmed_ids' column is converted to integer", {
   expect_equal(pmids[[3]], 1001L)
 })
 
+test_that("custom converter", {
+  df <- data.frame(
+    custom_col = c("  123456,  789", NA, "1001  "),
+    other_col = c("foo", "bar", "baz"),
+    stringsAsFactors = FALSE
+  )
+  metadata <- list(pub_sheet = df)
+  custom_converter = list(
+    custom_col = function(x) as.data.frame(x)
+  )
+
+  result <- process_delimited_column(metadata, "custom_col", separator = ",", custom_converter)
+
+  expect_true("pub_sheet" %in% names(result))
+  expect_s3_class(result$pub_sheet, "data.frame")
+  pmids <- result$pub_sheet$custom_col
+  expect_type(pmids, "list")
+
+  expect_s3_class(pmids[[1]], "data.frame")
+  expect_equal(pmids[[1]]$x, c("123456", "789"))
+  expect_equal(pmids[[2]], list())
+  expect_s3_class(pmids[[3]], "data.frame")
+  expect_equal(pmids[[3]]$x, c("1001"))
+})
+
 test_that("'metadata' is an empty data.frame", {
   expect_equal(
     process_delimited_column(data.frame(), "column_name", separator = ","),

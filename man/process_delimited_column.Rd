@@ -4,7 +4,12 @@
 \alias{process_delimited_column}
 \title{Process Delimited Columns in Metadata}
 \usage{
-process_delimited_column(metadata, column_name, separator)
+process_delimited_column(
+  metadata,
+  column_name,
+  separator,
+  converters = DELIM_CONVERTERS
+)
 }
 \arguments{
 \item{metadata}{List. A list of data frames representing metadata sheets.}
@@ -12,6 +17,10 @@ process_delimited_column(metadata, column_name, separator)
 \item{column_name}{Character. The name of the column to process.}
 
 \item{separator}{Character. The delimiter used to split column values.}
+
+\item{converters}{Named list of functions. Specifies how to coerce columns
+with delimited strings into specific types or values. Defaults to
+\code{DELIM_CONVERTERS}}
 }
 \value{
 A list of updated metadata with the specified column split into lists
