@@ -11,8 +11,7 @@ test_that("ega_oauth creates a valid request object (Happy Paths)", {
   }
 
   local_mocked_bindings(
-    req_oauth_password = mock_req_auth,
-    .package = "Rega"
+    req_oauth_password = mock_req_auth
   )
 
   # Tests

@@ -12,8 +12,7 @@ test_that("successfully deletes a submission with default client", {
     use_submission = function(id, client, action) {
       expect_equal(action, "delete")
       mock_response
-    },
-    .package = "Rega"
+    }
   )
 
   # Test
@@ -29,8 +28,7 @@ test_that("works correctly when a custom client is provided", {
   mock_response <- list(id = mock_id, status = "deleted", contents = NULL)
 
   local_mocked_bindings(
-    use_submission = function(id, client, action) mock_response,
-    .package = "Rega"
+    use_submission = function(id, client, action) mock_response
   )
 
   expect_no_error(

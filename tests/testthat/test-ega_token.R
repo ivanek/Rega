@@ -11,8 +11,7 @@ test_that("ega_token returns JSON content on success", {
 
   local_mocked_bindings(
     req_perform = function(...) mock_resp_success,
-    resp_body_json = function(resp) resp$body,
-    .package = "Rega"
+    resp_body_json = function(resp) resp$body
   )
 
   # Test
@@ -50,8 +49,7 @@ test_that("ega_token returns error string and message on failure", {
 
   local_mocked_bindings(
     req_perform = function(...) mock_resp_fail,
-    resp_body_string = function(resp) resp$body_str,
-    .package = "Rega"
+    resp_body_string = function(resp) resp$body_str
   )
 
   # Test

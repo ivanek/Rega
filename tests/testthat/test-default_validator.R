@@ -59,8 +59,7 @@ test_that("default_validator handles NULL validation results gracefully", {
     .datasets_extra_validator = function(...) NULL,
     .analyses_extra_validator = function(...) NULL,
     .dataset_analyses_validator = function(...) NULL,
-    .summarise_validation = function(vs) NULL,
-    .package = "Rega"
+    .summarise_validation = function(vs) NULL
   )
 
   result <- default_validator(list(aliases = list()))

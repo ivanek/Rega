@@ -28,8 +28,7 @@ test_that("successfully rolls back multiple endpoints with a default client", {
 
   local_mocked_bindings(
     create_client = function(api) mock_client,
-    save_log = function(...) "log_saved",
-    .package = "Rega"
+    save_log = function(...) "log_saved"
   )
 
   # Test

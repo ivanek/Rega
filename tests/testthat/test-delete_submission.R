@@ -11,8 +11,7 @@ test_that("successfully deletes a submission with default client", {
 
   local_mocked_bindings(
     create_client = function(...) mock_client_obj,
-    save_log = function(...) "log_saved",
-    .package = "Rega"
+    save_log = function(...) "log_saved"
   )
 
   # Test

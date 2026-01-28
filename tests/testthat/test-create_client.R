@@ -64,8 +64,7 @@ test_that("'api' is not a list", {
 
 test_that("Internal factory fails", {
   local_mocked_bindings(
-    api_function_factory = function(op_def, api, ...) stop("Simulated factory error"),
-    .package = "Rega"
+    api_function_factory = function(op_def, api, ...) stop("Simulated factory error")
   )
 
   api <- extract_api("../resources/petstore_resolved_openapi_v3_1.yaml")
