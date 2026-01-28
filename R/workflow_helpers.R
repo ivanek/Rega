@@ -414,7 +414,7 @@ workflow_error_handler <- function(step, responses, logfile, ...) {
 #'
 #' @examples
 #' try_step(
-#'     "test", function() 1 + 1, function() print("fail"), list(), "log.txt")
+#'     "test", function() 1 + 1, function() print("fail"), list(), "log.txt"
 #' )
 #'
 #' @export

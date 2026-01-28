@@ -26,7 +26,7 @@ submission step, optionally triggering a rollback function.
 }
 \examples{
 try_step(
-    "test", function() 1 + 1, function() print("fail"), list(), "log.txt")
+    "test", function() 1 + 1, function() print("fail"), list(), "log.txt"
 )
 
 }

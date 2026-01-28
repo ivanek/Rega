@@ -755,6 +755,15 @@ link_sheet <- function(metadata, sheet_name) {
 #'   \item{pubmed_ids}{Coerces values to integer.}
 #' }
 #'
+#' @examples
+#' df <- list(pub_sheet = data.frame(
+#'     pubmed_ids = c("  123456,  789", NA, "1001  ")
+#' ))
+#'
+#' process_delimited_column(
+#'     df, "pubmed_ids", separator = ",", converters = DELIM_CONVERTERS
+#' )
+#'
 #' @export
 DELIM_CONVERTERS <- list(
     pubmed_ids = function(x) as.integer(x)

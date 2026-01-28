@@ -17,4 +17,14 @@ DELIM_CONVERTERS
 A named list of functions used to coerce delimited strings into
 specific data types during metadata processing.
 }
+\examples{
+df <- list(pub_sheet = data.frame(
+    pubmed_ids = c("  123456,  789", NA, "1001  ")
+))
+
+process_delimited_column(
+    df, "pubmed_ids", separator = ",", converters = DELIM_CONVERTERS
+)
+
+}
 \keyword{datasets}

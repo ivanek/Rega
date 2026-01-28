@@ -67,19 +67,6 @@ test_that("try_step handles argument checks correctly", {
     try_step("studies", NULL, NULL, list(), NULL),
     "must be a function"
   )
-  # Test rollback_fn
-  # expect_error(
-  #   try_step("studies", function() 1, list(), list(), NULL),
-  #   "must be a function or NULL"
-  # )
-  # expect_error(
-  #   try_step("studies", function() 1, 1234, list(), NULL),
-  #   "must be a function or NULL"
-  # )
-  # expect_error(
-  #   try_step("studies", function() 1, "foobar", list(), NULL),
-  #   "must be a function or NULL"
-  # )
   # Test responses
   expect_error(
     try_step("studies", function() 1, NULL, c(), NULL),
@@ -110,7 +97,7 @@ test_that("try_step handles argument checks correctly", {
 
 test_that("try_step handles error paths and handlers correctly", {
   responses <- list(step1 = "success")
-  logfile <- "test.log"
+  logfile <- tempfile()
 
   # Mock the error handler to verify it is called
   local_mocked_bindings(
@@ -149,5 +136,3 @@ test_that("try_step handles error paths and handlers correctly", {
     "error"
   )
 })
-
-
