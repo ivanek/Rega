@@ -1,6 +1,6 @@
 Package: Rega
 Title: R Interface to European Genome-Phenome Archive
-Version: 0.99.1
+Version: 0.99.2
 Authors@R:
    c(
     person(
@@ -9,7 +9,7 @@ Authors@R:
     ),
     person(
         "Athimed", "El Taher", , "athimed.eltaher@unibas.ch", role = c("aut"), 
-        comment = c(ORCID = "0000-0002-8403-056X")
+        comment = c(ORCID = "0000-0003-2424-8476")
     ),
     person(
         "Robert", "Ivanek", , "robert.ivanek@unibas.ch", role = c("aut"), 
@@ -32,6 +32,7 @@ Imports:
     httr2,
     jsonlite,
     jsonvalidate,
+    keyring,
     readxl,
     rlang,
     stringr,

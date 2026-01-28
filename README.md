@@ -27,39 +27,54 @@ library(Rega)
 
 # Setting Up Secure Credentials
 
-The httr2 package follows security best practices by storing sensitive 
-information (like API keys or passwords) as environment variables rather 
-than hard-coding them into your scripts.
+The Rega package follows security best practices by storing sensitive 
+information (like API keys or passwords) in credential store or as environment 
+variables rather than hard-coding them into your scripts.
 
-To keep your credentials secure, we use a two-step process:
+To keep your credentials secure, we offer two options (see below for details):
 
-- Create a Master Key: A secret key to encrypt/decrypt data.
-- Encrypt your Password: Storing the password in a format that is unreadable 
-    without the Master Key.
+- Using operating system credential store
+- Using environmental variables with a secret key to encrypt/decrypt data
 
-## Create and Store a Master Secret Key
+## Using operating system credential store
+
+You can add an entry to your operating system credential store using `keyring` 
+package. By default, `Rega` will look for a `REGA_EGA` service name. You should
+also specify your username, to avoid typing it every time you connect to the 
+API. Avoid using more than a single user for this service, for simplicity 
+`Rega` will only retrieve the first username.
+
+```r
+# You will be prompted for password
+keyring::key_set(
+    service = "REGA_EGA",
+    username = "<your-ega-username>"
+)
+```
+## Using environmental variables with `httr2` secret
+
+### Create and Store a Master Secret Key
 
 ```r
 # Run this in your R console to generate a key
 httr2::secret_make_key()
 ```
 To make this key available every time you open R, you must store it in your 
-user-level .Renviron file.
+user-level `.Renviron` file.
 
-- Run usethis::edit_r_environ() to open the file.
+- Run `usethis::edit_r_environ()` to open the file.
 - Add the following line (replace the string with the key you just generated): 
-    `REGA_KEY="your-generated-key-here"`
+    `REGA_KEY="<your-generated-key>"`
 - Save and close the file.
 
 Important: Restart R after saving to ensure the variable is loaded into your 
 environment.
 
-## Encrypt Your EGA Password
+### Encrypt your EGA password
 
 Now, use your master key (REGA_KEY) to encrypt your actual EGA password. This 
 ensures that even if someone sees your .Renviron file, they cannot read your 
 password.
-
 
 ```r
 # Replace <your-ega-password> with your actual password
@@ -67,17 +82,23 @@ password.
 httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")
 ```
 
-## Store the Encrypted Password
+### Store the encrypted password
 
 Finally, store the encrypted string (not your plain-text password) in your 
 .Renviron file.
 
 - Open your .Renviron again: usethis::edit_r_environ().
 - Add the encrypted string as a new variable: 
-    `REGA_EGA_PASSWORD="your-encrypted-string-here"`
+    `REGA_EGA_PASSWORD="<your-encrypted-string>"`
 - Save and close.
 
-## Final Step: Restart R
+### Store your username
+
+- Run `usethis::edit_r_environ()` to open the file.
+- Add the following line: `REGA_EGA_USERNAME="<your-ega-username>"`
+- Save and close the file.
+
+### Restart R
 
 # Fill in the submission template
 
