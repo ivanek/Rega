@@ -200,13 +200,15 @@ for(item in instructions) {
   writeData(wb, "Instructions", item$header, startRow = cur)
   addStyle(
     wb, "Instructions",
-    style = header_style, cur, cols = 1
+    style = instructions_header_style, cur, cols = 1
   )
 
   writeData(wb, "Instructions", item$text, startRow = cur + 1, colNames = FALSE)
   addStyle(
     wb, "Instructions",
-    style = body_style, rows = (cur + 1):(cur + length(item$text)), cols = 1
+    style = instructions_text_style,
+    rows = (cur + 1):(cur + length(item$text)),
+    cols = 1
   )
 
   cur = cur + length(item$text) + 2
@@ -379,14 +381,6 @@ addStyle(
   createStyle(textDecoration = "bold", fontSize = 16, fontColour = "red"),
   rows = 1, cols = 1, stack = TRUE
 )
-
-# addStyle(
-#   wb, "Instructions", createStyle(textDecoration = "bold", fontSize = 16),
-#   rows = sapply(
-#     instructions_headers, \(x) grep(paste0("^", x, "$"), instructions)
-#   ),
-#   cols = 1, stack = TRUE
-# )
 
 coltable_sheets <- c(
   "Submission", "Studies", "Experiments", "Analyses", "Datasets"
