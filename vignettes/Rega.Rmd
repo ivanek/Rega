@@ -260,9 +260,6 @@ resp <- delete_submission_contents(00001, ega)
 resp <- delete_submission(00001, ega)
 ```
 
-**Workflow for updating the submission metadata by `PUT` method is under
-development.**
-
 # Utilities
 
 If you wish to create your own templates for EGA submissions, we provide
@@ -291,6 +288,12 @@ ega$get__enums()
 ```
 
 # Issues
+
+Workflow for updating the submission metadata by `PUT` method is not available.
+For this particular use case, the users are advised to create the client with
+`ega <- create_client(extract_api())` and use individual functions prefixed with
+`put__` e.g. `ega$put__samples__accession_id` to update the submission
+metadata.
 
 # Session Info
 
