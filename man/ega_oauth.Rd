@@ -8,7 +8,7 @@ ega_oauth(
   req,
   username = .get_ega_username(),
   password = .get_ega_password(),
-  token_url = NULL
+  token_url = .EGA_TOKEN_URL
 )
 }
 \arguments{
@@ -21,7 +21,8 @@ ega_oauth(
 by \code{.get_ega_password()}.}
 
 \item{token_url}{Character. The URL for the EGA token endpoint. Defaults to
-the standard EGA token URL if not provided.}
+.EGA_TOKEN_URL =
+\code{"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"}.}
 }
 \value{
 returns a modified HTTP request that will use OAuth

@@ -7,7 +7,7 @@
 ega_token(
   username = .get_ega_username(),
   password = .get_ega_password(),
-  token_url = NULL
+  token_url = .EGA_TOKEN_URL
 )
 }
 \arguments{
@@ -18,7 +18,8 @@ the value returned by \code{.get_ega_username()}.}
 the value returned by \code{.get_ega_password()}.}
 
 \item{token_url}{Character. The URL for the EGA token endpoint. Defaults to
-the standard EGA token URL if not provided. Defaults to \code{NULL}.}
+the standard EGA token URL if not provided. Defaults to .EGA_TOKEN_URL =
+\code{"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"}.}
 }
 \value{
 A list containing the token details if successful. Actual token value

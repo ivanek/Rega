@@ -511,9 +511,8 @@ is_valid_http_method <- function(m) {
 #'   \code{NULL}
 #' @param token_url Character, optional. Token endpoint URL from which to obtain
 #'   the access token. If \code{bearer_token} is specified, it will take
-#'   precedence. If \code{NULL}, URL
-#'   `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`
-#'   will be used. Defaults to \code{NULL}.
+#'   precedence. Defaults to .EGA_TOKEN_URL =
+#'   `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`.
 #'
 #' @return A dynamically generated function that performs the specified API
 #'   operation. The function accepts arguments corresponding to operation
@@ -540,7 +539,7 @@ is_valid_http_method <- function(m) {
 #'
 #' @export
 api_function_factory <- function(
-    op, api, verbosity = 0, bearer_token = NULL, token_url = NULL
+    op, api, verbosity = 0, bearer_token = NULL, token_url = .EGA_TOKEN_URL
 ) {
     if (!is_valid_http_method(op$method)) stop("Invalid http method.")
     .validate_character_scalar(op$path)
@@ -559,9 +558,10 @@ api_function_factory <- function(
         .validate_character_scalar(bearer_token)
     }
 
-    if (!is.null(token_url)) {
-        .validate_character_scalar(token_url)
-    }
+    .validate_character_scalar(token_url)
+    # if (!is.null(token_url)) {
+    #     .validate_character_scalar(token_url)
+    # }
 
     resp <- NULL # lint
     func_args <- body_exprs <- list() # will contain function arguments and body

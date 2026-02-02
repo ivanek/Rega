@@ -68,4 +68,14 @@ test_that("ega_token rejects invalid token_url types ", {
     ega_token(token_url = c("url1", "url2")),
     "non-empty character scalar"
   )
+
+  expect_error(
+    ega_token(base_req, token_url = NULL),
+    "must be a non-empty character scalar"
+  )
+
+  expect_error(
+    ega_token(base_req, token_url = list()),
+    "must be a non-empty character scalar"
+  )
 })

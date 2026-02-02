@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # 1) Happy Path Tests
 # ------------------------------------------------------------------------------
-test_that("ega_oauth creates a valid request object (Happy Paths)", {
+test_that("ega_oauth creates a valid request object", {
   # Setup mock
   mock_req_auth <- function(req, client, username, password, ...) {
     req$client <- client
@@ -29,7 +29,7 @@ test_that("ega_oauth creates a valid request object (Happy Paths)", {
   expect_equal(result$url, "https://api.ega.org")
   expect_equal(
     result$client$token_url,
-    "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
+    .EGA_TOKEN_URL
   )
 
   result_custom <- ega_oauth(
@@ -51,12 +51,13 @@ test_that("ega_oauth creates a valid request object (Happy Paths)", {
 # 2) Error Path Tests
 # ------------------------------------------------------------------------------
 
-test_that("ega_oauth handles logic and type failures (Error Paths)", {
+test_that("ega_oauth handles logic and type failures", {
   expect_error(
     ega_oauth(req = "not a list or request"),
     "must be an 'httr2_request'"
   )
   expect_error(ega_oauth(req = 12345))
+  expect_error(ega_oauth(new.env()))
 
   # 2. Invalid 'token_url' type (Logic failure)
   base_req <- list(url = "https://api.ega.org")
@@ -64,6 +65,18 @@ test_that("ega_oauth handles logic and type failures (Error Paths)", {
     ega_oauth(base_req, token_url = c("url1.com", "url2.com")),
     "must be a non-empty character scalar"
   )
-  expect_error(ega_oauth(base_req, token_url = 100))
-  expect_error(ega_oauth(new.env()))
+  expect_error(
+    ega_oauth(base_req, token_url = 100),
+    "must be a non-empty character scalar"
+  )
+
+  expect_error(
+    ega_oauth(base_req, token_url = NULL),
+    "must be a non-empty character scalar"
+  )
+
+  expect_error(
+    ega_oauth(base_req, token_url = list()),
+    "must be a non-empty character scalar"
+  )
 })

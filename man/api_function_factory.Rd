@@ -9,7 +9,7 @@ api_function_factory(
   api,
   verbosity = 0,
   bearer_token = NULL,
-  token_url = NULL
+  token_url = .EGA_TOKEN_URL
 )
 }
 \arguments{
@@ -29,9 +29,8 @@ authentication, will be included in the headers of the request. Defaults to
 
 \item{token_url}{Character, optional. Token endpoint URL from which to obtain
 the access token. If \code{bearer_token} is specified, it will take
-precedence. If \code{NULL}, URL
-\code{"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"}
-will be used. Defaults to \code{NULL}.}
+precedence. Defaults to .EGA_TOKEN_URL =
+\code{"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"}.}
 }
 \value{
 A dynamically generated function that performs the specified API

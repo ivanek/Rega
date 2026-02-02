@@ -18,6 +18,7 @@ test_that("Operation with requestBody => function has 'body' formal arg", {
   expect_true("body" %in% args_names)
   expect_match(body_text, 'url <- \"https://example.com/items\"')
   expect_match(body_text, 'req <- req_method\\(request\\(url\\), \"POST\")')
+  expect_match(body_text, 'token_url = "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"')
 })
 
 test_that("Operation without requestBody", {
@@ -154,5 +155,54 @@ test_that("'verbosity is out of range", {
   expect_error(
     api_function_factory(op, list(openapi = "3.1.0"), verbosity = 15),
     "'verbosity' must be numeric between 0 and 3"
+  )
+})
+
+test_that("bearer_token is not character scalar or null", {
+  op <- list(
+    method = "GET",
+    path = "/items"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), bearer_token = 123),
+    "non-empty character scalar"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), bearer_token = c("foo", "bar")),
+    "non-empty character scalar"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), bearer_token = list()),
+    "non-empty character scalar"
+  )
+})
+
+test_that("token_url token is not character scalar", {
+  op <- list(
+    method = "GET",
+    path = "/items"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), token_url = 123),
+    "non-empty character scalar"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), token_url = c("foo", "bar")),
+    "non-empty character scalar"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), token_url = list()),
+    "non-empty character scalar"
+  )
+
+  expect_error(
+    api_function_factory(op, list(openapi = "3.1.0"), token_url = NULL),
+    "non-empty character scalar"
   )
 })

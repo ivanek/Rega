@@ -1,3 +1,11 @@
+#' Default URL for EGA OAuth token
+#'
+#' @keywords internal
+.EGA_TOKEN_URL <- paste0(
+    "https://idp.ega-archive.org/",
+    "realms/EGA/protocol/openid-connect/token"
+)
+
 #' Retrieve Rega secret from Environment Variable
 #'
 #' Retrieves the Rega secret from the specified environment variable. If the key
@@ -134,7 +142,8 @@
 #' @param password Character. EGA user Password. Defaults to the value returned
 #'   by `.get_ega_password()`.
 #' @param token_url Character. The URL for the EGA token endpoint. Defaults to
-#'   the standard EGA token URL if not provided.
+#'  .EGA_TOKEN_URL =
+#'  `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`.
 #'
 #' @return returns a modified HTTP request that will use OAuth
 #'
@@ -153,20 +162,13 @@
 #' @export
 ega_oauth <- function(
     req, username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL
+    token_url = .EGA_TOKEN_URL
 ) {
     if (!is.list(req) && !inherits(req, "httr2_request")) {
         stop("'req' must be an 'httr2_request' or compatible request object.")
     }
 
-    if (is.null(token_url)) {
-        token_url <- paste0(
-            "https://idp.ega-archive.org/",
-            "realms/EGA/protocol/openid-connect/token"
-        )
-    } else {
-        .validate_character_scalar(token_url)
-    }
+    .validate_character_scalar(token_url)
 
     client <- oauth_client(
         id = "sp-api",
@@ -196,7 +198,8 @@ ega_oauth <- function(
 #' @param password Character. The password for EGA authentication. Defaults to
 #'   the value returned by `.get_ega_password()`.
 #' @param token_url Character. The URL for the EGA token endpoint. Defaults to
-#'   the standard EGA token URL if not provided. Defaults to \code{NULL}.
+#'   the standard EGA token URL if not provided. Defaults to .EGA_TOKEN_URL =
+#'   `"https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"`.
 #'
 #' @return A list containing the token details if successful. Actual token value
 #'   can be retrieved by `token$access_token`
@@ -216,17 +219,9 @@ ega_oauth <- function(
 #' @export
 ega_token <- function(
     username = .get_ega_username(), password = .get_ega_password(),
-    token_url = NULL
+    token_url = .EGA_TOKEN_URL
 ) {
-    if (is.null(token_url)) {
-        # Use default EGA token URL
-        token_url <- paste0(
-            "https://idp.ega-archive.org/",
-            "realms/EGA/protocol/openid-connect/token"
-        )
-    } else {
-        .validate_character_scalar(token_url)
-    }
+    .validate_character_scalar(token_url)
 
     response <- request(token_url) |>
         req_body_form(
