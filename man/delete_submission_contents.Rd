@@ -33,6 +33,6 @@ mock_client <- list(
     "delete__submissions__provisional_id__datasets" =
         function(id) list(status = "deleted")
 )
-delete_submission_contents(5678901, mock_client)
+delete_submission_contents(5678901, client = mock_client)
 
 }

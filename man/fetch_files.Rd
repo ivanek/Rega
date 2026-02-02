@@ -22,7 +22,9 @@ found for every element of \code{file_list} and return the server response.
 }
 \examples{
 mock_client <- list(
-    get__files = function(prefix = NULL) list(prefix)
+    get__files = function(prefix = NULL) {
+        data.frame(provisional_id = 12345, ega_relative_path = prefix)
+      }
 )
 fetch_files(c("file_a", "file_b"), mock_client)
 

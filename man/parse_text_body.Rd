@@ -8,8 +8,6 @@ parse_text_body(resp)
 }
 \arguments{
 \item{resp}{An \code{httr2_response} object with "text/plain" content.}
-
-\item{resource_name}{String used as the column name for raw text output.}
 }
 \value{
 A list of parsed data or a tibble if the content is raw text.
@@ -27,6 +25,6 @@ text_resp <- httr2::response(
     headers = list("content-type" = "text/plain"),
     body = charToRaw("Sample response text")
 )
-parse_text_body(text_resp, "files")
+parse_text_body(text_resp)
 
 }

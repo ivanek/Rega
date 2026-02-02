@@ -25,11 +25,11 @@ error using the variable name.
 }
 \examples{
 # Returns TRUE silently
-.validate_character_scalar("valid_string", "input_arg")
+Rega:::.validate_character_scalar("valid_string", "input_arg")
 
 # Throws an error for an empty string
 tryCatch(
-    .validate_character_scalar("", "empty_arg"),
+    Rega:::.validate_character_scalar("", "empty_arg"),
     error = function(e) message(e$message)
 )
 

@@ -28,21 +28,19 @@ test_that(".get_ega_username: keyring, multiple users, returns first", {
 })
 
 test_that(".get_ega_username happy paths: envvar (keyring not set)", {
-  test_var <- "TEST_EGA_USER"
-  Sys.setenv("TEST_EGA_USER" = "jdoe_ega")
-  on.exit(Sys.unsetenv(test_var))
+  Sys.setenv(
+    "REGA_EGA_USERNAME" = "default_user",
+    "TEST_EGA_USER" = "jdoe_ega"
+  )
+  on.exit(Sys.unsetenv(c("TEST_EGA_USER", "REGA_EGA_USERNAME")))
 
   result <- .get_ega_username(
     # long random service name
     keyring_name = paste(sample(LETTERS, 100, replace = TRUE), collapse = ""),
-    envvar = test_var
+    envvar = "TEST_EGA_USER"
   )
   expect_equal(result, "jdoe_ega")
   expect_type(result, "character")
-
-  Sys.setenv("REGA_EGA_USERNAME" = "default_user")
-  on.exit(Sys.unsetenv("REGA_EGA_USERNAME"), add = TRUE)
-
   expect_equal(.get_ega_username(), "default_user")
 })
 
@@ -71,3 +69,4 @@ test_that(".get_ega_username handles invalid inputs (Error Paths)", {
   expect_error(.get_ega_username(keyring_name = ""), "must be a non-empty character scalar")
   expect_error(.get_ega_username(envvar = ""), "must be a non-empty character scalar")
 })
+

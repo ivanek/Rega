@@ -31,9 +31,9 @@ ID using the client and logs the responses if a logfile is specified.
 }
 \examples{
 mock_client <- list(
-    "put__submissions__accession_id__datasets_rollback" =
+    "put__submissions__accession_id__datasets__rollback" =
         function(id) list(status = "rolled back")
 )
-rollback_submission("provisional123", mock_client, c("datasets"))
+rollback_submission("EGAB00000000001", list("datasets"), mock_client)
 
 }

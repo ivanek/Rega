@@ -460,7 +460,9 @@ try_step <- function(step_name, logic_fn, rollback_fn, responses, logfile) {
 #'
 #' @examples
 #' mock_client <- list(
-#'     get__files = function(prefix = NULL) list(prefix)
+#'     get__files = function(prefix = NULL) {
+#'         data.frame(provisional_id = 12345, ega_relative_path = prefix)
+#'       }
 #' )
 #' fetch_files(c("file_a", "file_b"), mock_client)
 #'
@@ -513,6 +515,12 @@ fetch_files <- function(file_list, client = NULL) {
 #' @return Logical TRUE if validation passes.
 #'
 #' @examples
+#' my_client <- list(
+#'     get__samples = function(prefix = NULL) {
+#'         data.frame(alias = c("unique_sample1", "unique_sample_2"))
+#'       }
+#' )
+#'
 #' samples_in_db(c("sample1", "sample2"), client = my_client, retrieve = FALSE)
 #'
 #' @export

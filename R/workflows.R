@@ -76,8 +76,8 @@
 #'
 #' @export
 new_submission <- function(
-    dat, client = NULL, logfile = NULL, submission_id = NULL,
-    retrieve = FALSE, ...
+  dat, client = NULL, logfile = NULL, submission_id = NULL,
+  retrieve = FALSE, ...
 ) {
     # The rest of arguments are validated in the respective functions
     if (!is.list(dat) || is.null(names(dat))) {
@@ -307,8 +307,8 @@ new_submission <- function(
 #'
 #' @export
 finalise_submission <- function(
-    id, release_date, dataset_changelogs = data.frame(), client = NULL,
-    logfile = NULL, ...
+  id, release_date, dataset_changelogs = data.frame(), client = NULL,
+  logfile = NULL, ...
 ) {
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
@@ -393,7 +393,7 @@ finalise_submission <- function(
 #'     "delete__submissions__provisional_id__datasets" =
 #'         function(id) list(status = "deleted")
 #' )
-#' use_submission("EGAB12345678901", mock_client, "get")
+#' use_submission("EGAB12345678901", "get", mock_client)
 #'
 #' @export
 use_submission <- function(id, method, client = NULL) {
@@ -516,7 +516,7 @@ get_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @export
 get_entry_by_title <- function(
-    title, type = NULL, client = NULL, logfile = NULL, ...
+  title, type = NULL, client = NULL, logfile = NULL, ...
 ) {
     valid_types <- c(
         "submissions", "studies", "samples", "experiments", "runs", "analyses",
@@ -580,7 +580,7 @@ get_entry_by_title <- function(
 #'     "delete__submissions__provisional_id__datasets" =
 #'         function(id) list(status = "deleted")
 #' )
-#' delete_submission_contents(5678901, mock_client)
+#' delete_submission_contents(5678901, client = mock_client)
 #'
 #' @export
 delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
@@ -594,7 +594,7 @@ delete_submission_contents <- function(id, client = NULL, logfile = NULL, ...) {
         .is_client(client)
     }
 
-    responses <- use_submission(id, client, "delete")
+    responses <- use_submission(id, "delete", client)
     save_log(responses, logfile)
     responses
 }
@@ -663,14 +663,14 @@ delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @examples
 #' mock_client <- list(
-#'     "put__submissions__accession_id__datasets_rollback" =
+#'     "put__submissions__accession_id__datasets__rollback" =
 #'         function(id) list(status = "rolled back")
 #' )
-#' rollback_submission("provisional123", mock_client, c("datasets"))
+#' rollback_submission("EGAB00000000001", list("datasets"), mock_client)
 #'
 #' @export
 rollback_submission <- function(
-    id, endpoints, client = NULL, logfile = NULL, ...
+  id, endpoints, client = NULL, logfile = NULL, ...
 ) {
     if (!is_accession(id)) {
         stop(

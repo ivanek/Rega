@@ -45,7 +45,7 @@ add_required_str <- function(p, r, req_str = "* ") {
 #'
 #' @examples
 #' # Create API client with mock api_key
-#' client <- create_client(extract_api(), api_key = "ABCD")
+#' client <- create_client(extract_api(), token_url = "ABCD")
 #'
 #' # Retrieve enum values from the API client (requires credentials to work)
 #' try(
@@ -328,13 +328,13 @@ na_to_empty_list <- function(l) {
 #'
 #' @examples
 #' # Returns TRUE for simple, single values
-#' .is_scalar(5L)
-#' .is_scalar("hello")
-#' .is_scalar(TRUE)
+#' Rega:::.is_scalar(5L)
+#' Rega:::.is_scalar("hello")
+#' Rega:::.is_scalar(TRUE)
 #' # Returns FALSE for vectors, lists, or complex numbers
-#' .is_scalar(c(1, 2))
-#' .is_scalar(list(1))
-#' .is_scalar(1 + 1i)
+#' Rega:::.is_scalar(c(1, 2))
+#' Rega:::.is_scalar(list(1))
+#' Rega:::.is_scalar(1 + 1i)
 #'
 #' @keywords internal
 .is_scalar <- function(x) {
@@ -358,11 +358,11 @@ na_to_empty_list <- function(l) {
 #'
 #' @examples
 #' # Returns TRUE silently
-#' .validate_character_scalar("valid_string", "input_arg")
+#' Rega:::.validate_character_scalar("valid_string", "input_arg")
 #'
 #' # Throws an error for an empty string
 #' tryCatch(
-#'     .validate_character_scalar("", "empty_arg"),
+#'     Rega:::.validate_character_scalar("", "empty_arg"),
 #'     error = function(e) message(e$message)
 #' )
 #'
@@ -399,11 +399,11 @@ na_to_empty_list <- function(l) {
 #'
 #' @examples
 #' # Returns TRUE silently
-#' .validate_logical_scalar(TRUE, "input_check")
+#' Rega:::.validate_logical_scalar(TRUE, "input_check")
 #'
 #' # Throws an error for a logical NA
 #' tryCatch(
-#'     .validate_logical_scalar(NA, "na_arg"),
+#'     Rega:::.validate_logical_scalar(NA, "na_arg"),
 #'     error = function(e) message(e$message)
 #' )
 #'
@@ -445,7 +445,7 @@ na_to_empty_list <- function(l) {
 #'     get_resource = function(...) "GET",
 #'     post_data = function(...) "POST"
 #' )
-#' .is_client(valid_client)
+#' Rega:::.is_client(valid_client)
 #'
 #' @keywords internal
 .is_client <- function(client) {

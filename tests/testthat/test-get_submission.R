@@ -11,7 +11,7 @@ test_that("correctly routes to provisional_id endpoint and returns a list", {
 
   local_mocked_bindings(
     create_client = function(api) mock_client,
-    use_submission = function(id, client, action) mock_resp
+    use_submission = function(id, action, client) mock_resp
   )
 
   result <- get_submission(id = 12345)

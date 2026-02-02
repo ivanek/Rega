@@ -23,6 +23,12 @@ records in the EGA database. Throws an error if duplicates are found and
 retrieval is not enabled.
 }
 \examples{
+my_client <- list(
+    get__samples = function(prefix = NULL) {
+        data.frame(alias = c("unique_sample1", "unique_sample_2"))
+      }
+)
+
 samples_in_db(c("sample1", "sample2"), client = my_client, retrieve = FALSE)
 
 }

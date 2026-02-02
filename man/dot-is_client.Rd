@@ -25,7 +25,7 @@ valid_client <- list(
     get_resource = function(...) "GET",
     post_data = function(...) "POST"
 )
-.is_client(valid_client)
+Rega:::.is_client(valid_client)
 
 }
 \keyword{internal}

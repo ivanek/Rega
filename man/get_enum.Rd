@@ -24,7 +24,7 @@ invoking the corresponding client function.
 }
 \examples{
 # Create API client with mock api_key
-client <- create_client(extract_api(), api_key = "ABCD")
+client <- create_client(extract_api(), token_url = "ABCD")
 
 # Retrieve enum values from the API client (requires credentials to work)
 try(

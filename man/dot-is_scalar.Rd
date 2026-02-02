@@ -19,13 +19,13 @@ one, excluding complex numbers.
 }
 \examples{
 # Returns TRUE for simple, single values
-.is_scalar(5L)
-.is_scalar("hello")
-.is_scalar(TRUE)
+Rega:::.is_scalar(5L)
+Rega:::.is_scalar("hello")
+Rega:::.is_scalar(TRUE)
 # Returns FALSE for vectors, lists, or complex numbers
-.is_scalar(c(1, 2))
-.is_scalar(list(1))
-.is_scalar(1 + 1i)
+Rega:::.is_scalar(c(1, 2))
+Rega:::.is_scalar(list(1))
+Rega:::.is_scalar(1 + 1i)
 
 }
 \keyword{internal}

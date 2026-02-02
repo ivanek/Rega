@@ -7,8 +7,8 @@
 .get_rega_key(secret_ennvar = "REGA_KEY")
 }
 \arguments{
-\item{envvar}{A string specifying the name of the environment variable to
-retrieve the API key from. Defaults to \code{"REGA_KEY"}.}
+\item{secret_ennvar}{A string specifying the name of the environment variable
+to retrieve the API key from. Defaults to \code{"REGA_KEY"}.}
 }
 \value{
 A string containing the REGA API key, or an empty string if the
@@ -22,7 +22,8 @@ using \code{export} command in bash or at the the user-level in the \code{.Renvi
 file
 }
 \examples{
-rega_key <- Rega:::.get_rega_key()
-
+try(
+    rega_key <- Rega:::.get_rega_key()
+)
 }
 \keyword{internal}

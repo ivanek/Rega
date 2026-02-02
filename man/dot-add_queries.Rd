@@ -19,7 +19,7 @@ This function creates an expression to add query parameters to an API
 request.
 }
 \examples{
-Rega:::.add_queries(list())
+Rega:::.add_queries("queries")
 
 opdefs <- extract_operation_definitions(extract_api())
 params <- Rega:::.get_operation_params(opdefs[["get__files"]])

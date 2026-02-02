@@ -14,8 +14,8 @@
 #' using `export` command in bash or at the the user-level in the `.Renviron`
 #' file
 #'
-#' @param envvar A string specifying the name of the environment variable to
-#'   retrieve the API key from. Defaults to \code{"REGA_KEY"}.
+#' @param secret_ennvar A string specifying the name of the environment variable
+#'   to retrieve the API key from. Defaults to \code{"REGA_KEY"}.
 #'
 #' @return A string containing the REGA API key, or an empty string if the
 #'   variable is not set.
@@ -23,7 +23,7 @@
 #' @importFrom httr2 secret_make_key
 #'
 #' @examples
-#' tryCatch(
+#' try(
 #'     rega_key <- Rega:::.get_rega_key()
 #' )
 #' @keywords internal
@@ -101,7 +101,7 @@
 #' @importFrom keyring key_get
 #'
 #' @examples
-#' tryCatch(
+#' try(
 #'     ega_password <- Rega:::.get_ega_password()
 #' )
 #'
@@ -155,7 +155,7 @@
 #' req <- httr2::request("https://example.com/")
 #'
 #' # Request OAuth with default credentials
-#' oauth_req <- ega_oauth(req)
+#' try(oauth_req <- ega_oauth(req))
 #'
 #' # Request OAuth with custom credentials
 #' oauth_req <- ega_oauth(req, username = "user", password = "pass")

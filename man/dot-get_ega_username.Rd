@@ -22,7 +22,7 @@ an interactive prompt, following that priority order.
 }
 \examples{
 tryCatch(
-    Rega:::.get_ega_username()
+    Rega:::.get_ega_username("REGA_EGA_USERNAME")
 )
 
 }

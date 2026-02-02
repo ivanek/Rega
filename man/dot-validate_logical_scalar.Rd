@@ -24,11 +24,11 @@ an error using the variable name.
 }
 \examples{
 # Returns TRUE silently
-.validate_logical_scalar(TRUE, "input_check")
+Rega:::.validate_logical_scalar(TRUE, "input_check")
 
 # Throws an error for a logical NA
 tryCatch(
-    .validate_logical_scalar(NA, "na_arg"),
+    Rega:::.validate_logical_scalar(NA, "na_arg"),
     error = function(e) message(e$message)
 )
 

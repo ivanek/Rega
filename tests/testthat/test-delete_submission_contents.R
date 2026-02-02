@@ -9,7 +9,7 @@ test_that("successfully deletes a submission with default client", {
   local_mocked_bindings(
     create_client = function(...) list(get__response = function(x) "default_client"),
     save_log = function(...) "log_saved",
-    use_submission = function(id, client, action) {
+    use_submission = function(id, action, client) {
       expect_equal(action, "delete")
       mock_response
     }
@@ -28,7 +28,7 @@ test_that("works correctly when a custom client is provided", {
   mock_response <- list(id = mock_id, status = "deleted", contents = NULL)
 
   local_mocked_bindings(
-    use_submission = function(id, client, action) mock_response
+    use_submission = function(id, action, client) mock_response
   )
 
   expect_no_error(
@@ -59,7 +59,7 @@ test_that("raises error when provided client is invalid", {
 test_that("propagates errors from the client method", {
   local_mocked_bindings(
     create_client = function(api) list(),
-    use_submission = function(id, client, action) stop("Unauthorized Access")
+    use_submission = function(id, action, client) stop("Unauthorized Access")
   )
 
   expect_error(delete_submission_contents(id = "123"), "Unauthorized Access")

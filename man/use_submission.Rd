@@ -34,6 +34,6 @@ mock_client <- list(
     "delete__submissions__provisional_id__datasets" =
         function(id) list(status = "deleted")
 )
-use_submission("EGAB12345678901", mock_client, "get")
+use_submission("EGAB12345678901", "get", mock_client)
 
 }

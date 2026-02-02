@@ -25,7 +25,7 @@ environment variable, the value is decrypted using a key retrieved via
 \code{.get_rega_key}.
 }
 \examples{
-tryCatch(
+try(
     ega_password <- Rega:::.get_ega_password()
 )
 

@@ -399,7 +399,7 @@ is_valid_http_method <- function(m) {
 #' @importFrom stats setNames
 #'
 #' @examples
-#' Rega:::.add_queries(list())
+#' Rega:::.add_queries("queries")
 #'
 #' opdefs <- extract_operation_definitions(extract_api())
 #' params <- Rega:::.get_operation_params(opdefs[["get__files"]])
@@ -798,7 +798,6 @@ parse_json_body <- function(resp) {
 #' elements are converted to empty lists to facilitate unnesting.
 #'
 #' @param resp An `httr2_response` object with "text/plain" content.
-#' @param resource_name String used as the column name for raw text output.
 #'
 #' @return A list of parsed data or a tibble if the content is raw text.
 #'
@@ -815,7 +814,7 @@ parse_json_body <- function(resp) {
 #'     headers = list("content-type" = "text/plain"),
 #'     body = charToRaw("Sample response text")
 #' )
-#' parse_text_body(text_resp, "files")
+#' parse_text_body(text_resp)
 #'
 #' @export
 parse_text_body <- function(resp) {

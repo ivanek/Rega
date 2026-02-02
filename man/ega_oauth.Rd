@@ -38,7 +38,7 @@ captured by \code{.Rhistory}.
 req <- httr2::request("https://example.com/")
 
 # Request OAuth with default credentials
-oauth_req <- ega_oauth(req)
+try(oauth_req <- ega_oauth(req))
 
 # Request OAuth with custom credentials
 oauth_req <- ega_oauth(req, username = "user", password = "pass")
