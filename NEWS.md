@@ -1,4 +1,4 @@
-# Rega 0.99.2
+# Rega 0.99.3
 
 * **Initial public release.**
 * Provides excel template for filling in submission data

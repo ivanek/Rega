@@ -23,8 +23,9 @@
 #' @importFrom httr2 secret_make_key
 #'
 #' @examples
-#' rega_key <- Rega:::.get_rega_key()
-#'
+#' tryCatch(
+#'     rega_key <- Rega:::.get_rega_key()
+#' )
 #' @keywords internal
 .get_rega_key <- function(secret_ennvar = "REGA_KEY") {
     .validate_character_scalar(secret_ennvar)
@@ -57,7 +58,7 @@
 #'
 #' @examples
 #' tryCatch(
-#'     Rega:::.get_ega_username()
+#'     Rega:::.get_ega_username("REGA_EGA_USERNAME")
 #' )
 #'
 #' @keywords internal

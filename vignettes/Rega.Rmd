@@ -124,11 +124,8 @@ Now, use your master key (REGA_KEY) to encrypt your actual EGA password. This
 ensures that even if someone sees your .Renviron file, they cannot read your 
 password.
 
-```{r encrypt-password}
-# Replace <your-ega-password> with your actual password
-# This returns a long encrypted string. Copy it.
-httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")
-```
+Run `httr2::secret_encrypt("<your-ega-password>", "REGA_KEY")` and copy the 
+encrypted password.
 
 ### Store the encrypted password
 
