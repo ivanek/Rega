@@ -1,6 +1,6 @@
 Package: Rega
 Title: R Interface to European Genome-Phenome Archive
-Version: 0.99.5
+Version: 0.99.6
 Authors@R:
    c(
     person(
@@ -26,7 +26,7 @@ License: Artistic-2.0
 URL: https://github.com/ivanek/Rega
 BugReports: https://github.com/ivanek/Rega/issues
 Depends:
-    R (>= 4.5)
+    R (>= 4.6)
 Imports: 
     askpass,
     httr2,
