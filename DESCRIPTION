@@ -1,6 +1,6 @@
 Package: Rega
 Title: R Interface to European Genome-Phenome Archive
-Version: 0.99.4
+Version: 0.99.5
 Authors@R:
    c(
     person(

@@ -53,7 +53,7 @@
 #'
 #' @return A character string containing the username.
 #'
-#' @importFrom keyring key_list
+#' @importFrom keyring key_list default_backend
 #' @importFrom askpass askpass
 #'
 #' @examples
@@ -68,17 +68,22 @@
     .validate_character_scalar(keyring_name)
     .validate_character_scalar(envvar)
 
-    keyring_user <- key_list(keyring_name)$username
-    envvar_user <- Sys.getenv(envvar)
-
-    ega_username <- if (!is.null(keyring_user) && length(keyring_user) > 0) {
-        key_list(keyring_name)$username[1]
-    } else if (!identical(envvar_user, "")) {
-        envvar_user
-    } else {
-        askpass(prompt = "Please enter your EGA username:")
+    # Attempt Keyring only if the backend exists and is not just 'env'
+    if (!identical(default_backend()$name, "env")) {
+        keyring_user <- key_list(keyring_name)$username
+        if (length(keyring_user) > 0) {
+            return(keyring_user[1])
+        }
     }
-    ega_username
+
+    # Attempt Environment Variable
+    envvar_user <- Sys.getenv(envvar)
+    if (!identical(envvar_user, "")) {
+        return(envvar_user)
+    }
+
+    # Fallback to Interactive Prompt
+    askpass(prompt = "Please enter your EGA username:")
 }
 
 #' Retrieve EGA Password

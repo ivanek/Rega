@@ -76,8 +76,8 @@
 #'
 #' @export
 new_submission <- function(
-  dat, client = NULL, logfile = NULL, submission_id = NULL,
-  retrieve = FALSE, ...
+    dat, client = NULL, logfile = NULL, submission_id = NULL,
+    retrieve = FALSE, ...
 ) {
     # The rest of arguments are validated in the respective functions
     if (!is.list(dat) || is.null(names(dat))) {
@@ -307,8 +307,8 @@ new_submission <- function(
 #'
 #' @export
 finalise_submission <- function(
-  id, release_date, dataset_changelogs = data.frame(), client = NULL,
-  logfile = NULL, ...
+    id, release_date, dataset_changelogs = data.frame(), client = NULL,
+    logfile = NULL, ...
 ) {
     if (is_accession(id)) {
         base_url <- "submissions__accession_id"
@@ -516,7 +516,7 @@ get_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @export
 get_entry_by_title <- function(
-  title, type = NULL, client = NULL, logfile = NULL, ...
+    title, type = NULL, client = NULL, logfile = NULL, ...
 ) {
     valid_types <- c(
         "submissions", "studies", "samples", "experiments", "runs", "analyses",
@@ -670,7 +670,7 @@ delete_submission <- function(id, client = NULL, logfile = NULL, ...) {
 #'
 #' @export
 rollback_submission <- function(
-  id, endpoints, client = NULL, logfile = NULL, ...
+    id, endpoints, client = NULL, logfile = NULL, ...
 ) {
     if (!is_accession(id)) {
         stop(
