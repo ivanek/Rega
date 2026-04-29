@@ -554,5 +554,5 @@ samples_in_db <- function(samples, client = NULL, retrieve = FALSE) {
         stop(err_msg)
     }
 
-    TRUE
+    FALSE
 }
