@@ -8,15 +8,19 @@ test_that("samples_in_db works on happy paths", {
     get__samples = function() data.frame(alias = c("S1", "S2"))
   )
 
-  expect_true(samples_in_db(c("S3", "S4"), client = mock_client))
+  expect_false(samples_in_db(c("S3", "S4"), client = mock_client))
   expect_type(samples_in_db("S3", client = mock_client), "logical")
 
-  expect_true(
+  expect_false(
     samples_in_db(c("S1", "S3"), client = mock_client, retrieve = TRUE)
   )
 
+  expect_error(
+    samples_in_db(c("S1", "S3"), client = mock_client, retrieve = FALSE)
+  )
+
   long_vec <- paste0("sample_", 1:100)
-  expect_true(samples_in_db(long_vec, client = mock_client))
+  expect_false(samples_in_db(long_vec, client = mock_client))
 })
 
 test_that("samples_in_db default client path", {
@@ -28,7 +32,7 @@ test_that("samples_in_db default client path", {
     create_client = function(...) mock_client
   )
 
-  expect_true(samples_in_db(c("S3", "S4")))
+  expect_false(samples_in_db(c("S3", "S4")))
   expect_type(samples_in_db("S3"), "logical")
 })
 
